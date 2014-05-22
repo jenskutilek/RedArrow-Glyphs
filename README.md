@@ -3,7 +3,7 @@ RedArrow-Glyphs
 
 Glyphs users can also have red arrows. This plugin points at possible outline errors, like FontAudit in FontLab Studio.
 
-!(screenshot.png "Red Arrow Screenshot")
+![](screenshot.png)
 
 So far, the plugin only indicates extremum point errors.
 
