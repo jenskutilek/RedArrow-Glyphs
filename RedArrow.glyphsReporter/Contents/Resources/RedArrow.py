@@ -143,10 +143,10 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 					p3 = segment[2].pointValue()
 					p4 = segment[3].pointValue()
 					myRect = NSMakeRect(
-									min(p1.x, p4.x)-1,
-									min(p1.y, p4.y)-1,
-									max(p1.x, p4.x) - min(p1.x, p4.x)+2,
-									max(p1.y, p4.y) - min(p1.y, p4.y)+2
+									min(p1.x, p4.x),
+									min(p1.y, p4.y),
+									max(p1.x, p4.x) - min(p1.x, p4.x)+0.1,
+									max(p1.y, p4.y) - min(p1.y, p4.y)+0.1
 									)
 					if not (NSPointInRect(p2, myRect) and NSPointInRect(p3, myRect)):
 						points = getExtremaForCubic((p1.x, p1.y), (p2.x, p2.y), (p3.x, p3.y), (p4.x, p4.y))
