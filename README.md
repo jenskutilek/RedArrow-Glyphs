@@ -1,11 +1,11 @@
 RedArrow-Glyphs
 ===============
 
-Glyphs users can also have red arrows.
+Glyphs users can also have red arrows. This plugin points at possible outline errors, like FontAudit in FontLab Studio.
 
-<img src="https://raw.github.com/jenskutilek/RedArrow-Glyphs/master/screenshot.png" width="300" height="530" alt="">
+!(screenshot.png "Red Arrow Screenshot")
 
-This is a very rudimentary version which only shows extremum point errors (and some smooth connection errors, including correct ones).
+So far, the plugin only indicates extremum point errors.
 
 ### Installation
 
