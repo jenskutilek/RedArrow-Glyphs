@@ -5,6 +5,7 @@ import objc
 from Foundation import *
 from AppKit import *
 import sys, os, re
+from string import strip
 
 from helpers import getExtremaForCubic, RedArrowError
 
@@ -133,31 +134,53 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 	
 	
 	def _updateOutlineCheck(self, layer):
-		self.errors = []
+		self.current_layer = layer
+		self.errors = {}
 		for path in layer.paths:
 			for i in range(len(path.segments)):
 				segment = path.segments[i]
 				if len(segment) == 4: # curve
-					p1 = segment[0].pointValue()
-					p2 = segment[1].pointValue()
-					p3 = segment[2].pointValue()
-					p4 = segment[3].pointValue()
-					myRect = NSMakeRect(
-									min(p1.x, p4.x),
-									min(p1.y, p4.y),
-									max(p1.x, p4.x) - min(p1.x, p4.x)+0.1,
-									max(p1.y, p4.y) - min(p1.y, p4.y)+0.1
-									)
-					if not (NSPointInRect(p2, myRect) and NSPointInRect(p3, myRect)):
-						points = getExtremaForCubic((p1.x, p1.y), (p2.x, p2.y), (p3.x, p3.y), (p4.x, p4.y))
-						for p in points:
-							self.errors.append(RedArrowError(p, "Extremum"))
+					self._curveTests(segment)
 		self._drawArrows()
+	
+	def _curveTests(self, segment):
+		p1 = segment[0].pointValue()
+		p2 = segment[1].pointValue()
+		p3 = segment[2].pointValue()
+		p4 = segment[3].pointValue()
+		
+		self._globalExtremumTest(p1, p2, p3, p4)
+		self._localExtremumTest(p1, p2, p3, p4)
+		
+	def _localExtremumTest(self, p1, p2, p3, p4):
+		myRect = NSMakeRect(
+			min(p1.x, p4.x),
+			min(p1.y, p4.y),
+			max(p1.x, p4.x) - min(p1.x, p4.x),
+			max(p1.y, p4.y) - min(p1.y, p4.y)
+		)
+		if not (NSMouseInRect(p2, myRect, False) and NSMouseInRect(p3, myRect, False)):
+			points = getExtremaForCubic((p1.x, p1.y), (p2.x, p2.y), (p3.x, p3.y), (p4.x, p4.y))
+			for p in points:
+				if p in self.errors:
+					self.errors[p].extend([RedArrowError(p, "Local extremum")])
+				else:
+					self.errors[p] = [RedArrowError(p, "Local extremum")]
+	
+	def _globalExtremumTest(self, p1, p2, p3, p4):
+		myRect = self.current_layer.bounds
+		if not (NSPointInRect(p2, myRect) and NSPointInRect(p3, myRect)):
+			points = getExtremaForCubic((p1.x, p1.y), (p2.x, p2.y), (p3.x, p3.y), (p4.x, p4.y), h=True, v=True)
+			for p in points:
+				if p in self.errors:
+					self.errors[p].extend([RedArrowError(p, "Bounding box extremum")])
+				else:
+					self.errors[p] = [RedArrowError(p, "Bounding box extremum")]
 	
 	def _drawArrow(self, position, kind, size, width):
 		x, y = position
-		NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.9, 0.1, 0.0, 1.0 ).set()
-		myPath = NSBezierPath.alloc().init()  # initialize a path object myPath
+		NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.9, 0.1, 0.0, 0.85 ).set()
+		myPath = NSBezierPath.alloc().init()
 		myPath.setLineWidth_( width )
 		myPath.moveToPoint_( (x, y-size) )
 		myPath.lineToPoint_( (x, y) )
@@ -165,11 +188,26 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 		myPath.moveToPoint_( (x, y) )
 		myPath.lineToPoint_( (x+size, y-size) )
 		myPath.stroke()
+		# FIXME
+		#mx, my = NSWindow.mouseLocationOutsideOfEventStream()
+		#NSLog("Mouse %f %f" % (mx, my))
+		#if NSMouseInRect((mx, my), NSMakeRect(x-size, y-size, size, size), False):
+		if True: # show labels
+			myString = NSString.string().stringByAppendingString_(kind)
+			myString.drawAtPoint_withAttributes_(
+				(position[0] + 1.8 * size, position[1] - size),
+				{
+					NSFontAttributeName: NSFont.systemFontOfSize_(size),
+					NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.4, 0.4, 0.4, 0.7 ),
+				}
+			)
 	
-	
-	def _drawArrows(self, notification=None):
+	def _drawArrows(self):
 		scale = self.getScale()
 		size = 10.0 / scale
 		width = 3.0 / scale
-		for e in self.errors:
-			self._drawArrow(e.position, e.kind, size, width)
+		for pos, errors in self.errors.iteritems():
+			message = ""
+			for e in errors:
+				message += "%s, " % e.kind
+			self._drawArrow(pos, message.strip(", "), size, width)
