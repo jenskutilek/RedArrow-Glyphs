@@ -6,7 +6,7 @@ from Foundation import *
 from AppKit import *
 import sys, os, re
 
-from pen import RedArrowPen
+from helpers import getExtremaForCubic, RedArrowError
 
 MainBundle = NSBundle.mainBundle()
 path = MainBundle.bundlePath() + "/Contents/Scripts"
@@ -133,9 +133,25 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 	
 	
 	def _updateOutlineCheck(self, layer):
-		myPen = RedArrowPen(None, True, 1)
-		layer.draw(myPen)
-		self.errors = myPen.errors
+		self.errors = []
+		for path in layer.paths:
+			for i in range(len(path.segments)):
+				segment = path.segments[i]
+				if len(segment) == 4: # curve
+					p1 = segment[0].pointValue()
+					p2 = segment[1].pointValue()
+					p3 = segment[2].pointValue()
+					p4 = segment[3].pointValue()
+					myRect = NSMakeRect(
+									min(p1.x, p4.x)-1,
+									min(p1.y, p4.y)-1,
+									max(p1.x, p4.x) - min(p1.x, p4.x)+2,
+									max(p1.y, p4.y) - min(p1.y, p4.y)+2
+									)
+					if not (NSPointInRect(p2, myRect) and NSPointInRect(p3, myRect)):
+						points = getExtremaForCubic((p1.x, p1.y), (p2.x, p2.y), (p3.x, p3.y), (p4.x, p4.y))
+						for p in points:
+							self.errors.append(RedArrowError(p, "Extremum"))
 		self._drawArrows()
 	
 	def _drawArrow(self, position, kind, size, width):
