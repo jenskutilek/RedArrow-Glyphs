@@ -14,7 +14,7 @@ __all__ = [
     "solveCubic",
 ]
 
-from fontTools.misc.arrayTools import calcBounds
+from miniFontTools.arrayTools import calcBounds
 
 epsilon = 1e-12
 
