@@ -135,13 +135,15 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 	
 	def _updateOutlineCheck(self, layer):
 		self.current_layer = layer
-		self.errors = {}
-		for path in layer.paths:
-			for i in range(len(path.segments)):
-				segment = path.segments[i]
-				if len(segment) == 4: # curve
-					self._curveTests(segment)
-		self._drawArrows()
+		if layer is not None:
+			self.errors = {}
+			if layer.pathCount():
+				for path in layer.paths:
+					for i in range(len(path.segments)):
+						segment = path.segments[i]
+						if len(segment) == 4: # curve
+							self._curveTests(segment)
+			self._drawArrows()
 	
 	def _curveTests(self, segment):
 		p1 = segment[0].pointValue()
