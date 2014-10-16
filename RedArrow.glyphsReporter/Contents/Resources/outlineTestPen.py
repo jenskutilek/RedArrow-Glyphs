@@ -274,15 +274,16 @@ class OutlineTestPen(BasePen):
 			# distance of pt to next reference point
 			dist = distance_between_points(pt, next_ref)
 			
-			# TODO: Add sanity check to save calculating the projected point for each segment?
-			# This fails for connections around 180 degrees which may be reported as 180 or -180
-			#if 0 < abs(phi1 - phi2) < 0.1: # 0.1 (radians) = 5.7 degrees
-			# Calculate where the second reference point should be
-			projected_pt = (pt[0] + dist * cos(phi1), pt[1] + dist * sin(phi1))
-			# Compare projected position with actual position
-			badness = distance_between_points(round_point(projected_pt), next_ref)
-			if 0 < badness < self.smooth_connection_max_distance:
-				self.errors.append(OutlineError(pt, "Incorrect smooth connection", badness))
+			if dist > 2 * self.smooth_connection_max_distance: # Ignore short segments
+				# TODO: Add sanity check to save calculating the projected point for each segment?
+				# This fails for connections around 180 degrees which may be reported as 180 or -180
+				#if 0 < abs(phi1 - phi2) < 0.1: # 0.1 (radians) = 5.7 degrees
+				# Calculate where the second reference point should be
+				projected_pt = (pt[0] + dist * cos(phi1), pt[1] + dist * sin(phi1))
+				# Compare projected position with actual position
+				badness = distance_between_points(round_point(projected_pt), next_ref)
+				if 0 < badness < self.smooth_connection_max_distance:
+					self.errors.append(OutlineError(pt, "Incorrect smooth connection", badness))
 	
 	def _checkEmptyLinesAndCurves(self, pt):
 		if self._prev == pt:
