@@ -1,8 +1,7 @@
 from __future__ import division
 from math import atan2, degrees, cos, pi, sin, sqrt
-from fontTools.pens.basePen import BasePen
-from miniFontTools.arrayTools import pointInRect, normRect
-
+from miniFontTools.pens.basePen import BasePen
+from miniFontTools.misc.arrayTools import pointInRect, normRect
 
 def round_point(pt):
 	return (int(round(pt[0])), int(round(pt[1])))
@@ -14,7 +13,11 @@ def distance_between_points(p0, p1):
 	return sqrt((p1[1] - p0[1])**2 + (p1[0] - p0[0])**2)
 
 def half_point(p0, p1):
-	return ((p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2)
+	p01 = p0.copy()
+	p01[0] = (p0[0] + p1[0]) / 2
+	p01[1] = (p0[1] + p1[1]) / 2
+	return p01
+
 
 class OutlineError(object):
 	def __init__(self, position=None, kind="Unknown error", badness=None):
@@ -25,7 +28,7 @@ class OutlineError(object):
 	def __repr__(self):
 		r = "%s" % self.kind
 		if self.position is not None:
-			r += " at (%i, %i)" % self.position
+			r += " at (%i, %i)" % (self.position[0], self.position[1])
 		if self.badness is not None:
 			r += " (badness %i)" % self.badness
 		return r
@@ -66,13 +69,15 @@ class OutlineTestPen(BasePen):
 		self._prev_cstart = None
 		self._cstart = None
 		
+		self._should_test_collinear = False
+		
 		self._cache_options()
 	
 	def _cache_options(self):
 		# store options dict into instance variables
 		# in the hope that it's faster than asking the dict every time
 		self.extremum_calculate_badness = self.options.get("extremum_calculate_badness", True)
-		self.extremum_ignore_badness_below = self.options.get("extremum_ignore_badness_below", 2)
+		self.extremum_ignore_badness_below = self.options.get("extremum_ignore_badness_below", 1)
 		self.smooth_connection_max_distance = self.options.get("smooth_connection_max_distance", 4)
 		self.fractional_ignore_point_zero = self.options.get("fractional_ignore_point_zero", True)
 		self.collinear_vectors_max_distance = self.options.get("collinear_vectors_max_distance", 2)
@@ -84,6 +89,7 @@ class OutlineTestPen(BasePen):
 		self._prev_ref = None
 		self._prev = pt
 		self._is_contour_start = True
+		self._should_test_collinear = False
 		
 	def _lineTo(self, pt):
 		self._runLineTests(pt)
@@ -91,6 +97,7 @@ class OutlineTestPen(BasePen):
 		self._prev = pt
 		if self._is_contour_start:
 			self._contour_start_ref = pt
+		self._should_test_collinear = True
 	
 	def _curveToOne(self, bcp1, bcp2, pt):
 		self._runCurveTests(bcp1, bcp2, pt)
@@ -99,6 +106,7 @@ class OutlineTestPen(BasePen):
 		if self._is_contour_start:
 			self._contour_start_ref = bcp1
 			self._is_contour_start = False
+		self._should_test_collinear = False
 	
 	def _qCurveToOne(self, bcp, pt):
 		self._runQCurveTests(bcp, pt)
@@ -107,9 +115,11 @@ class OutlineTestPen(BasePen):
 		if self._is_contour_start:
 			self._contour_start_ref = bcp
 			self._is_contour_start = False
+		self._should_test_collinear = False
 	
 	def _closePath(self):
 		self._runClosePathTests()
+		self._should_test_collinear = False
 	
 	def addComponent(self, baseGlyph, transformation):
 		self._runComponentTests(baseGlyph, transformation)
@@ -126,7 +136,8 @@ class OutlineTestPen(BasePen):
 		self._checkFractionalCoordinates(pt)
 		self._checkIncorrectSmoothConnection(self._prev, pt)
 		self._checkEmptyLinesAndCurves(pt)
-		self._checkCollinearVectors(self._prev, pt)
+		if self._should_test_collinear:
+			self._checkCollinearVectors(self._prev, pt)
 		self._checkSemiHorizontalVectors(self._prev, pt)
 		self._checkSemiVerticalVectors(self._prev, pt)
 	
@@ -151,6 +162,8 @@ class OutlineTestPen(BasePen):
 	
 	def _runClosePathTests(self):
 		self._checkVectorsOnClosepath(self._prev)
+		if self._should_test_collinear:
+			self._checkCollinearVectors(self._prev, self._cstart)
 		self._checkSemiHorizontalVectors(self._prev, self._cstart)
 		self._checkSemiVerticalVectors(self._prev, self._cstart)
 	

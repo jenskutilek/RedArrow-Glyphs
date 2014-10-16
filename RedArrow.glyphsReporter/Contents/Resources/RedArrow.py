@@ -7,8 +7,6 @@ from AppKit import *
 import sys, os, re
 from string import strip
 
-from helpers import getExtremaForCubic, RedArrowError
-from objectsGS import CurrentFont
 from outlineTestPen import OutlineTestPen
 
 MainBundle = NSBundle.mainBundle()
@@ -137,44 +135,11 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 	
 	def _updateOutlineCheck(self, layer):
 		self.current_layer = layer
-		outline_test_pen = OutlineTestPen(CurrentFont())
-		layer.draw(outline_test_pen)
-		self.errors = outline_test_pen.errors
-		self._drawArrows()
-	
-	def _curveTests(self, segment):
-		p1 = segment[0].pointValue()
-		p2 = segment[1].pointValue()
-		p3 = segment[2].pointValue()
-		p4 = segment[3].pointValue()
-		
-		self._globalExtremumTest(p1, p2, p3, p4)
-		self._localExtremumTest(p1, p2, p3, p4)
-		
-	def _localExtremumTest(self, p1, p2, p3, p4):
-		myRect = NSMakeRect(
-			min(p1.x, p4.x),
-			min(p1.y, p4.y),
-			max(p1.x, p4.x) - min(p1.x, p4.x),
-			max(p1.y, p4.y) - min(p1.y, p4.y)
-		)
-		if not (NSMouseInRect(p2, myRect, False) and NSMouseInRect(p3, myRect, False)):
-			points = getExtremaForCubic((p1.x, p1.y), (p2.x, p2.y), (p3.x, p3.y), (p4.x, p4.y))
-			for p in points:
-				if p in self.errors:
-					self.errors[p].extend([RedArrowError(p, "Local extremum")])
-				else:
-					self.errors[p] = [RedArrowError(p, "Local extremum")]
-	
-	def _globalExtremumTest(self, p1, p2, p3, p4):
-		myRect = self.current_layer.bounds
-		if not (NSPointInRect(p2, myRect) and NSPointInRect(p3, myRect)):
-			points = getExtremaForCubic((p1.x, p1.y), (p2.x, p2.y), (p3.x, p3.y), (p4.x, p4.y), h=True, v=True)
-			for p in points:
-				if p in self.errors:
-					self.errors[p].extend([RedArrowError(p, "Bounding box extremum")])
-				else:
-					self.errors[p] = [RedArrowError(p, "Bounding box extremum")]
+		if layer is not None:
+			outline_test_pen = OutlineTestPen(layer.parent.parent)
+			layer.draw(outline_test_pen)
+			self.errors = outline_test_pen.errors
+			self._drawArrows()
 	
 	def _drawArrow(self, position, kind, size, width):
 		x, y = position
@@ -194,10 +159,10 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 		if True: # show labels
 			myString = NSString.string().stringByAppendingString_(kind)
 			myString.drawAtPoint_withAttributes_(
-				(position[0] + 1.8 * size, position[1] - size),
+				(position[0] + 1.8 * size, position[1] - 1.8 * size),
 				{
 					NSFontAttributeName: NSFont.systemFontOfSize_(size),
-					NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.4, 0.4, 0.4, 0.7 ),
+					NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.4, 0.4, 0.6, 0.7 ),
 				}
 			)
 	
@@ -205,8 +170,15 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 		scale = self.getScale()
 		size = 10.0 / scale
 		width = 3.0 / scale
-		for pos, errors in self.errors.iteritems():
+		errors_by_position = {}
+		for e in self.errors:
+			if not e.kind == "Vector on closepath":
+				if (e.position.x, e.position.y) in errors_by_position:
+					errors_by_position[(e.position.x, e.position.y)].extend([e.kind])
+				else:
+					errors_by_position[(e.position.x, e.position.y)] = [e.kind]
+		for pos, errors in errors_by_position.iteritems():
 			message = ""
 			for e in errors:
-				message += "%s, " % e.kind
+				message += "%s, " % e
 			self._drawArrow(pos, message.strip(", "), size, width)

@@ -1,4 +1,4 @@
-from miniFontTools.bezierTools import calcCubicParameters, solveQuadratic, splitCubicAtT
+from miniFontTools.misc.bezierTools import calcCubicParameters, solveQuadratic, splitCubicAtT
 
 # Helper functions
 
@@ -16,15 +16,3 @@ def getExtremaForCubic(pt1, pt2, pt3, pt4, h=True, v=False):
         v_roots  = [t for t in solveQuadratic(ax, bx, c[0]) if 0 < t < 1]
     roots = h_roots + v_roots
     return [p[3] for p in splitCubicAtT(pt1, pt2, pt3, pt4, *roots)[:-1]]
-
-
-# Classes
-
-class RedArrowError(object):
-    def __init__(self, position, kind, badness=1):
-        self.position = position
-        self.kind = kind
-        self.badness = badness
-    
-    def __repr__(self):
-        return "%s at (%i, %i)" % (self.kind, self.position[0], self.position[1])
