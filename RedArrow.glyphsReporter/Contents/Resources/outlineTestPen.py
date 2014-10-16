@@ -13,13 +13,9 @@ def distance_between_points(p0, p1):
 	return sqrt((p1[1] - p0[1])**2 + (p1[0] - p0[0])**2)
 
 def half_point(p0, p1):
-	if type(p0) == TupleType:
-		p01 = ((p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2)
-	else:
-		# NSPoint (Glyphs)
-		p01 = p0.copy()
-		p01[0] = (p0[0] + p1[0]) / 2
-		p01[1] = (p0[1] + p1[1]) / 2
+	p01 = p0.copy()
+	p01[0] = (p0[0] + p1[0]) / 2
+	p01[1] = (p0[1] + p1[1]) / 2
 	return p01
 
 
