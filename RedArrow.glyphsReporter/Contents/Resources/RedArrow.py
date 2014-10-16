@@ -8,6 +8,8 @@ import sys, os, re
 from string import strip
 
 from helpers import getExtremaForCubic, RedArrowError
+from objectsGS import CurrentFont
+from outlineTestPen import OutlineTestPen
 
 MainBundle = NSBundle.mainBundle()
 path = MainBundle.bundlePath() + "/Contents/Scripts"
@@ -57,7 +59,7 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 		If you are not sure, use 'return None'. Users can set their own shortcuts in System Prefs.
 		"""
 		try:
-			return "y"
+			return "a"
 		except Exception as e:
 			self.logToConsole( "keyEquivalent: %s" % str(e) )
 	
@@ -70,7 +72,7 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 		... if you do not want to set a shortcut.
 		"""
 		try:
-			return 0
+			return NSShiftKeyMask | NSAlternateKeyMask
 		except Exception as e:
 			self.logToConsole( "modifierMask: %s" % str(e) )
 	
@@ -135,15 +137,10 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 	
 	def _updateOutlineCheck(self, layer):
 		self.current_layer = layer
-		if layer is not None:
-			self.errors = {}
-			if layer.pathCount():
-				for path in layer.paths:
-					for i in range(len(path.segments)):
-						segment = path.segments[i]
-						if len(segment) == 4: # curve
-							self._curveTests(segment)
-			self._drawArrows()
+		outline_test_pen = OutlineTestPen(CurrentFont())
+		layer.draw(outline_test_pen)
+		self.errors = outline_test_pen.errors
+		self._drawArrows()
 	
 	def _curveTests(self, segment):
 		p1 = segment[0].pointValue()
