@@ -70,7 +70,7 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 		... if you do not want to set a shortcut.
 		"""
 		try:
-			return NSShiftKeyMask | NSAlternateKeyMask
+			return NSCommandKeyMask | NSShiftKeyMask | NSAlternateKeyMask
 		except Exception as e:
 			self.logToConsole( "modifierMask: %s" % str(e) )
 	
