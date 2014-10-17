@@ -45,6 +45,11 @@ class OutlineTestPen(BasePen):
 	
 	def __init__(self, glyphSet, options={}):
 		self.glyphSet = glyphSet
+		try:
+			self.upm = self.glyphSet.info.unitsPerEm
+		except:
+			self.upm = 1000
+		
 		self.__currentPoint = None
 		
 		self.options = options
@@ -78,14 +83,23 @@ class OutlineTestPen(BasePen):
 		
 		self._cache_options()
 	
+	def _normalize_upm(self, value):
+		'''Return a value that is normalized from 1000 upm to the current font's upm'''
+		return value * self.upm / 1000
+	
 	def _cache_options(self):
 		# store options dict into instance variables
 		# in the hope that it's faster than asking the dict every time
+		
+		# boolean values
 		self.extremum_calculate_badness = self.options.get("extremum_calculate_badness", True)
-		self.extremum_ignore_badness_below = self.options.get("extremum_ignore_badness_below", 1)
-		self.smooth_connection_max_distance = self.options.get("smooth_connection_max_distance", 4)
 		self.fractional_ignore_point_zero = self.options.get("fractional_ignore_point_zero", True)
-		self.collinear_vectors_max_distance = self.options.get("collinear_vectors_max_distance", 2)
+		
+		# absolute values that are converted to current upm
+		self.extremum_ignore_badness_below = self._normalize_upm(self.options.get("extremum_ignore_badness_below", 1))
+		self.smooth_connection_max_distance = self._normalize_upm(self.options.get("smooth_connection_max_distance", 4))
+		self.collinear_vectors_max_distance = self._normalize_upm(self.options.get("collinear_vectors_max_distance", 2))
+		self.semi_hv_vectors_min_distance = self._normalize_upm(self.options.get("semi_hv_vectors_min_distance", 30))
 	
 	def _moveTo(self, pt):
 		self._prev_cstart = self._cstart
@@ -313,15 +327,17 @@ class OutlineTestPen(BasePen):
 	
 	def _checkSemiHorizontalVectors(self, p0, p1):
 		'''Test for semi-horizontal lines.'''
-		phi = angle_between_points(p0, p1)
-		if 0 < abs(phi) < 0.2 or 0 < abs(phi - pi) < 0.2:
-			if abs(p1[1] - p0[1]) < 2:
-				self.errors.append(OutlineError(half_point(p0, p1), "Semi-horizontal vector"))
+		if distance_between_points(p0, p1) > self.semi_hv_vectors_min_distance:
+			phi = angle_between_points(p0, p1)
+			#                 atan2(1, 31)
+			if 0 < abs(phi) < 0.032 or 0 < abs(phi - pi) < 0.032:
+				if abs(p1[1] - p0[1]) < 2:
+					self.errors.append(OutlineError(half_point(p0, p1), "Semi-horizontal vector", degrees(phi)))
 	
 	def _checkSemiVerticalVectors(self, p0, p1):
 		'''Test for semi-vertical lines.'''
-		phi = angle_between_points(p0, p1)
-		#dist = distance_between_points(self._prev, pt)
-		if 0 < abs(phi - 0.5 * pi) < 0.2 or 0 < abs(phi + 0.5 * pi) < 0.2:
-			if abs(p1[0] - p0[0]) < 2:
-				self.errors.append(OutlineError(half_point(p0, p1), "Semi-vertical vector"))
+		if distance_between_points(p0, p1) > self.semi_hv_vectors_min_distance:
+			phi = angle_between_points(p0, p1)
+			#                            atan2(31, 1)                       atan2(31, -1)
+			if 0 < abs(phi - 0.5 * pi) < 0.032 or 0 < abs(phi + 0.5 * pi) < 0.032:
+				self.errors.append(OutlineError(half_point(p0, p1), "Semi-vertical vector", degrees(phi)))
