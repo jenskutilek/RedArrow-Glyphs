@@ -1,11 +1,11 @@
 RedArrow-Glyphs
 ===============
 
-Glyphs users can also have red arrows. This plugin points at possible outline errors, like FontAudit in FontLab Studio.
+Now Glyphs users can also have red arrows!
+
+This plugin points at possible outline errors, like FontAudit in FontLab Studio. This version only works in Glyphs 2.
 
 ![](screenshot.png)
-
-So far, the plugin only indicates extremum point errors.
 
 ### Installation
 
@@ -17,3 +17,9 @@ Restart Glyphs
 
 Open a glyph in Edit View.
 Use View > Show Red Arrows to toggle the arrows.
+
+### Troubleshooting
+
+If the plugin doesn’t run: Check your Glyphs script folder for files called `GlyphsApp.py` or `GlyphsApp.pyc`.
+Deleting these files should make RedArrow work again. The files may be recreated if you switch between Glyphs 1.4 and 2, so you could have to delete them again.
+
