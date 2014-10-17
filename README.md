@@ -23,3 +23,6 @@ Use View > Show Red Arrows to toggle the arrows.
 If the plugin doesn’t run: Check your Glyphs script folder for files called `GlyphsApp.py` or `GlyphsApp.pyc`.
 Deleting these files should make RedArrow work again. The files may be recreated if you switch between Glyphs 1.4 and 2, so you could have to delete them again.
 
+### Known bugs
+
+Check the [issue tracker](https://github.com/jenskutilek/RedArrow-Glyphs/issues) and feel free to add any problems that you may encounter.
