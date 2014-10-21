@@ -1,8 +1,26 @@
 from __future__ import division
 from math import atan2, degrees, cos, pi, sin, sqrt
 from types import TupleType
-from miniFontTools.pens.basePen import BasePen
 from miniFontTools.misc.arrayTools import pointInRect, normRect
+from miniFontTools.misc.bezierTools import calcCubicParameters, solveQuadratic, splitCubicAtT
+from miniFontTools.pens.basePen import BasePen
+
+# Helper functions
+
+def getExtremaForCubic(pt1, pt2, pt3, pt4, h=True, v=False):
+	(ax, ay), (bx, by), c, d = calcCubicParameters(pt1, pt2, pt3, pt4)
+	ax *= 3.0
+	ay *= 3.0
+	bx *= 2.0
+	by *= 2.0
+	h_roots = []
+	v_roots = []
+	if h:
+		h_roots = [t for t in solveQuadratic(ay, by, c[1]) if 0 < t < 1]
+	if v:
+		v_roots  = [t for t in solveQuadratic(ax, bx, c[0]) if 0 < t < 1]
+	roots = h_roots + v_roots
+	return [p[3] for p in splitCubicAtT(pt1, pt2, pt3, pt4, *roots)[:-1]]
 
 def round_point(pt):
 	return (int(round(pt[0])), int(round(pt[1])))
@@ -161,8 +179,9 @@ class OutlineTestPen(BasePen):
 		self._checkSemiVerticalVectors(self._prev, pt)
 	
 	def _runCurveTests(self, bcp1, bcp2, pt):
-		for bcp in [bcp1, bcp2]:
-			self._checkBbox(bcp, pt)
+		#for bcp in [bcp1, bcp2]:
+		#	self._checkBbox(bcp, pt)
+		self._checkBboxSegment(bcp1, bcp2, pt)
 		for p in [bcp1, bcp2, pt]:
 			self._checkFractionalCoordinates(p)
 		if not self.curveTypeDetected:
@@ -202,6 +221,19 @@ class OutlineTestPen(BasePen):
 					self.errors.append(OutlineError(pointToCheck, "Extremum", badness))
 			else:
 				self.errors.append(OutlineError(pointToCheck, "Extremum"))
+	
+	def _checkBboxSegment(self, bcp1, bcp2, pt):
+		# Like _checkBbox, but checks the whole segment and calculates extrema
+		myRect = normRect((self._prev[0], self._prev[1], pt[0], pt[1]))
+		if not pointInRect(bcp1, myRect) or not pointInRect(bcp2, myRect):
+			extrema = getExtremaForCubic(self._prev, bcp1, bcp2, pt, h=True, v=True)
+			for p in extrema:
+				if self.extremum_calculate_badness:
+					badness = self._getBadness(p, myRect)
+					if badness >= self.extremum_ignore_badness_below:
+						self.errors.append(OutlineError(p, "Extremum", badness))
+				else:
+					self.errors.append(OutlineError(p, "Extremum"))
 	
 	def _getBadness(self, pointToCheck, myRect):
 			# calculate distance of point to rect
@@ -333,6 +365,15 @@ class OutlineTestPen(BasePen):
 			if 0 < abs(phi) < 0.032 or 0 < abs(phi - pi) < 0.032:
 				if abs(p1[1] - p0[1]) < 2:
 					self.errors.append(OutlineError(half_point(p0, p1), "Semi-horizontal vector", degrees(phi)))
+	
+	def _checkSemiVerticalVectors(self, p0, p1):
+		'''Test for semi-vertical lines.'''
+		if distance_between_points(p0, p1) > self.semi_hv_vectors_min_distance:
+			phi = angle_between_points(p0, p1)
+			#                            atan2(31, 1)                       atan2(31, -1)
+			if 0 < abs(phi - 0.5 * pi) < 0.032 or 0 < abs(phi + 0.5 * pi) < 0.032:
+				self.errors.append(OutlineError(half_point(p0, p1), "Semi-vertical vector", degrees(phi)))
+
 	
 	def _checkSemiVerticalVectors(self, p0, p1):
 		'''Test for semi-vertical lines.'''
