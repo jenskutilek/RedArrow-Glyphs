@@ -375,6 +375,7 @@ class OutlineTestPen(BasePen):
 	
 	def _checkSemiVerticalVectors(self, p0, p1):
 		'''Test for semi-vertical lines.'''
+		# TODO: Option to respect Italic angle?
 		if distance_between_points(p0, p1) > self.semi_hv_vectors_min_distance:
 			phi = angle_between_points(p0, p1)
 			#                            atan2(31, 1)                       atan2(31, -1)
