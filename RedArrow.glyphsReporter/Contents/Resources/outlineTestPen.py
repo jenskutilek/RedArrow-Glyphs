@@ -85,6 +85,7 @@ class OutlineTestPen(BasePen):
 		# Keep track of the final point of the previous segment,
 		# needed for bbox calculation
 		self._prev = None
+		self._prev_type = None
 		
 		# Reference point for smooth connections
 		# The previous bcp or pt depending on segment type
@@ -125,6 +126,7 @@ class OutlineTestPen(BasePen):
 		self._runMoveTests(pt)
 		self._prev_ref = None
 		self._prev = pt
+		self._prev_type = None
 		self._is_contour_start = True
 		self._should_test_collinear = False
 		
@@ -132,6 +134,7 @@ class OutlineTestPen(BasePen):
 		self._runLineTests(pt)
 		self._prev_ref = self._prev
 		self._prev = pt
+		self._prev_type = "line"
 		if self._is_contour_start:
 			self._contour_start_ref = pt
 		self._should_test_collinear = True
@@ -140,6 +143,7 @@ class OutlineTestPen(BasePen):
 		self._runCurveTests(bcp1, bcp2, pt)
 		self._prev_ref = bcp2
 		self._prev = pt
+		self._prev_type = "curve"
 		if self._is_contour_start:
 			self._contour_start_ref = bcp1
 			self._is_contour_start = False
@@ -149,6 +153,7 @@ class OutlineTestPen(BasePen):
 		self._runQCurveTests(bcp, pt)
 		self._prev_ref = bcp
 		self._prev = pt
+		self._prev_type = "curve"
 		if self._is_contour_start:
 			self._contour_start_ref = bcp
 			self._is_contour_start = False
@@ -156,6 +161,7 @@ class OutlineTestPen(BasePen):
 	
 	def _closePath(self):
 		self._runClosePathTests()
+		self._prev_type = None
 		self._should_test_collinear = False
 	
 	def addComponent(self, baseGlyph, transformation):
@@ -199,7 +205,8 @@ class OutlineTestPen(BasePen):
 		self._checkEmptyLinesAndCurves(pt)
 	
 	def _runClosePathTests(self):
-		self._checkVectorsOnClosepath(self._prev)
+		if self._prev_type == "line":
+			self._checkVectorsOnClosepath(self._prev)
 		if self._should_test_collinear:
 			self._checkCollinearVectors(self._prev, self._cstart)
 		self._checkSemiHorizontalVectors(self._prev, self._cstart)
@@ -365,15 +372,6 @@ class OutlineTestPen(BasePen):
 			if 0 < abs(phi) < 0.032 or 0 < abs(phi - pi) < 0.032:
 				if abs(p1[1] - p0[1]) < 2:
 					self.errors.append(OutlineError(half_point(p0, p1), "Semi-horizontal vector", degrees(phi)))
-	
-	def _checkSemiVerticalVectors(self, p0, p1):
-		'''Test for semi-vertical lines.'''
-		if distance_between_points(p0, p1) > self.semi_hv_vectors_min_distance:
-			phi = angle_between_points(p0, p1)
-			#                            atan2(31, 1)                       atan2(31, -1)
-			if 0 < abs(phi - 0.5 * pi) < 0.032 or 0 < abs(phi + 0.5 * pi) < 0.032:
-				self.errors.append(OutlineError(half_point(p0, p1), "Semi-vertical vector", degrees(phi)))
-
 	
 	def _checkSemiVerticalVectors(self, p0, p1):
 		'''Test for semi-vertical lines.'''
