@@ -324,18 +324,41 @@ class OutlineTestPen(BasePen):
 		if self._prev_ref is not None:
 			# angle of previous reference point to current point
 			phi1 = angle_between_points(self._prev_ref, pt)
-
+			phi2 = angle_between_points(pt, next_ref)
+			
 			# distance of pt to next reference point
-			dist = distance_between_points(pt, next_ref)
+			dist1 = distance_between_points(self._prev_ref, pt)
+			dist2 = distance_between_points(pt, next_ref)
+			
+			#print "Checking:"
+			#print "  ", self._prev_ref, pt, degrees(phi1), dist1
+			#print "  ", pt, next_ref, degrees(phi2), dist2
+			
+			if dist1 >= dist2:
+				# distance 1 is longer, check dist2 for correct angle
+				dist = dist2
+				phi = phi1
+				ref = next_ref
+			else:
+				# distance 2 is longer, check dist1 for correct angle
+				dist = dist1
+				phi = phi2 - pi
+				ref = self._prev_ref
+			
+			#print "  Chose: %s -> %s, angle %0.2f, dist %0.2f" % (ref, next_ref, degrees(phi), dist)
 			
 			if dist > 2 * self.smooth_connection_max_distance: # Ignore short segments
 				# TODO: Add sanity check to save calculating the projected point for each segment?
 				# This fails for connections around 180 degrees which may be reported as 180 or -180
 				#if 0 < abs(phi1 - phi2) < 0.1: # 0.1 (radians) = 5.7 degrees
 				# Calculate where the second reference point should be
-				projected_pt = (pt[0] + dist * cos(phi1), pt[1] + dist * sin(phi1))
+				# TODO: Decide which angle is more important?
+				# E.g. line to curve: line is fixed, curve / tangent point is flexible?
+				# or always consider the longer segment more important?
+				projected_pt = (pt[0] + dist * cos(phi), pt[1] + dist * sin(phi))
 				# Compare projected position with actual position
-				badness = distance_between_points(round_point(projected_pt), next_ref)
+				badness = distance_between_points(round_point(projected_pt), ref)
+				#print "  Projected: %s, actual: %s, diff: %0.2f" % (projected_pt, ref, badness)
 				if 0 < badness < self.smooth_connection_max_distance:
 					self.errors.append(OutlineError(pt, "Incorrect smooth connection", badness))
 	
@@ -349,7 +372,6 @@ class OutlineTestPen(BasePen):
 	
 	def _checkCollinearVectors(self, pt, next_ref):
 		'''Test for consecutive lines that have nearly the same angle.'''
-		# Currently this is pretty much the same as the IncorrectSmoothConnection test.
 		if self._prev_ref is not None:
 			# angle of previous reference point to current point
 			phi1 = angle_between_points(self._prev_ref, pt)
