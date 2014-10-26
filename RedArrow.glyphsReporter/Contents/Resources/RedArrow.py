@@ -167,10 +167,10 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 		errors_by_position = {}
 		for e in self.errors:
 			if not e.kind == "Vector on closepath":
-				if (e.position.x, e.position.y) in errors_by_position:
-					errors_by_position[(e.position.x, e.position.y)].extend([e])
+				if (e.position[0], e.position[1]) in errors_by_position:
+					errors_by_position[(e.position[0], e.position[1])].extend([e])
 				else:
-					errors_by_position[(e.position.x, e.position.y)] = [e]
+					errors_by_position[(e.position[0], e.position[1])] = [e]
 		for pos, errors in errors_by_position.iteritems():
 			message = ""
 			for e in errors:
