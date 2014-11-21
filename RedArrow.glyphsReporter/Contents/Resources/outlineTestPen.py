@@ -61,7 +61,7 @@ class OutlineTestPen(BasePen):
 	
 	'''Reimplementation of FontLab's FontAudit.'''
 	
-	def __init__(self, glyphSet, options={}):
+	def __init__(self, glyphSet, options={}, run_tests=[]):
 		self.glyphSet = glyphSet
 		try:
 			self.upm = self.glyphSet.info.unitsPerEm
@@ -71,7 +71,19 @@ class OutlineTestPen(BasePen):
 		self.__currentPoint = None
 		
 		self.options = options
+		self.run_tests = run_tests
 		self.errors = []
+		
+		self.all_tests = [
+			"test_extrema",
+			"test_fractional_coords",
+			"test_fractional_transform",
+			"test_smooth",
+			"test_empty_segments",
+			"test_collinear",
+			"test_semi_hv",
+			"test_closepath",
+		]
 		
 		# Curve type detection
 		self.apparentlyCubic = False
@@ -119,6 +131,20 @@ class OutlineTestPen(BasePen):
 		self.smooth_connection_max_distance = self._normalize_upm(self.options.get("smooth_connection_max_distance", 4))
 		self.collinear_vectors_max_distance = self._normalize_upm(self.options.get("collinear_vectors_max_distance", 2))
 		self.semi_hv_vectors_min_distance = self._normalize_upm(self.options.get("semi_hv_vectors_min_distance", 30))
+		
+		# which tests should be run
+		if self.run_tests == []:
+			# run all tests
+			for t in self.all_tests:
+				setattr(self, t, True)
+		else:
+			# only run supplied tests
+			for t in self.all_tests:
+				if t in self.run_tests:
+					setattr(self, t, True)
+				else:
+					setattr(self, t, False)
+			
 	
 	def _moveTo(self, pt):
 		self._prev_cstart = self._cstart
@@ -170,50 +196,66 @@ class OutlineTestPen(BasePen):
 	# Tests for different segment types
 	
 	def _runMoveTests(self, pt):
-		self._checkFractionalCoordinates(pt)
-		if self._contour_start_ref is not None:
+		if self.test_fractional_coords:
+			self._checkFractionalCoordinates(pt)
+		if self.test_smooth and self._contour_start_ref is not None:
 			self._checkIncorrectSmoothConnection(self._prev, self._contour_start_ref)
-		self._checkEmptyLinesAndCurves(pt)
+		if self.test_empty_segments:
+			self._checkEmptyLinesAndCurves(pt)
 	
 	def _runLineTests(self, pt):
-		self._checkFractionalCoordinates(pt)
-		self._checkIncorrectSmoothConnection(self._prev, pt)
-		self._checkEmptyLinesAndCurves(pt)
-		if self._should_test_collinear:
+		if self.test_fractional_coords:
+			self._checkFractionalCoordinates(pt)
+		if self.test_smooth:
+			self._checkIncorrectSmoothConnection(self._prev, pt)
+		if self.test_empty_segments:
+			self._checkEmptyLinesAndCurves(pt)
+		if self.test_collinear and self._should_test_collinear:
 			self._checkCollinearVectors(self._prev, pt)
-		self._checkSemiHorizontalVectors(self._prev, pt)
-		self._checkSemiVerticalVectors(self._prev, pt)
+		if self.test_semi_hv:
+			self._checkSemiHorizontalVectors(self._prev, pt)
+			self._checkSemiVerticalVectors(self._prev, pt)
 	
 	def _runCurveTests(self, bcp1, bcp2, pt):
 		#for bcp in [bcp1, bcp2]:
 		#	self._checkBbox(bcp, pt)
-		self._checkBboxSegment(bcp1, bcp2, pt)
-		for p in [bcp1, bcp2, pt]:
-			self._checkFractionalCoordinates(p)
+		if self.test_extrema:
+			self._checkBboxSegment(bcp1, bcp2, pt)
+		if self.test_fractional_coords:
+			for p in [bcp1, bcp2, pt]:
+				self._checkFractionalCoordinates(p)
 		if not self.curveTypeDetected:
 			self._countCurveSegment()
-		self._checkIncorrectSmoothConnection(self._prev, bcp1)
-		self._checkEmptyLinesAndCurves(pt)
+		if self.test_smooth:
+			self._checkIncorrectSmoothConnection(self._prev, bcp1)
+		if self.test_empty_segments:
+			self._checkEmptyLinesAndCurves(pt)
 	
 	def _runQCurveTests(self, bcp, pt):
-		self._checkBbox(bcp, pt)
-		for p in [bcp, pt]:
-			self._checkFractionalCoordinates(p)
+		if self.test_extrema:
+			self._checkBbox(bcp, pt)
+		if self.test_fractional_coords:
+			for p in [bcp, pt]:
+				self._checkFractionalCoordinates(p)
 		if not self.curveTypeDetected:
 			self._countQCurveSegment()
-		self._checkIncorrectSmoothConnection(self._prev, bcp)
-		self._checkEmptyLinesAndCurves(pt)
+		if self.test_smooth:
+			self._checkIncorrectSmoothConnection(self._prev, bcp)
+		if self.test_empty_segments:
+			self._checkEmptyLinesAndCurves(pt)
 	
 	def _runClosePathTests(self):
-		if self._prev_type == "line":
+		if self.test_closepath and self._prev_type == "line":
 			self._checkVectorsOnClosepath(self._prev)
-		if self._should_test_collinear:
+		if self.test_collinear and self._should_test_collinear:
 			self._checkCollinearVectors(self._prev, self._cstart)
-		self._checkSemiHorizontalVectors(self._prev, self._cstart)
-		self._checkSemiVerticalVectors(self._prev, self._cstart)
+		if self.test_semi_hv:
+			self._checkSemiHorizontalVectors(self._prev, self._cstart)
+			self._checkSemiVerticalVectors(self._prev, self._cstart)
 	
 	def _runComponentTests(self, baseGlyph, transformation):
-		self._checkFractionalTransformation(baseGlyph, transformation)
+		if self.test_fractional_transform:
+			self._checkFractionalTransformation(baseGlyph, transformation)
 	
 	# Implementations for all the different tests
 	
@@ -298,7 +340,7 @@ class OutlineTestPen(BasePen):
 				return False
 		self.errors.append(OutlineError(
 			(int(round(pt[0])), int(round(pt[1]))),
-			"Fractional Coordinates (%s, %s)" % pt,
+			"Fractional Coordinates (%0.2f, %0.2f)" % pt,
 		))
 	
 	def _checkFractionalTransformation(self, baseGlyph, transformation):
