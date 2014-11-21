@@ -340,7 +340,7 @@ class OutlineTestPen(BasePen):
 				return False
 		self.errors.append(OutlineError(
 			(int(round(pt[0])), int(round(pt[1]))),
-			"Fractional Coordinates (%0.2f, %0.2f)" % pt,
+			"Fractional Coordinates (%0.2f, %0.2f)" % (pt[0], pt[1]),
 		))
 	
 	def _checkFractionalTransformation(self, baseGlyph, transformation):
