@@ -166,7 +166,7 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 				}
 			)
 	
-	def _drawArrows(self):
+	def _drawArrows(self, debug=False):
 		scale = self.getScale()
 		size = 10.0 / scale
 		width = 3.0 / scale
@@ -180,7 +180,7 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 		for pos, errors in errors_by_position.iteritems():
 			message = ""
 			for e in errors:
-				if e.badness is None:
+				if e.badness is None or not debug:
 					message += "%s, " % (e.kind)
 				else:
 					message += "%s (Severity %0.1f), " % (e.kind, e.badness)
