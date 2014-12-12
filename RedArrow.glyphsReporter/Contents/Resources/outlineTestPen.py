@@ -83,6 +83,7 @@ class OutlineTestPen(BasePen):
 			"test_collinear",
 			"test_semi_hv",
 			"test_closepath",
+			"test_zero_handles",
 		]
 		
 		# Curve type detection
@@ -131,6 +132,7 @@ class OutlineTestPen(BasePen):
 		self.smooth_connection_max_distance = self._normalize_upm(self.options.get("smooth_connection_max_distance", 4))
 		self.collinear_vectors_max_distance = self._normalize_upm(self.options.get("collinear_vectors_max_distance", 2))
 		self.semi_hv_vectors_min_distance = self._normalize_upm(self.options.get("semi_hv_vectors_min_distance", 30))
+		self.zero_handles_max_distance = self._normalize_upm(self.options.get("zero_handles_max_distance", 2))
 		
 		# which tests should be run
 		if self.run_tests == []:
@@ -230,7 +232,10 @@ class OutlineTestPen(BasePen):
 			self._checkIncorrectSmoothConnection(self._prev, bcp1)
 		if self.test_empty_segments:
 			self._checkEmptyLinesAndCurves(pt)
-	
+		if self.test_zero_handles:
+			self._checkZeroHandles(self._prev, bcp1)
+			self._checkZeroHandles(pt, bcp2)
+
 	def _runQCurveTests(self, bcp, pt):
 		if self.test_extrema:
 			self._checkBbox(bcp, pt)
@@ -445,3 +450,9 @@ class OutlineTestPen(BasePen):
 			#                            atan2(31, 1)                       atan2(31, -1)
 			if 0 < abs(phi - 0.5 * pi) < 0.032 or 0 < abs(phi + 0.5 * pi) < 0.032:
 				self.errors.append(OutlineError(half_point(p0, p1), "Semi-vertical vector", degrees(phi)))
+	
+	def _checkZeroHandles(self, p0, p1):
+		badness = distance_between_points(p0, p1)
+		if badness <= self.zero_handles_max_distance:
+			self.errors.append(OutlineError(p1, "Zero handle", badness))
+	
