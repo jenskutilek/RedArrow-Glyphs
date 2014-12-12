@@ -38,6 +38,6 @@ Deleting these files should make RedArrow work again. The files may be recreated
 
 ### Known bugs
 
-This is a development version, so check back often for updates.
+This is a development version, so check back some time for updates.
 
 Check the [issue tracker](https://github.com/jenskutilek/RedArrow-Glyphs/issues) and feel free to add any problems that you may encounter.

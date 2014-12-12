@@ -17,17 +17,17 @@
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.0.0</string>
+	<string>0.3.1</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>0.0.0</string>
+	<string>0.3.1</string>
 	<key>LSHasLocalizedDisplayName</key>
 	<false/>
 	<key>NSAppleScriptEnabled</key>
 	<false/>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright, Netzallee, 2014</string>
+	<string>Copyright by Netzallee, 2014</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
