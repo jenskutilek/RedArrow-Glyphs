@@ -433,7 +433,7 @@ class OutlineTestPen(BasePen):
 		if distance_between_points(p0, p1) > self.semi_hv_vectors_min_distance:
 			phi = angle_between_points(p0, p1)
 			#                 atan2(1, 31)
-			if 0 < abs(phi) < 0.032 or 0 < abs(phi - pi) < 0.032:
+			if 0 < abs(phi) < 0.032 or 0 < abs(phi - pi) < 0.032 or 0 < abs(abs(phi) - pi) < 0.032:
 				if abs(p1[1] - p0[1]) < 2:
 					self.errors.append(OutlineError(half_point(p0, p1), "Semi-horizontal vector", degrees(phi)))
 	
