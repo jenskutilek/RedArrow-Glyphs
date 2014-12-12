@@ -84,19 +84,13 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 		"""
 		Whatever you draw here will be displayed BEHIND the paths.
 		"""
-		try:
-			pass
-		except Exception as e:
-			self.logToConsole( "drawBackgroundForLayer_: %s" % str(e) )
+		pass
 	
 	def drawBackgroundForInactiveLayer_( self, Layer ):
 		"""
 		Whatever you draw here will be displayed behind the paths, but for inactive masters.
 		"""
-		try:
-			pass
-		except Exception as e:
-			self.logToConsole( "drawBackgroundForInactiveLayer_: %s" % str(e) )
+		pass
 	
 	def needsExtraMainOutlineDrawingForInactiveLayer_( self, Layer ):
 		"""
