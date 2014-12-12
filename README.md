@@ -7,6 +7,19 @@ This plugin points at possible outline errors, like FontAudit in FontLab Studio.
 
 ![](screenshot.png)
 
+When the plugin is active, red arrows will point to possible mistakes in your outlines.
+
+These kinds of errors are detected:
+
+* Missing extremum points
+* Fractional coordinates
+* Fractional transformations
+* Incorrect smooth connections
+* Empty segments
+* Collinear vectors
+* Semi-horizontal and semi-vertical lines
+* Zero handles
+
 ### Installation
 
 Download the complete ZIP file and unpack it, or clone the repository.
