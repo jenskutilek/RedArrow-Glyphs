@@ -415,18 +415,18 @@ class OutlineTestPen(BasePen):
 	def _checkCollinearVectors(self, pt, next_ref):
 		'''Test for consecutive lines that have nearly the same angle.'''
 		if self._prev_ref is not None:
-			# angle of previous reference point to current point
-			phi1 = angle_between_points(self._prev_ref, pt)
-			# angle of current point to next reference point
-			# could be used for angle check without distance check
-			#phi2 = angle_between_points(pt, next_ref)
-			# distance of pt to next reference point
-			dist = distance_between_points(pt, next_ref)
-			
-			projected_pt = (pt[0] + dist * cos(phi1), pt[1] + dist * sin(phi1))
-			badness = distance_between_points(round_point(projected_pt), next_ref)
-			if badness < self.collinear_vectors_max_distance:
-				self.errors.append(OutlineError(pt, "Collinear vectors", badness))
+			if next_ref != pt:
+				# angle of previous reference point to current point
+				phi1 = angle_between_points(self._prev_ref, pt)
+				# angle of current point to next reference point
+				# could be used for angle check without distance check
+				#phi2 = angle_between_points(pt, next_ref)
+				# distance of pt to next reference point
+				dist = distance_between_points(pt, next_ref)
+				projected_pt = (pt[0] + dist * cos(phi1), pt[1] + dist * sin(phi1))
+				badness = distance_between_points(round_point(projected_pt), next_ref)
+				if badness < self.collinear_vectors_max_distance:
+					self.errors.append(OutlineError(pt, "Collinear vectors", badness))
 	
 	def _checkSemiHorizontalVectors(self, p0, p1):
 		'''Test for semi-horizontal lines.'''
