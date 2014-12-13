@@ -202,8 +202,8 @@ class OutlineTestPen(BasePen):
 			self._checkFractionalCoordinates(pt)
 		if self.test_smooth and self._contour_start_ref is not None:
 			self._checkIncorrectSmoothConnection(self._prev, self._contour_start_ref)
-		if self.test_empty_segments:
-			self._checkEmptyLinesAndCurves(pt)
+		#if self.test_empty_segments:
+		#	self._checkEmptyLinesAndCurves(pt)
 	
 	def _runLineTests(self, pt):
 		if self.test_fractional_coords:
