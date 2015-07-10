@@ -21,11 +21,7 @@ GlyphsReporterProtocol = objc.protocolNamed( "GlyphsReporter" )
 class RedArrow ( NSObject, GlyphsReporterProtocol ):
 	
 	def init( self ):
-		"""
-		Put any initializations you want to make here.
-		"""
 		try:
-			#Bundle = NSBundle.bundleForClass_( NSClassFromString( self.className() ));
 			return self
 		except Exception as e:
 			self.logToConsole( "init: %s" % str(e) )
@@ -91,12 +87,6 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 		Whatever you draw here will be displayed behind the paths, but for inactive masters.
 		"""
 		pass
-	
-	def needsExtraMainOutlineDrawingForInactiveLayer_( self, Layer ):
-		"""
-		Return False to disable the black outline. Otherwise remove the method.
-		"""
-		return True
 	
 	def getScale( self ):
 		"""
