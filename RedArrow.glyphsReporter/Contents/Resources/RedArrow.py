@@ -21,10 +21,41 @@ GlyphsReporterProtocol = objc.protocolNamed( "GlyphsReporter" )
 class RedArrow ( NSObject, GlyphsReporterProtocol ):
 	
 	def init( self ):
+		self.addMenuItem()
+		self.options = {
+			"extremum_calculate_badness": False,
+			"extremum_ignore_badness_below": 0,
+			"smooth_connection_max_distance": 4,
+			"fractional_ignore_point_zero": True,
+			"collinear_vectors_max_distance": 2,
+			"test_closepath": False,
+		}
+		self.run_tests = [
+			"test_extrema",
+			"test_fractional_coords",
+			"test_fractional_transform",
+			"test_smooth",
+			"test_empty_segments",
+			"test_collinear",
+			"test_semi_hv",
+			#"test_closepath",
+			"test_zero_handles",
+		]
 		try:
 			return self
 		except Exception as e:
 			self.logToConsole( "init: %s" % str(e) )
+	
+	def addMenuItem(self):
+		mainMenu = NSApplication.sharedApplication().mainMenu()
+		s = objc.selector(self.selectGlyphsWithErrors,signature='v@:')
+		newMenuItem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+			"Select Glyphs With Outline Errors",
+			s,
+			""
+		)
+		newMenuItem.setTarget_(self)
+		mainMenu.itemAtIndex_(2).submenu().insertItem_atIndex_(newMenuItem, 11)
 	
 	def interfaceVersion( self ):
 		"""
@@ -116,11 +147,33 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 		myLog = "Show %s plugin:\n%s" % ( self.title(), message )
 		NSLog( myLog )
 	
+	def selectGlyphsWithErrors(self):
+		"""
+		Selects all glyphs with errors in the active layer
+		"""
+		font = NSApplication.sharedApplication().font
+		font.disableUpdateInterface()
+		mid = font.selectedFontMaster.id
+		selection = []
+		# pre-filter glyph list
+		#glyphlist = [glyph.name for glyph in font.glyphs if len(glyph.layers[mid]) > 0]
+		for glyph in font.glyphs:
+			layer = glyph.layers[mid]
+			if layer is not None and len(layer.paths) > 0:
+				outline_test_pen = OutlineTestPen(layer.parent.parent, self.options, self.run_tests)
+				layer.draw(outline_test_pen)
+				if len(outline_test_pen.errors) > 0:
+					glyph.selected = True
+					selection.append(glyph.name)
+				else:
+					glyph.selected = False
+		font.enableUpdateInterface()
+		
 	
 	def _updateOutlineCheck(self, layer):
 		self.current_layer = layer
 		if layer is not None:
-			outline_test_pen = OutlineTestPen(layer.parent.parent)
+			outline_test_pen = OutlineTestPen(layer.parent.parent, self.options, self.run_tests)
 			layer.draw(outline_test_pen)
 			self.errors = outline_test_pen.errors
 			self._drawArrows()
