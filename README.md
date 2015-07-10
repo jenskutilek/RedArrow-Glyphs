@@ -28,8 +28,15 @@ Restart Glyphs.
 
 ### Usage Instructions
 
+#### To Display Outline Errors In The Current Glyph
+
 Open a glyph in Edit View.
 Use View > Show Red Arrows to toggle the arrows.
+
+#### To Find All Glyphs With Outline Errors
+
+Go to the Font overview tab and choose the master you want to check.
+Use Edit > Select Glyphs With Outline Errors to select affected glyphs, then add a mark color to them, make a new list filter, or open a new tab. Whatever you like best that allows you to step through the glyphs and fix the outline errors.
 
 ### Troubleshooting
 
@@ -37,6 +44,8 @@ If the plugin doesn’t run: Check your Glyphs script folder for files called `G
 Deleting these files should make RedArrow work again. The files may be recreated if you switch between Glyphs 1.4 and 2, so you could have to delete them again.
 
 ### Known bugs
+
+* Select Glyphs With Outline Errors doesn't catch errors in layers that are not in a master (exception layers).
 
 This is a development version, so check back some time for updates.
 
