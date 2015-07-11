@@ -9,25 +9,31 @@
 	<key>CFBundleExecutable</key>
 	<string>RedArrow</string>
 	<key>CFBundleIdentifier</key>
-	<string>de.netzallee.RedArrow</string>
+	<string>de.kutilek.RedArrow</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>RedArrow</string>
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
-	<key>CFBundleShortVersionString</key>
-	<string>0.3.1</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>0.3.1</string>
+	<string>3</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.3.3</string>
+	<key>UpdateFeedURL</key>
+	<string>https://raw.githubusercontent.com/jenskutilek/RedArrow-Glyphs/glyphs2/RedArrow.glyphsReporter/Contents/Info.plist</string>
+	<key>productPageURL</key>
+	<string>https://github.com/jenskutilek/RedArrow-Glyphs</string>
+	<key>productReleaseNotes</key>
+	<string>Implemented Glyphs Update mechanism.</string>
 	<key>LSHasLocalizedDisplayName</key>
 	<false/>
 	<key>NSAppleScriptEnabled</key>
 	<false/>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright by Netzallee, 2014</string>
+	<string>Copyright by Jens Kutilek, 2014</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
