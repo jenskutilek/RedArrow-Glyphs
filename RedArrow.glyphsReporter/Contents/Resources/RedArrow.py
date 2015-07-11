@@ -152,6 +152,8 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 		Selects all glyphs with errors in the active layer
 		"""
 		font = NSApplication.sharedApplication().font
+		if font is None:
+			return None
 		font.disableUpdateInterface()
 		mid = font.selectedFontMaster.id
 		selection = []
