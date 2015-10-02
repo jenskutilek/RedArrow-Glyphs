@@ -168,7 +168,7 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 				layer.draw(outline_test_pen)
 				if len(outline_test_pen.errors) > 0:
 					glyph.selected = True
-					selection.append(glyph.name)
+					selection.append(glyph_name)
 				else:
 					glyph.selected = False
 		font.enableUpdateInterface()
