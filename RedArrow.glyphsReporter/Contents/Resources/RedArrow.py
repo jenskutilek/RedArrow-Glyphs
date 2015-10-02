@@ -41,6 +41,7 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 			#"test_closepath",
 			"test_zero_handles",
 		]
+		self.errors = []
 		try:
 			return self
 		except Exception as e:
@@ -176,11 +177,13 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 	
 	def _updateOutlineCheck(self, layer):
 		self.current_layer = layer
+		self.errors = []
 		if layer is not None:
 			outline_test_pen = OutlineTestPen(layer.parent.parent, self.options, self.run_tests)
 			layer.draw(outline_test_pen)
 			self.errors = outline_test_pen.errors
-			self._drawArrows()
+			if self.errors:
+				self._drawArrows()
 	
 	def _drawArrow(self, position, kind, size, width):
 		x, y = position
@@ -213,11 +216,16 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 		width = 3.0 / scale
 		errors_by_position = {}
 		for e in self.errors:
-			if not e.kind == "Vector on closepath":
+			if e.position is not None:
 				if (e.position[0], e.position[1]) in errors_by_position:
 					errors_by_position[(e.position[0], e.position[1])].extend([e])
 				else:
 					errors_by_position[(e.position[0], e.position[1])] = [e]
+			else:
+				if None in errors_by_position:
+					errors_by_position[None].extend([e])
+				else:
+					errors_by_position[None] = [e]
 		for pos, errors in errors_by_position.iteritems():
 			message = ""
 			for e in errors:
@@ -225,4 +233,7 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 					message += "%s, " % (e.kind)
 				else:
 					message += "%s (Severity %0.1f), " % (e.kind, e.badness)
+			if pos is None:
+				bb = self.current_layer.bounds
+				pos = (bb.origin.x + 0.5 * bb.size.width, bb.origin.y + 0.5 * bb.size.height)
 			self._drawArrow(pos, message.strip(", "), size, width)
