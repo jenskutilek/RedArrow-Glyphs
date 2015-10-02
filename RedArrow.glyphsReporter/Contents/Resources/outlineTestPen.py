@@ -354,7 +354,7 @@ class OutlineTestPen(BasePen):
 				if round(p) != p:
 					self.errors.append(OutlineError(
 						None,
-						"Fractional transformation (%s, %s, %s, %s, %s, %s)" % transformation
+						"Fractional transformation %s" % str(transformation)
 					))
 					break
 		else:
@@ -362,7 +362,7 @@ class OutlineTestPen(BasePen):
 				if type(p) == float:
 					self.errors.append(OutlineError(
 						None,
-						"Fractional transformation (%s, %s, %s, %s, %s, %s)" % transformation
+						"Fractional transformation %s" % str(transformation)
 					))
 					break
 	
