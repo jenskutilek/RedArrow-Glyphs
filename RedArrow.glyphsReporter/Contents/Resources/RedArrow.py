@@ -210,6 +210,29 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 				}
 			)
 	
+	def _drawUnspecified(self, position, kind, size, width):
+		circle_size = size * 1.3
+		width *= 0.8
+		x, y = position
+		NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.9, 0.1, 0.0, 0.85 ).set()
+		myPath = NSBezierPath.alloc().init()
+		myPath.setLineWidth_( width )
+		myPath.appendBezierPathWithOvalInRect_( NSMakeRect( x - 0.5 * circle_size, y - 0.5 * circle_size, circle_size, circle_size ) )
+		myPath.stroke()
+		# FIXME
+		#mx, my = NSWindow.mouseLocationOutsideOfEventStream()
+		#NSLog("Mouse %f %f" % (mx, my))
+		#if NSMouseInRect((mx, my), NSMakeRect(x-size, y-size, size, size), False):
+		if True: # show labels
+			myString = NSString.string().stringByAppendingString_(kind)
+			myString.drawAtPoint_withAttributes_(
+				(position[0] + 1.8 * size, position[1] - 1.8 * size),
+				{
+					NSFontAttributeName: NSFont.systemFontOfSize_(size),
+					NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.4, 0.4, 0.6, 0.7 ),
+				}
+			)
+	
 	def _drawArrows(self, debug=False):
 		scale = self.getScale()
 		size = 10.0 / scale
@@ -234,6 +257,9 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 				else:
 					message += "%s (Severity %0.1f), " % (e.kind, e.badness)
 			if pos is None:
-				bb = self.current_layer.bounds
-				pos = (bb.origin.x + 0.5 * bb.size.width, bb.origin.y + 0.5 * bb.size.height)
-			self._drawArrow(pos, message.strip(", "), size, width)
+				#bb = self.current_layer.bounds
+				#pos = (bb.origin.x + 0.5 * bb.size.width, bb.origin.y + 0.5 * bb.size.height)
+				pos = (self.current_layer.width + 20, -10)
+				self._drawUnspecified(pos, message.strip(", "), size, width)
+			else:
+				self._drawArrow(pos, message.strip(", "), size, width)
