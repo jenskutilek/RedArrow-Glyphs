@@ -158,8 +158,10 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 		mid = font.selectedFontMaster.id
 		selection = []
 		# pre-filter glyph list
-		#glyphlist = [glyph.name for glyph in font.glyphs if len(glyph.layers[mid]) > 0]
-		for glyph in font.glyphs:
+		#glyphlist = [glyph.name for glyph in font.glyphs if len(glyph.layers[mid].paths) > 0]
+		glyphlist = font.glyphs.keys()
+		for glyph_name in glyphlist:
+			glyph = font.glyphs[glyph_name]
 			layer = glyph.layers[mid]
 			if layer is not None and len(layer.paths) > 0:
 				outline_test_pen = OutlineTestPen(layer.parent.parent, self.options, self.run_tests)
