@@ -132,7 +132,7 @@ class OutlineTestPen(BasePen):
 		self.smooth_connection_max_distance = self._normalize_upm(self.options.get("smooth_connection_max_distance", 4))
 		self.collinear_vectors_max_distance = self._normalize_upm(self.options.get("collinear_vectors_max_distance", 2))
 		self.semi_hv_vectors_min_distance = self._normalize_upm(self.options.get("semi_hv_vectors_min_distance", 30))
-		self.zero_handles_max_distance = self._normalize_upm(self.options.get("zero_handles_max_distance", 2))
+		self.zero_handles_max_distance = self._normalize_upm(self.options.get("zero_handles_max_distance", 0))
 		
 		# which tests should be run
 		if self.run_tests == []:
