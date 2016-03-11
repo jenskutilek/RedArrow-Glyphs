@@ -3,7 +3,7 @@ from math import atan2, degrees, cos, pi, sin, sqrt
 from types import TupleType
 from miniFontTools.misc.arrayTools import pointInRect, normRect
 from miniFontTools.misc.bezierTools import calcCubicParameters, solveQuadratic, splitCubicAtT
-from miniFontTools.pens.basePen import BasePen
+from miniFontTools.pens.pointPen import BasePointToSegmentPen
 
 # Helper functions
 
@@ -57,7 +57,7 @@ class OutlineError(object):
 		return r
 
 
-class OutlineTestPen(BasePen):
+class OutlineTestPen(BasePointToSegmentPen):
 	
 	'''Reimplementation of FontLab's FontAudit.'''
 	
@@ -84,6 +84,7 @@ class OutlineTestPen(BasePen):
 			"test_semi_hv",
 			"test_closepath",
 			"test_zero_handles",
+			"test_bbox_handles",
 		]
 		
 		# Curve type detection
@@ -112,6 +113,11 @@ class OutlineTestPen(BasePen):
 		self._cstart = None
 		
 		self._should_test_collinear = False
+		
+		# From BasePointToSegmentPen.__init__()
+		self.currentPath = None
+		
+		self.current_smooth = False
 		
 		self._cache_options()
 	
@@ -406,8 +412,9 @@ class OutlineTestPen(BasePen):
 				# Compare projected position with actual position
 				badness = distance_between_points(round_point(projected_pt), ref)
 				#print "  Projected: %s, actual: %s, diff: %0.2f" % (projected_pt, ref, badness)
-				if 0 < badness < self.smooth_connection_max_distance:
-					self.errors.append(OutlineError(pt, "Incorrect smooth connection", badness))
+				if 0 < badness:
+					if self.current_smooth or badness < self.smooth_connection_max_distance:
+						self.errors.append(OutlineError(pt, "Incorrect smooth connection", badness))
 	
 	def _checkEmptyLinesAndCurves(self, pt):
 		if self._prev == pt:
@@ -456,3 +463,60 @@ class OutlineTestPen(BasePen):
 		if badness <= self.zero_handles_max_distance:
 			self.errors.append(OutlineError(p1, "Zero handle", badness))
 	
+	def _flushContour(self, segments):
+		#print "_flushContour"
+		first_segment = True
+		for segment_type, points in segments:
+			if segment_type == 'move':
+				self._prev = None
+				self._prev_ref = None
+				self.current_smooth = False
+				self._runMoveTests(points[0])
+			else:
+				if first_segment:
+					#print "    first segment..."
+					prev_segment_type, prev_points = segments[-1]
+					self._prev = prev_points[-1][0]
+					if prev_segment_type == 'curve':
+						self._prev_ref = prev_points[-2][0]
+						self.current_smooth = prev_points[-1][1]
+					else:
+						self._prev_ref = prev_points[0][0]
+						self.current_smooth = prev_points[0][1]
+					first_segment = False
+			
+			if segment_type == 'curve':
+				#print "    curve"
+				bcp1, bcp2, pt = points[0][0], points[1][0], points[2][0]
+				#print "       Smooth:", self.current_smooth
+				#print "       ", self._prev, self._prev_ref
+				#print "       ", bcp1, bcp2, pt
+				self._runCurveTests(bcp1, bcp2, pt)
+				self._prev = pt
+				self._prev_ref = bcp2
+				self.current_smooth = points[2][1]
+			elif segment_type == 'line':
+				#print "    line"
+				pt = points[0][0]
+				self._runLineTests(pt)
+				self._prev = pt
+				self._prev_ref = pt
+				self.current_smooth = points[0][1]
+			elif segment_type == 'qcurve':
+				bcp1, pt = points[0][0], points[1][0]
+				self._runCurveTests(bcp1, pt)
+				self._prev = pt
+				self._prev_ref = bcp1
+				self.current_smooth = points[1][1]
+			else:
+				pass
+
+
+
+
+if __name__ == "__main__":
+	g = CurrentGlyph()
+	p = OutlineTestPen(CurrentFont())
+	g.drawPoints(p)
+	for e in p.errors:
+		print e

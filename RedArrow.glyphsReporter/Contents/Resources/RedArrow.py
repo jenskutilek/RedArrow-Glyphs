@@ -7,7 +7,7 @@ from AppKit import *
 import sys, os, re
 from string import strip
 
-from outlineTestPen import OutlineTestPen
+from outlineTestPenGlyphs import OutlineTestPenGlyphs
 
 MainBundle = NSBundle.mainBundle()
 path = MainBundle.bundlePath() + "/Contents/Scripts"
@@ -179,8 +179,8 @@ class RedArrow ( NSObject, GlyphsReporterProtocol ):
 		self.current_layer = layer
 		self.errors = []
 		if layer is not None:
-			outline_test_pen = OutlineTestPen(layer.parent.parent, self.options, self.run_tests)
-			layer.draw(outline_test_pen)
+			outline_test_pen = OutlineTestPenGlyphs(layer.parent.parent, self.options, self.run_tests)
+			layer.drawPoints(outline_test_pen)
 			self.errors = outline_test_pen.errors
 			if self.errors:
 				self._drawArrows()
