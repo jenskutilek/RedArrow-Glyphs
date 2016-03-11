@@ -21,7 +21,7 @@
 	<key>CFBundleVersion</key>
 	<string>3</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.3.7</string>
+	<string>0.3.8</string>
 	<key>UpdateFeedURL</key>
 	<string>https://raw.githubusercontent.com/jenskutilek/RedArrow-Glyphs/glyphs2/RedArrow.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
