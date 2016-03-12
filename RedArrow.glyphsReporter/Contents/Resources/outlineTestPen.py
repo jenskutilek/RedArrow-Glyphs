@@ -152,51 +152,6 @@ class OutlineTestPen(BasePointToSegmentPen):
 					setattr(self, t, True)
 				else:
 					setattr(self, t, False)
-			
-	
-	def _moveTo(self, pt):
-		self._prev_cstart = self._cstart
-		self._cstart = pt
-		self._runMoveTests(pt)
-		self._prev_ref = None
-		self._prev = pt
-		self._prev_type = None
-		self._is_contour_start = True
-		self._should_test_collinear = False
-		
-	def _lineTo(self, pt):
-		self._runLineTests(pt)
-		self._prev_ref = self._prev
-		self._prev = pt
-		self._prev_type = "line"
-		if self._is_contour_start:
-			self._contour_start_ref = pt
-		self._should_test_collinear = True
-	
-	def _curveToOne(self, bcp1, bcp2, pt):
-		self._runCurveTests(bcp1, bcp2, pt)
-		self._prev_ref = bcp2
-		self._prev = pt
-		self._prev_type = "curve"
-		if self._is_contour_start:
-			self._contour_start_ref = bcp1
-			self._is_contour_start = False
-		self._should_test_collinear = False
-	
-	def _qCurveToOne(self, bcp, pt):
-		self._runQCurveTests(bcp, pt)
-		self._prev_ref = bcp
-		self._prev = pt
-		self._prev_type = "curve"
-		if self._is_contour_start:
-			self._contour_start_ref = bcp
-			self._is_contour_start = False
-		self._should_test_collinear = False
-	
-	def _closePath(self):
-		self._runClosePathTests()
-		self._prev_type = None
-		self._should_test_collinear = False
 	
 	def addComponent(self, baseGlyph, transformation):
 		self._runComponentTests(baseGlyph, transformation)
@@ -351,7 +306,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 				return False
 		self.errors.append(OutlineError(
 			(int(round(pt[0])), int(round(pt[1]))),
-			"Fractional Coordinates (%0.2f, %0.2f)" % (pt[0], pt[1]),
+			"Fractional Coordinates", # (%0.2f, %0.2f)" % (pt[0], pt[1]),
 		))
 	
 	def _checkFractionalTransformation(self, baseGlyph, transformation):
@@ -360,7 +315,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 				if round(p) != p:
 					self.errors.append(OutlineError(
 						None,
-						"Fractional transformation %s" % str(transformation)
+						"Fractional transformation", # (%0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f)" % transformation
 					))
 					break
 		else:
@@ -368,7 +323,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 				if type(p) == float:
 					self.errors.append(OutlineError(
 						None,
-						"Fractional transformation %s" % str(transformation)
+						"Fractional transformation", # (%0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f)" % transformation
 					))
 					break
 	
@@ -464,17 +419,22 @@ class OutlineTestPen(BasePointToSegmentPen):
 			self.errors.append(OutlineError(p1, "Zero handle", badness))
 	
 	def _flushContour(self, segments):
-		#print "_flushContour"
-		first_segment = True
-		for segment_type, points in segments:
-			if segment_type == 'move':
-				self._prev = None
-				self._prev_ref = None
-				self.current_smooth = False
-				self._runMoveTests(points[0][0])
-			else:
+			first_segment = True
+			pt = segments[0][1][0][0]
+			self._prev = None
+			self._prev_ref = None
+			self.current_smooth = False
+			self._prev_cstart = self._cstart
+			self._cstart = pt
+			self._runMoveTests(pt)
+			self._prev_ref = None
+			self._prev = pt
+			self._prev_type = None
+			self._is_contour_start = True
+			self._should_test_collinear = False
+			for segment_type, points in segments:
+		
 				if first_segment:
-					#print "    first segment..."
 					prev_segment_type, prev_points = segments[-1]
 					self._prev = prev_points[-1][0]
 					if prev_segment_type == 'curve':
@@ -485,31 +445,46 @@ class OutlineTestPen(BasePointToSegmentPen):
 						self.current_smooth = prev_points[0][1]
 					first_segment = False
 			
-			if segment_type == 'curve':
-				#print "    curve"
-				bcp1, bcp2, pt = points[0][0], points[1][0], points[2][0]
-				#print "       Smooth:", self.current_smooth
-				#print "       ", self._prev, self._prev_ref
-				#print "       ", bcp1, bcp2, pt
-				self._runCurveTests(bcp1, bcp2, pt)
-				self._prev = pt
-				self._prev_ref = bcp2
-				self.current_smooth = points[2][1]
-			elif segment_type == 'line':
-				#print "    line"
-				pt = points[0][0]
-				self._runLineTests(pt)
-				self._prev = pt
-				self._prev_ref = pt
-				self.current_smooth = points[0][1]
-			elif segment_type == 'qcurve':
-				bcp1, pt = points[0][0], points[1][0]
-				self._runCurveTests(bcp1, pt)
-				self._prev = pt
-				self._prev_ref = bcp1
-				self.current_smooth = points[1][1]
-			else:
-				pass
+				if segment_type == 'curve':
+					bcp1, bcp2, pt = points[0][0], points[1][0], points[2][0]
+					self._runCurveTests(bcp1, bcp2, pt)
+					self._prev_ref = bcp2
+					self._prev = pt
+					self._prev_type = "curve"
+					if self._is_contour_start:
+						self._contour_start_ref = bcp1
+						self._is_contour_start = False
+					self._should_test_collinear = False
+					self.current_smooth = points[2][1]
+				elif segment_type == 'line':
+					pt = points[0][0]
+					self._runLineTests(pt)
+					self._prev_ref = self._prev
+					#?
+					#self._prev_ref = pt
+					self._prev = pt
+					self._prev_type = "line"
+					if self._is_contour_start:
+						self._contour_start_ref = pt
+					self._should_test_collinear = True
+					self.current_smooth = points[0][1]
+				elif segment_type == 'qcurve':
+					bcp, pt = points[0][0], points[1][0]
+					self._runCurveTests(bcp, pt)
+					self._prev_ref = bcp
+					self._prev = pt
+					self._prev_type = "curve"
+					if self._is_contour_start:
+						self._contour_start_ref = bcp
+						self._is_contour_start = False
+					self._should_test_collinear = False
+					self.current_smooth = points[1][1]
+				else:
+					pass
+		
+			self._runClosePathTests()
+			self._prev_type = None
+			self._should_test_collinear = False
 
 
 
