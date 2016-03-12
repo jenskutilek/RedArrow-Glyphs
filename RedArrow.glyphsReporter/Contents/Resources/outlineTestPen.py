@@ -471,7 +471,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 				self._prev = None
 				self._prev_ref = None
 				self.current_smooth = False
-				self._runMoveTests(points[0])
+				self._runMoveTests(points[0][0])
 			else:
 				if first_segment:
 					#print "    first segment..."

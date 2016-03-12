@@ -27,10 +27,10 @@ class OutlineTestPenGlyphs(OutlineTestPen):
 				first_segment = False
 			elif segment_type == "line":
 				first_segment = False
-				reordered_segments.append((segment_type, point))
+				reordered_segments.append((segment_type, [point]))
 				segment_points = []
 			elif segment_type == "move":
-				reordered_segments.append((segment_type, point))
+				reordered_segments.append((segment_type, [point]))
 			else:
 				pass
 		if segment_points:
