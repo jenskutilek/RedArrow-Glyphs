@@ -24,6 +24,11 @@ These kinds of errors are detected:
 
 Download the complete ZIP file and unpack it, or clone the repository.
 Double click the .glyphsReporter file. Confirm the dialog that appears in Glyphs.
+
+Make sure you have the latest version of the files `GSPen.py` and `objectsGS.py` from
+https://github.com/schriftgestalt/Glyphs-Scripts/tree/develope installed in your
+Glyphs script folder (usually `~/Library/Application Support/Glyphs/Scripts`).
+
 Restart Glyphs.
 
 ### Usage Instructions
@@ -37,11 +42,6 @@ Use View > Show Red Arrows to toggle the arrows.
 
 Go to the Font overview tab and choose the master you want to check.
 Use Edit > Select Glyphs With Outline Errors to select affected glyphs, then add a mark color to them, make a new list filter, or open a new tab. Whatever you like best that allows you to step through the glyphs and fix the outline errors.
-
-### Troubleshooting
-
-If the plugin doesn’t run: Check your Glyphs script folder for files called `GlyphsApp.py` or `GlyphsApp.pyc`.
-Deleting these files should make RedArrow work again. The files may be recreated if you switch between Glyphs 1.4 and 2, so you could have to delete them again.
 
 ### Known bugs
 
