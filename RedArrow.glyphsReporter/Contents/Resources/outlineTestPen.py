@@ -402,7 +402,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 			#                 atan2(1, 31)
 			if 0 < abs(phi) < 0.032 or 0 < abs(phi - pi) < 0.032 or 0 < abs(abs(phi) - pi) < 0.032:
 				if abs(p1[1] - p0[1]) < 2:
-					self.errors.append(OutlineError(half_point(p0, p1), "Semi-horizontal vector", degrees(phi)))
+					self.errors.append(OutlineError(half_point(p0, p1), "Semi-horizontal line", degrees(phi)))
 	
 	def _checkSemiVerticalVectors(self, p0, p1):
 		'''Test for semi-vertical lines.'''
@@ -411,7 +411,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 			phi = angle_between_points(p0, p1)
 			#                            atan2(31, 1)                       atan2(31, -1)
 			if 0 < abs(phi - 0.5 * pi) < 0.032 or 0 < abs(phi + 0.5 * pi) < 0.032:
-				self.errors.append(OutlineError(half_point(p0, p1), "Semi-vertical vector", degrees(phi)))
+				self.errors.append(OutlineError(half_point(p0, p1), "Semi-vertical line", degrees(phi)))
 	
 	def _checkZeroHandles(self, p0, p1):
 		badness = distance_between_points(p0, p1)
