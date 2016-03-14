@@ -482,9 +482,9 @@ class OutlineTestPen(BasePointToSegmentPen):
 				else:
 					pass
 		
-			self._runClosePathTests()
-			self._prev_type = None
-			self._should_test_collinear = False
+			#self._runClosePathTests()
+			#self._prev_type = None
+			#self._should_test_collinear = False
 
 
 
