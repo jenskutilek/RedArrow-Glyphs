@@ -3,6 +3,7 @@ from math import atan2, degrees, cos, pi, sin, sqrt
 from types import TupleType
 from miniFontTools.misc.arrayTools import pointInRect, normRect
 from miniFontTools.misc.bezierTools import calcCubicParameters, solveQuadratic, splitCubicAtT
+from miniFontTools.misc.transform import Transform
 from miniFontTools.pens.pointPen import BasePointToSegmentPen
 
 # Helper functions
@@ -40,6 +41,12 @@ def half_point(p0, p1):
 		p01[0] = (p0[0] + p1[0]) / 2
 		p01[1] = (p0[1] + p1[1]) / 2
 	return p01
+
+def transform_bbox(bbox, matrix):
+	t = Transform(*matrix)
+	ll_x, ll_y = t.transformPoint((bbox[0], bbox[1]))
+	tr_x, tr_y = t.transformPoint((bbox[2], bbox[3]))
+	return normRect((ll_x, ll_y, tr_x, tr_y))
 
 
 class OutlineError(object):
@@ -311,12 +318,19 @@ class OutlineTestPen(BasePointToSegmentPen):
 		))
 	
 	def _checkFractionalTransformation(self, baseGlyph, transformation):
-		#bbox = self.glyphSet.glyphs[baseGlyph].bbox
+		try:
+			# RF
+			bbox = self.glyphSet[baseGlyph].box
+		except:
+			# Glyphs FIXME
+			# bbox = self.glyphSet.glyphs[baseGlyph].bounds()
+			bbox = (0, 0, 0, 0)
+		tbox = transform_bbox(bbox, transformation)
 		if self.fractional_ignore_point_zero:
 			for p in transformation:
 				if round(p) != p:
 					self.errors.append(OutlineError(
-						None,
+						half_point((tbox[0], tbox[1]), (tbox[2], tbox[3])),
 						"Fractional transformation", # (%0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f)" % transformation
 					))
 					break
@@ -324,7 +338,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 			for p in transformation:
 				if type(p) == float:
 					self.errors.append(OutlineError(
-						None,
+						half_point((tbox[0], tbox[1]), (tbox[2], tbox[3])),
 						"Fractional transformation", # (%0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f)" % transformation
 					))
 					break
