@@ -435,9 +435,9 @@ class OutlineTestPen(BasePointToSegmentPen):
 			for segment_type, points in segments:
 		
 				if first_segment:
-					prev_segment_type, prev_points = segments[-1]
+					self._prev_type, prev_points = segments[-1]
 					self._prev = prev_points[-1][0]
-					if prev_segment_type == 'curve':
+					if self._prev_type in ['curve', 'qcurve']:
 						self._prev_ref = prev_points[-2][0]
 						self.current_smooth = prev_points[-1][1]
 					else:
