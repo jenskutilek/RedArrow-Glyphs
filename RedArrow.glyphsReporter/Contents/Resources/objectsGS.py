@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import objc
+import weakref
 from GlyphsApp import *
 from GlyphsApp import Proxy
 from AppKit import *
@@ -60,14 +61,16 @@ def AllFonts():
 
 def CurrentGlyph():
 	"""Return a RoboFab glyph object for the currently selected glyph."""
-	Doc = Glyphs.currentDocument
-	try:
-		Layer = Doc.selectedLayers()[0]
-		return RGlyph(Layer.parent)
-	except: pass
-	
-	print "No glyph selected!"
-	return None
+	doc = Glyphs.currentDocument
+	Layer = doc.selectedLayers()[0]
+	if Layer is None:
+		return None
+	else:
+		master_index = doc.windowControllers()[0].masterIndex()
+		rg = RGlyph(Layer.parent, master_index)
+		rg.setParent(RFont(doc.font, master_index))
+		return rg
+
 
 def OpenFont(path=None, note=None):
 	"""Open a font from a path."""
@@ -157,6 +160,13 @@ class KerningProxy(Proxy, BaseKerning):
 			return value
 		else:
 			raise KeyError, 'kerning pair must be a tuple: (left, right)'
+	def get(self, pair, default=None):
+		try:
+			return self.__getitem__(pair)
+		except:
+			return default
+	def items(self):
+		return self._dict().items()
 	def __setitem__(self, keys, value):
 		if not isinstance(value, (int, float)):
 			raise ValueError
@@ -173,6 +183,11 @@ class KerningProxy(Proxy, BaseKerning):
 			self._owner._font.removeKerningForFontMasterID_LeftKey_RightKey_(FontMaster.id, firstKey, secondKey)
 		else:
 			raise KeyError, 'kerning pair must be a tuple: (left, right)'
+	def clear(self):
+		FontMaster = self._owner._font.masters[self._owner._master]
+		GSKerning = self._owner._font.kerning.objectForKey_(FontMaster.id)
+		if GSKerning is not None:
+			GSKerning.clear()
 	def remove(self, keys):
 		self.__delitem__(keys)
 	def __repr__(self):
@@ -393,7 +408,8 @@ class RFont(BaseFont):
 			n = self._RGlyphs[glyphName]
 		else:
 			# haven't served it before, is it in the glyphSet then?
-			n = RGlyph( self._font.glyphForName_(glyphName) )
+			n = RGlyph(self._font.glyphForName_(glyphName), self._master)
+			n.setParent(self)
 			self._RGlyphs[glyphName] = n
 			
 		if n is None:
@@ -507,8 +523,13 @@ class RGlyph(BaseGlyph):
 			pass
 		return "<RGlyph %s for %s.%s>" %(self._object.name, font, glyph)
 	
+	def setParent(self, parent):
+		self._parent = weakref.proxy(parent)
+	
 	def getParent(self):
-		return RFont(self._object.parent)
+		if self._parent is not None:
+			self._parent = RFont(self._object.parent, self.masterIndex)
+		return self._parent
 	
 	def __getitem__(self, index):
 		return self.contours[index]
@@ -739,6 +760,12 @@ class RGlyph(BaseGlyph):
 
 RContour = GSPath
 
+def __GSElement__get_box__(self):
+	rect = self.bounds
+	return (NSMinX(rect), NSMinY(rect), NSMaxX(rect), NSMaxY(rect))
+
+GSPath.box = property(__GSElement__get_box__, doc="get the contour bounding box as a tuple of lower left x, lower left y, width, height coordinates")
+
 GSPath.points = GSPath.nodes
 
 def __GSPath__get_bPoints(self):
@@ -964,11 +991,11 @@ class RSegment(BaseSegment):
 		points = []
 		if index < len(Path.nodes):
 			if self._object.type == GSCURVE:
-				points.append(RPoint(Path.nodes[index-2]))
-				points.append(RPoint(Path.nodes[index-1]))
-				points.append(RPoint(Path.nodes[index]))
+				points.append(Path.nodes[index-2])
+				points.append(Path.nodes[index-1])
+				points.append(Path.nodes[index])
 			elif self._object.type == GSLINE:
-				points.append(RPoint(Path.nodes[index]))
+				points.append(Path.nodes[index])
 		return points
 	
 	points = property(_get_points, doc="index of the segment")
@@ -1188,10 +1215,7 @@ def __GSComponent_get_index(self):
 	return self.parent.components.index(self)
 GSComponent.index = property(__GSComponent_get_index, doc="index of the component")
 
-def __GSComponent_get_box_(self):
-	Rect = self.bounds
-	return (NSMinX(Rect), NSMinY(Rect), NSMaxX(Rect), NSMaxY(Rect))
-GSComponent.box = property(__GSComponent_get_box_, doc="the bounding box of the component: (xMin, yMin, xMax, yMax)")
+GSComponent.box = property(__GSElement__get_box__, doc="the bounding box of the component: (xMin, yMin, xMax, yMax)")
 
 def __GSComponent_round_(self):
 	(xx, xy, yx, yy, dx, dy) = self.transformStruct()
@@ -1328,6 +1352,8 @@ class RInfo(BaseInfo):
 					elif attr == "postscriptFontName" or attr == "fontName":
 						value = "%s-%s" % (gsFont.valueForKey_("familyName"), Instance.name)
 						value = value.replace(" ", "")
+					elif attr == "styleName":
+						value = "%s" % (Instance.name)
 			return value
 		except:
 			raise AttributeError("Unknown attribute %s." % attr)
