@@ -469,11 +469,11 @@ class OutlineTestPen(BasePointToSegmentPen):
 					self._should_test_collinear = True
 					self.current_smooth = points[0][1]
 				elif segment_type == 'qcurve':
-					bcp, pt = points[0][0], points[1][0]
-					self._runCurveTests(bcp, pt)
-					self._prev_ref = bcp
+					bcp, pt = points[0][0], points[-1][0]
+					self._runQCurveTests(bcp, pt)
+					self._prev_ref = points[-2][0]
 					self._prev = pt
-					self._prev_type = "curve"
+					self._prev_type = "qcurve"
 					if self._is_contour_start:
 						self._contour_start_ref = bcp
 						self._is_contour_start = False
