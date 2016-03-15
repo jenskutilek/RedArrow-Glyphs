@@ -383,7 +383,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 				# Compare projected position with actual position
 				badness = distance_between_points(round_point(projected_pt), ref)
 				#print "  Projected: %s, actual: %s, diff: %0.2f" % (projected_pt, ref, badness)
-				if 0 < badness:
+				if 0.49 < badness:
 					if self.current_smooth or badness < self.smooth_connection_max_distance:
 						self.errors.append(OutlineError(pt, "Incorrect smooth connection", badness))
 	
