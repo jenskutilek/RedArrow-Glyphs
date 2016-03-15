@@ -310,6 +310,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 		))
 	
 	def _checkFractionalTransformation(self, baseGlyph, transformation):
+		#bbox = self.glyphSet.glyphs[baseGlyph].bbox
 		if self.fractional_ignore_point_zero:
 			for p in transformation:
 				if round(p) != p:
@@ -433,7 +434,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 		self._is_contour_start = True
 		self._should_test_collinear = False
 		for segment_type, points in segments:
-
+	
 			if first_segment:
 				self._prev_type, prev_points = segments[-1]
 				self._prev = prev_points[-1][0]
@@ -444,7 +445,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 					self._prev_ref = prev_points[0][0]
 					self.current_smooth = prev_points[0][1]
 				first_segment = False
-
+		
 			if segment_type == 'curve':
 				bcp1, bcp2, pt = points[0][0], points[1][0], points[2][0]
 				self._runCurveTests(bcp1, bcp2, pt)
