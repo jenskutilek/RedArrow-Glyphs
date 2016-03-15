@@ -419,68 +419,68 @@ class OutlineTestPen(BasePointToSegmentPen):
 			self.errors.append(OutlineError(p1, "Zero handle", badness))
 	
 	def _flushContour(self, segments):
-			first_segment = True
-			pt = segments[0][1][0][0]
-			self._prev = None
-			self._prev_ref = None
-			self.current_smooth = False
-			self._prev_cstart = self._cstart
-			self._cstart = pt
-			self._runMoveTests(pt)
-			self._prev_ref = None
-			self._prev = pt
-			self._prev_type = None
-			self._is_contour_start = True
-			self._should_test_collinear = False
-			for segment_type, points in segments:
-	
-				if first_segment:
-					self._prev_type, prev_points = segments[-1]
-					self._prev = prev_points[-1][0]
-					if self._prev_type in ['curve', 'qcurve']:
-						self._prev_ref = prev_points[-2][0]
-						self.current_smooth = prev_points[-1][1]
-					else:
-						self._prev_ref = prev_points[0][0]
-						self.current_smooth = prev_points[0][1]
-					first_segment = False
-		
-				if segment_type == 'curve':
-					bcp1, bcp2, pt = points[0][0], points[1][0], points[2][0]
-					self._runCurveTests(bcp1, bcp2, pt)
-					self._prev_ref = bcp2
-					self._prev = pt
-					self._prev_type = "curve"
-					if self._is_contour_start:
-						self._contour_start_ref = bcp1
-						self._is_contour_start = False
-					self._should_test_collinear = False
-					self.current_smooth = points[2][1]
-				elif segment_type == 'line':
-					pt = points[0][0]
-					self._runLineTests(pt)
-					self._prev_ref = self._prev
-					#?
-					#self._prev_ref = pt
-					self._prev = pt
-					self._prev_type = "line"
-					if self._is_contour_start:
-						self._contour_start_ref = pt
-					self._should_test_collinear = True
-					self.current_smooth = points[0][1]
-				elif segment_type == 'qcurve':
-					bcp, pt = points[0][0], points[-1][0]
-					self._runQCurveTests(bcp, pt)
-					self._prev_ref = points[-2][0]
-					self._prev = pt
-					self._prev_type = "qcurve"
-					if self._is_contour_start:
-						self._contour_start_ref = bcp
-						self._is_contour_start = False
-					self._should_test_collinear = False
-					self.current_smooth = points[1][1]
+		first_segment = True
+		pt = segments[0][1][0][0]
+		self._prev = None
+		self._prev_ref = None
+		self.current_smooth = False
+		self._prev_cstart = self._cstart
+		self._cstart = pt
+		self._runMoveTests(pt)
+		self._prev_ref = None
+		self._prev = pt
+		self._prev_type = None
+		self._is_contour_start = True
+		self._should_test_collinear = False
+		for segment_type, points in segments:
+
+			if first_segment:
+				self._prev_type, prev_points = segments[-1]
+				self._prev = prev_points[-1][0]
+				if self._prev_type in ['curve', 'qcurve']:
+					self._prev_ref = prev_points[-2][0]
+					self.current_smooth = prev_points[-1][1]
 				else:
-					pass
+					self._prev_ref = prev_points[0][0]
+					self.current_smooth = prev_points[0][1]
+				first_segment = False
+
+			if segment_type == 'curve':
+				bcp1, bcp2, pt = points[0][0], points[1][0], points[2][0]
+				self._runCurveTests(bcp1, bcp2, pt)
+				self._prev_ref = bcp2
+				self._prev = pt
+				self._prev_type = "curve"
+				if self._is_contour_start:
+					self._contour_start_ref = bcp1
+					self._is_contour_start = False
+				self._should_test_collinear = False
+				self.current_smooth = points[2][1]
+			elif segment_type == 'line':
+				pt = points[0][0]
+				self._runLineTests(pt)
+				self._prev_ref = self._prev
+				#?
+				#self._prev_ref = pt
+				self._prev = pt
+				self._prev_type = "line"
+				if self._is_contour_start:
+					self._contour_start_ref = pt
+				self._should_test_collinear = True
+				self.current_smooth = points[0][1]
+			elif segment_type == 'qcurve':
+				bcp, pt = points[0][0], points[-1][0]
+				self._runQCurveTests(bcp, pt)
+				self._prev_ref = points[-2][0]
+				self._prev = pt
+				self._prev_type = "qcurve"
+				if self._is_contour_start:
+					self._contour_start_ref = bcp
+					self._is_contour_start = False
+				self._should_test_collinear = False
+				self.current_smooth = points[1][1]
+			else:
+				pass
 		
 			#self._runClosePathTests()
 			#self._prev_type = None
