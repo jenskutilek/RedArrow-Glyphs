@@ -197,16 +197,17 @@ class OutlineTestPen(BasePointToSegmentPen):
 			self._checkZeroHandles(self._prev, bcp1)
 			self._checkZeroHandles(pt, bcp2)
 
-	def _runQCurveTests(self, bcp, pt):
+	def _runQCurveTests(self, bcps, pt):
 		if self.test_extrema:
-			self._checkBbox(bcp, pt)
+			for bcp in bcps:
+				self._checkBbox(bcp, pt)
 		if self.test_fractional_coords:
-			for p in [bcp, pt]:
+			for p in bcps + [pt]:
 				self._checkFractionalCoordinates(p)
 		if not self.curveTypeDetected:
 			self._countQCurveSegment()
 		if self.test_smooth:
-			self._checkIncorrectSmoothConnection(self._prev, bcp)
+			self._checkIncorrectSmoothConnection(self._prev, bcps[0])
 		if self.test_empty_segments:
 			self._checkEmptyLinesAndCurves(pt)
 	
@@ -470,8 +471,10 @@ class OutlineTestPen(BasePointToSegmentPen):
 				self._should_test_collinear = True
 				self.current_smooth = points[0][1]
 			elif segment_type == 'qcurve':
-				bcp, pt = points[0][0], points[-1][0]
-				self._runQCurveTests(bcp, pt)
+				bcp = points[0][0]
+				pt = points[-1][0]
+				bcps = [p[0] for p in points[:-1]]
+				self._runQCurveTests(bcps, pt)
 				self._prev_ref = points[-2][0]
 				self._prev = pt
 				self._prev_type = "qcurve"
