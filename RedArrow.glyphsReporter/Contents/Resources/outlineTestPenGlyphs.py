@@ -35,7 +35,8 @@ class OutlineTestPenGlyphs(OutlineTestPen):
 		
 		curve_order = 0
 		
-		segments = self._glyphs_workaround(segments)
+		# For Glyphs < 2.3b 860
+		#segments = self._glyphs_workaround(segments)
 		
 		#print "Raw segments:"
 		#print segments
