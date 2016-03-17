@@ -25,10 +25,6 @@ These kinds of errors are detected:
 Download the complete ZIP file and unpack it, or clone the repository.
 Double click the .glyphsReporter file. Confirm the dialog that appears in Glyphs.
 
-Make sure you have the latest version of the files `GSPen.py` and `objectsGS.py` from
-https://github.com/schriftgestalt/Glyphs-Scripts/tree/develope installed in your
-Glyphs script folder (usually `~/Library/Application Support/Glyphs/Scripts`).
-
 Restart Glyphs.
 
 ### Usage Instructions
@@ -37,6 +33,10 @@ Restart Glyphs.
 
 Open a glyph in Edit View.
 Use View > Show Red Arrows to toggle the arrows.
+
+#### To Show/Hide Error Description Labels
+
+In the glyph view, open the context menu and choose *Hide Error Labels*/*Show Error Labels.*
 
 #### To Find All Glyphs With Outline Errors
 
