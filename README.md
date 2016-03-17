@@ -5,7 +5,7 @@ Now Glyphs users can also have red arrows!
 
 This plugin points at possible outline errors, like FontAudit in FontLab Studio. This version only works in Glyphs 2.
 
-![](screenshot.png)
+<img src="screenshot.png" width="380" height="400" alt="">
 
 When the plugin is active, red arrows will point to possible mistakes in your outlines.
 
