@@ -6,6 +6,9 @@ from GlyphsApp.plugins import *
 from outlineTestPenGlyphs import OutlineTestPenGlyphs
 from string import strip
 
+plugin_id = "de.kutilek.RedArrow"
+
+
 class RedArrow(ReporterPlugin):
 	
 	def settings(self):
@@ -38,7 +41,8 @@ class RedArrow(ReporterPlugin):
 			"test_zero_handles",
 		]
 		self.errors = []
-		self.show_labels = True
+		self.show_labels = Glyphs.defaults["%s.showLabels" % plugin_id]
+		self.show_labels = not(self.show_labels)
 		self.toggleLabels()
 	
 	def addMenuItem(self):
@@ -88,6 +92,7 @@ class RedArrow(ReporterPlugin):
 					"action": self.toggleLabels
 				},
 			]
+		Glyphs.defaults["%s.showLabels" % plugin_id] = self.show_labels
 	
 	def selectGlyphsWithErrors(self):
 		"""
