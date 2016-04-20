@@ -1,3 +1,6 @@
+import GlyphsApp
+from GlyphsApp import Glyphs
+
 def _run(*scripts):
 	global __file__
 	import os, sys
