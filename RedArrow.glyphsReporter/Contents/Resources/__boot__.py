@@ -8,4 +8,7 @@ def _run(*scripts):
 		__file__ = path
 		execfile(path, globals(), globals())
 
-_run('RedArrow.py')
+if hasattr(Glyphs, 'versionNumber') and Glyphs.versionNumber >= 2.3:
+	_run('RedArrow.py')
+else:
+	_run('RedArrow22.py')
