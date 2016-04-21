@@ -3,7 +3,7 @@ RedArrow-Glyphs
 
 Now Glyphs users can also have red arrows!
 
-This plugin points at possible outline errors, like FontAudit in FontLab Studio. This version only works in Glyphs 2.
+This plugin points at possible outline errors, like FontAudit in FontLab Studio. This version only works in Glyphs 2.2 and newer.
 
 <img src="screenshot.png" width="380" height="400" alt="">
 
