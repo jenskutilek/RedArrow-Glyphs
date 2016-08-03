@@ -118,7 +118,7 @@ class RedArrow(ReporterPlugin):
 			if layer is not None:
 				#try:
 				outline_test_pen = OutlineTestPenGlyphs(layer.parent.parent, self.options, self.run_tests)
-				layer.draw(outline_test_pen)
+				layer.drawPoints(outline_test_pen)
 				if len(outline_test_pen.errors) > 0:
 					glyph.selected = True
 					selection.append(glyph_name)
