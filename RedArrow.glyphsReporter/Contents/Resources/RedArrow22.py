@@ -1,25 +1,26 @@
+#!/usr/bin/env python
 # encoding: utf-8
 
-
-from GlyphsApp.plugins import *
-
-from outlineTestPenGlyphs import OutlineTestPenGlyphs
+import objc
+from Foundation import *
+from AppKit import *
+import sys, os, re
 from string import strip
 
-plugin_id = "de.kutilek.RedArrow"
+from outlineTestPen22 import OutlineTestPen
 
+MainBundle = NSBundle.mainBundle()
+path = MainBundle.bundlePath() + "/Contents/Scripts"
+if not path in sys.path:
+	sys.path.append( path )
 
-class RedArrow(ReporterPlugin):
+import GlyphsApp
+
+GlyphsReporterProtocol = objc.protocolNamed( "GlyphsReporter" )
+
+class RedArrow ( NSObject, GlyphsReporterProtocol ):
 	
-	def settings(self):
-		self.menuName = "Red Arrows"
-		self.keyboardShortcut = 'a'
-		self.keyboardShortcutModifier = NSCommandKeyMask | NSShiftKeyMask | NSAlternateKeyMask
-		self.generalContextMenus = [
-			{"name": Glyphs.localize({'en': u'Show Error Labels', 'de': u'Fehlerbeschriftung anzeigen'}), "action": self.toggleLabels},
-		]
-	
-	def start(self):
+	def init( self ):
 		self.addMenuItem()
 		self.options = {
 			"extremum_calculate_badness": False,
@@ -41,63 +42,111 @@ class RedArrow(ReporterPlugin):
 			"test_zero_handles",
 		]
 		self.errors = []
-		self.show_labels = Glyphs.defaults["%s.showLabels" % plugin_id]
-		self.show_labels = not(self.show_labels)
-		self.toggleLabels()
+		try:
+			return self
+		except Exception as e:
+			self.logToConsole( "init: %s" % str(e) )
 	
 	def addMenuItem(self):
 		mainMenu = NSApplication.sharedApplication().mainMenu()
 		s = objc.selector(self.selectGlyphsWithErrors,signature='v@:')
 		newMenuItem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-			Glyphs.localize({
-				'en': u"Select Glyphs With Outline Errors",
-				'de': u'Glyphen mit Outlinefehlern auswählen'
-			}),
+			"Select Glyphs With Outline Errors",
 			s,
 			""
 		)
 		newMenuItem.setTarget_(self)
 		mainMenu.itemAtIndex_(2).submenu().insertItem_atIndex_(newMenuItem, 11)
 	
-	def foreground(self, Layer):
+	def interfaceVersion( self ):
+		"""
+		Distinguishes the API version the plugin was built for. 
+		Return 1.
+		"""
 		try:
-			currentController = self.controller.view().window().windowController()
-			if currentController:
-			    tool = currentController.toolDrawDelegate()
-			    # don't activate if on cursor tool, or pan tool
-			    if not tool.isKindOfClass_( NSClassFromString("GlyphsToolText") ) and not tool.isKindOfClass_( NSClassFromString("GlyphsToolHand") ):
-					self._updateOutlineCheck(Layer)
+			return 1
+		except Exception as e:
+			self.logToConsole( "interfaceVersion: %s" % str(e) )
+	
+	def title( self ):
+		"""
+		This is the name as it appears in the menu in combination with 'Show'.
+		E.g. 'return "Nodes"' will make the menu item read "Show Nodes".
+		"""
+		try:
+			return "Red Arrows"
+		except Exception as e:
+			self.logToConsole( "title: %s" % str(e) )
+	
+	def keyEquivalent( self ):
+		"""
+		The key for the keyboard shortcut. Set modifier keys in modifierMask() further below.
+		Pretty tricky to find a shortcut that is not taken yet, so be careful.
+		If you are not sure, use 'return None'. Users can set their own shortcuts in System Prefs.
+		"""
+		try:
+			return "a"
+		except Exception as e:
+			self.logToConsole( "keyEquivalent: %s" % str(e) )
+	
+	def modifierMask( self ):
+		"""
+		Use any combination of these to determine the modifier keys for your default shortcut:
+			return NSShiftKeyMask | NSControlKeyMask | NSCommandKeyMask | NSAlternateKeyMask
+		Or:
+			return 0
+		... if you do not want to set a shortcut.
+		"""
+		try:
+			return NSCommandKeyMask | NSShiftKeyMask | NSAlternateKeyMask
+		except Exception as e:
+			self.logToConsole( "modifierMask: %s" % str(e) )
+	
+	def drawForegroundForLayer_( self, Layer ):
+		try:
+			self._updateOutlineCheck(Layer)
 		except Exception as e:
 			self.logToConsole( "drawForegroundForLayer_: %s" % str(e) )
 	
-	def toggleLabels(self):
-		if self.show_labels:
-			self.show_labels = False
-			self.generalContextMenus = [
-				{
-					"name": Glyphs.localize(
-						{
-							'en': u'Show Error Labels',
-							'de': u'Fehlerbeschriftung anzeigen'
-						}
-					),
-					"action": self.toggleLabels
-				},
-			]
-		else:
-			self.show_labels = True
-			self.generalContextMenus = [
-				{
-					"name": Glyphs.localize(
-						{
-							'en': u'Hide Error Labels',
-							'de': u'Fehlerbeschriftung ausblenden'
-						}
-					),
-					"action": self.toggleLabels
-				},
-			]
-		Glyphs.defaults["%s.showLabels" % plugin_id] = self.show_labels
+	def drawBackgroundForLayer_( self, Layer ):
+		"""
+		Whatever you draw here will be displayed BEHIND the paths.
+		"""
+		pass
+	
+	def drawBackgroundForInactiveLayer_( self, Layer ):
+		"""
+		Whatever you draw here will be displayed behind the paths, but for inactive masters.
+		"""
+		pass
+	
+	def getScale( self ):
+		"""
+		self.getScale() returns the current scale factor of the Edit View UI.
+		Divide any scalable size by this value in order to keep the same apparent pixel size.
+		"""
+		try:
+			return self.controller.graphicView().scale()
+		except:
+			self.logToConsole( "Scale defaulting to 1.0" )
+			return 1.0
+	
+	def setController_( self, Controller ):
+		"""
+		Use self.controller as object for the current view controller.
+		"""
+		try:
+			self.controller = Controller
+		except Exception as e:
+			self.logToConsole( "Could not set controller" )
+	
+	def logToConsole( self, message ):
+		"""
+		The variable 'message' will be passed to Console.app.
+		Use self.logToConsole( "bla bla" ) for debugging.
+		"""
+		myLog = "Show %s plugin:\n%s" % ( self.title(), message )
+		NSLog( myLog )
 	
 	def selectGlyphsWithErrors(self):
 		"""
@@ -116,16 +165,13 @@ class RedArrow(ReporterPlugin):
 			glyph = font.glyphs[glyph_name]
 			layer = glyph.layers[mid]
 			if layer is not None:
-				#try:
-				outline_test_pen = OutlineTestPenGlyphs(layer.parent.parent, self.options, self.run_tests)
+				outline_test_pen = OutlineTestPen(layer.parent.parent, self.options, self.run_tests)
 				layer.draw(outline_test_pen)
 				if len(outline_test_pen.errors) > 0:
 					glyph.selected = True
 					selection.append(glyph_name)
 				else:
 					glyph.selected = False
-				#except Exception as e:
-				#	self.logToConsole( "selectGlyphsWithErrors: Layer '%s': %s" % (glyph_name, str(e)) )
 		font.enableUpdateInterface()
 		
 	
@@ -133,8 +179,8 @@ class RedArrow(ReporterPlugin):
 		self.current_layer = layer
 		self.errors = []
 		if layer is not None:
-			outline_test_pen = OutlineTestPenGlyphs(layer.parent.parent, self.options, self.run_tests)
-			layer.drawPoints(outline_test_pen)
+			outline_test_pen = OutlineTestPen(layer.parent.parent, self.options, self.run_tests)
+			layer.draw(outline_test_pen)
 			self.errors = outline_test_pen.errors
 			if self.errors:
 				self._drawArrows()
@@ -150,10 +196,11 @@ class RedArrow(ReporterPlugin):
 		myPath.moveToPoint_( (x, y) )
 		myPath.lineToPoint_( (x+size, y-size) )
 		myPath.stroke()
+		# FIXME
 		#mx, my = NSWindow.mouseLocationOutsideOfEventStream()
 		#NSLog("Mouse %f %f" % (mx, my))
 		#if NSMouseInRect((mx, my), NSMakeRect(x-size, y-size, size, size), False):
-		if self.show_labels:
+		if True: # show labels
 			myString = NSString.string().stringByAppendingString_(kind)
 			myString.drawAtPoint_withAttributes_(
 				(position[0] + 1.8 * size, position[1] - 1.8 * size),

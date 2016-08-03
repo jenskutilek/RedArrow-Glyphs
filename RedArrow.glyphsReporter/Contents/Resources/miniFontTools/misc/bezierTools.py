@@ -1,6 +1,8 @@
 """fontTools.misc.bezierTools.py -- tools for working with bezier path segments.
 """
 
+from __future__ import print_function, division, absolute_import
+from miniFontTools.misc.py23 import *
 
 __all__ = [
     "calcQuadraticBounds",
@@ -14,7 +16,7 @@ __all__ = [
     "solveCubic",
 ]
 
-from miniFontTools.arrayTools import calcBounds
+from miniFontTools.misc.arrayTools import calcBounds
 
 epsilon = 1e-12
 
@@ -86,19 +88,17 @@ def splitLine(pt1, pt2, where, isHorizontal):
     """
     pt1x, pt1y = pt1
     pt2x, pt2y = pt2
-    
+
     ax = (pt2x - pt1x)
     ay = (pt2y - pt1y)
-    
+
     bx = pt1x
     by = pt1y
-    
-    ax1 = (ax, ay)[isHorizontal]
-    
+
     if ax == 0:
         return [(pt1, pt2)]
-        
-    t = float(where - (bx, by)[isHorizontal]) / ax
+
+    t = (where - (bx, by)[isHorizontal]) / ax
     if 0 <= t < 1:
         midPt = ax * t + bx, ay * t + by
         return [(pt1, midPt), (midPt, pt2)]
@@ -132,8 +132,7 @@ def splitQuadratic(pt1, pt2, pt3, where, isHorizontal):
     a, b, c = calcQuadraticParameters(pt1, pt2, pt3)
     solutions = solveQuadratic(a[isHorizontal], b[isHorizontal],
         c[isHorizontal] - where)
-    solutions = [t for t in solutions if 0 <= t < 1]
-    solutions.sort()
+    solutions = sorted([t for t in solutions if 0 <= t < 1])
     if not solutions:
         return [(pt1, pt2, pt3)]
     return _splitQuadraticAtT(a, b, c, *solutions)
@@ -157,8 +156,7 @@ def splitCubic(pt1, pt2, pt3, pt4, where, isHorizontal):
     a, b, c, d = calcCubicParameters(pt1, pt2, pt3, pt4)
     solutions = solveCubic(a[isHorizontal], b[isHorizontal], c[isHorizontal],
         d[isHorizontal] - where)
-    solutions = [t for t in solutions if 0 <= t < 1]
-    solutions.sort()
+    solutions = sorted([t for t in solutions if 0 <= t < 1])
     if not solutions:
         return [(pt1, pt2, pt3, pt4)]
     return _splitCubicAtT(a, b, c, d, *solutions)
@@ -281,8 +279,7 @@ def solveQuadratic(a, b, c,
     return roots
 
 
-def solveCubic(a, b, c, d,
-        abs=abs, pow=pow, sqrt=sqrt, cos=cos, acos=acos, pi=pi):
+def solveCubic(a, b, c, d):
     """Solve a cubic equation where a, b, c and d are real.
         a*x*x*x + b*x*x + c*x + d = 0
     This function returns a list of roots. Note that the returned list
@@ -402,7 +399,7 @@ def printSegments(segments):
     segments on a single line as a tuple.
     """
     for segment in segments:
-        print _segmentrepr(segment)
+        print(_segmentrepr(segment))
 
 if __name__ == "__main__":
     import doctest
