@@ -61,7 +61,12 @@ class RedArrow(ReporterPlugin):
 	
 	def foreground(self, Layer):
 		try:
-			self._updateOutlineCheck(Layer)
+			currentController = self.controller.view().window().windowController()
+			if currentController:
+			    tool = currentController.toolDrawDelegate()
+			    # don't activate if on cursor tool, or pan tool
+			    if not tool.isKindOfClass_( NSClassFromString("GlyphsToolText") ) and not tool.isKindOfClass_( NSClassFromString("GlyphsToolHand") ):
+					self._updateOutlineCheck(Layer)
 		except Exception as e:
 			self.logToConsole( "drawForegroundForLayer_: %s" % str(e) )
 	
