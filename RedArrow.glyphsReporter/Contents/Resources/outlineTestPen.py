@@ -23,8 +23,15 @@ def getExtremaForCubic(pt1, pt2, pt3, pt4, h=True, v=False):
 	roots = h_roots + v_roots
 	return [p[3] for p in splitCubicAtT(pt1, pt2, pt3, pt4, *roots)[:-1]]
 
-def round_point(pt):
-	return (int(round(pt[0])), int(round(pt[1])))
+def round_point(pt, gridLength=1):
+	if gridLength == 1:
+		return (int(round(pt[0])), int(round(pt[1])))
+	elif gridLength == 0:
+		return pt
+	else:
+		x = round(pt[0] / gridLength) * gridLength
+		y = round(pt[1] / gridLength) * gridLength
+		return (x, y)
 
 def angle_between_points(p0, p1):
 	return atan2(p1[1] - p0[1], p1[0] - p0[0])
@@ -146,6 +153,8 @@ class OutlineTestPen(BasePointToSegmentPen):
 		self.collinear_vectors_max_distance = self._normalize_upm(self.options.get("collinear_vectors_max_distance", 2))
 		self.semi_hv_vectors_min_distance = self._normalize_upm(self.options.get("semi_hv_vectors_min_distance", 30))
 		self.zero_handles_max_distance = self._normalize_upm(self.options.get("zero_handles_max_distance", 0))
+		
+		self.grid_length = self.options.get("grid_length", 1)
 		
 		# which tests should be run
 		if self.run_tests == []:
@@ -307,7 +316,8 @@ class OutlineTestPen(BasePointToSegmentPen):
 	
 	def _checkFractionalCoordinates(self, pt):
 		if self.fractional_ignore_point_zero:
-			if round(pt[0]) == pt[0] and round(pt[1]) == pt[1]:
+			pr = round_point(pt, self.grid_length)
+			if pr == pt:
 				return False
 		else:
 			if type(pt[0]) == int and type(pt[1] == int):
@@ -381,9 +391,9 @@ class OutlineTestPen(BasePointToSegmentPen):
 				# or always consider the longer segment more important?
 				projected_pt = (pt[0] + dist * cos(phi), pt[1] + dist * sin(phi))
 				# Compare projected position with actual position
-				badness = distance_between_points(round_point(projected_pt), ref)
+				badness = distance_between_points(round_point(projected_pt, self.grid_length), ref)
 				#print "  Projected: %s, actual: %s, diff: %0.2f" % (projected_pt, ref, badness)
-				if 0.49 < badness:
+				if self.grid_length * 0.49 < badness:
 					if self.current_smooth or badness < self.smooth_connection_max_distance:
 						self.errors.append(OutlineError(pt, "Incorrect smooth connection", badness))
 	
@@ -407,7 +417,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 				# distance of pt to next reference point
 				dist = distance_between_points(pt, next_ref)
 				projected_pt = (pt[0] + dist * cos(phi1), pt[1] + dist * sin(phi1))
-				badness = distance_between_points(round_point(projected_pt), next_ref)
+				badness = distance_between_points(round_point(projected_pt, self.grid_length), next_ref)
 				if badness < self.collinear_vectors_max_distance:
 					self.errors.append(OutlineError(pt, "Collinear vectors", badness))
 	

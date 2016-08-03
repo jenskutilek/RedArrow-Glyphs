@@ -28,6 +28,7 @@ class RedArrow(ReporterPlugin):
 			"fractional_ignore_point_zero": True,
 			"collinear_vectors_max_distance": 2,
 			"test_closepath": False,
+			"grid_length": 1,
 		}
 		self.run_tests = [
 			"test_extrema",
@@ -116,7 +117,7 @@ class RedArrow(ReporterPlugin):
 			glyph = font.glyphs[glyph_name]
 			layer = glyph.layers[mid]
 			if layer is not None:
-				#try:
+				self.options["grid_length"] = layer.parent.parent.gridLength
 				outline_test_pen = OutlineTestPenGlyphs(layer.parent.parent, self.options, self.run_tests)
 				layer.drawPoints(outline_test_pen)
 				if len(outline_test_pen.errors) > 0:
@@ -133,6 +134,7 @@ class RedArrow(ReporterPlugin):
 		self.current_layer = layer
 		self.errors = []
 		if layer is not None:
+			self.options["grid_length"] = layer.parent.parent.gridLength
 			outline_test_pen = OutlineTestPenGlyphs(layer.parent.parent, self.options, self.run_tests)
 			layer.drawPoints(outline_test_pen)
 			self.errors = outline_test_pen.errors
