@@ -317,7 +317,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 	def _checkFractionalCoordinates(self, pt):
 		if self.fractional_ignore_point_zero:
 			pr = round_point(pt, self.grid_length)
-			if pr == pt:
+			if abs(pr[0] - pt[0]) < 0.001 and abs(pr[1] - pt[1]) < 0.001:
 				return False
 		else:
 			if type(pt[0]) == int and type(pt[1] == int):
