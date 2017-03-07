@@ -72,13 +72,15 @@ class OutlineTestPenGlyphs(OutlineTestPen):
 				pass
 		
 		if segment_points:
-			remaining.insert(0, segment_points[0])
+			first = segment_points + remaining
+		else:
+			first = remaining
 		
-		if len(remaining) > 0:
+		if len(first) > 0:
 			if curve_order == 3:
-				reordered_segments.insert(0, ("curve", remaining))
+				reordered_segments.insert(0, ("curve", first))
 			elif curve_order == 2:
-				reordered_segments.insert(0, ("qcurve", remaining))
+				reordered_segments.insert(0, ("qcurve", first))
 			else:
 				print "Warning: Undetermined curve order."
 		
