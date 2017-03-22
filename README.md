@@ -3,7 +3,7 @@ RedArrow-Glyphs
 
 Now Glyphs users can also have red arrows!
 
-This plugin points at possible outline errors, like FontAudit in FontLab Studio. This version only works in Glyphs 2.2 and newer.
+This plugin points at possible outline errors, like FontAudit in FontLab Studio. This version only works in Glyphs 2.3 and newer.
 
 <img src="screenshot.png" width="380" height="400" alt="">
 
@@ -46,7 +46,5 @@ Use Edit > Select Glyphs With Outline Errors to select affected glyphs, then add
 ### Known bugs
 
 * Select Glyphs With Outline Errors doesn't catch errors in layers that are not in a master (exception layers).
-
-This is a development version, so check back some time for updates.
 
 Check the [issue tracker](https://github.com/jenskutilek/RedArrow-Glyphs/issues) and feel free to add any problems that you may encounter.
