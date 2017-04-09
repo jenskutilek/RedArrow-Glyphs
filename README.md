@@ -46,6 +46,8 @@ In the glyph view, open the context menu and choose *Hide Error Labels*/*Show Er
 Go to the Font overview tab and choose the master you want to check.
 Use Edit > Select Glyphs With Outline Errors to select affected glyphs, then add a mark color to them, make a new list filter, or open a new tab. Whatever you like best that allows you to step through the glyphs and fix the outline errors.
 
+<img src="dialog.png" width="800" height="510" alt="">
+
 ### Known bugs
 
 * Select Glyphs With Outline Errors doesn't catch errors in layers that are not in a master (exception layers).
