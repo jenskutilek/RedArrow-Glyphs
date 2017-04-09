@@ -1,9 +1,11 @@
 # encoding: utf-8
+from __future__ import division
 
 
 from GlyphsApp.plugins import *
 
 from outlineTestPenGlyphs import OutlineTestPenGlyphs
+from math import cos, pi, sin
 from string import strip
 
 try:
@@ -267,6 +269,7 @@ class RedArrow(ReporterPlugin):
 	
 	
 	def _drawArrow(self, position, kind, size, angle=0):
+		text_size = size
 		size *= 2
 		x, y = position
 		head_ratio = 0.7
@@ -297,12 +300,33 @@ class RedArrow(ReporterPlugin):
 		#if NSMouseInRect((mx, my), NSMakeRect(x-size, y-size, size, size), False):
 		if self.show_labels:
 			myString = NSString.string().stringByAppendingString_(kind)
-			myString.drawAtPoint_withAttributes_(
-				(position[0] + 1.8 * size, position[1] - 1.8 * size),
-				{
-					NSFontAttributeName: NSFont.systemFontOfSize_(int(round(size/2))),
-					NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.4, 0.4, 0.6, 0.7 ),
-				}
+			attrs = {
+				NSFontAttributeName:            NSFont.systemFontOfSize_(text_size),
+				NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.4, 0.4, 0.6, 0.7 ),
+			}
+			bbox = myString.sizeWithAttributes_(attrs)
+			
+			text_pt = NSPoint()
+			text_pt.x = 0
+			
+			if 0 <= angle < pi:
+				text_pt.y = - size - 0.5 * text_size - bbox.height/2 * cos(angle) - bbox.width/2 * sin(angle)
+			else:
+				text_pt.y = - size - 0.5 * text_size + bbox.height/2 * cos(angle) + bbox.width/2 * sin(angle)
+			
+			text_pt = t.transformPoint_(text_pt)
+			
+			rr = NSRect(
+				origin = (text_pt.x - bbox.width/2, text_pt.y - bbox.height/2),
+				size=(bbox.width, bbox.height)
+			)
+			
+			#myRect = NSBezierPath.bezierPathWithRect_(rr)
+			#myRect.fill()
+			
+			myString.drawInRect_withAttributes_(
+				rr,
+				attrs
 			)
 	
 	def _drawUnspecified(self, position, kind, size, angle=0):
