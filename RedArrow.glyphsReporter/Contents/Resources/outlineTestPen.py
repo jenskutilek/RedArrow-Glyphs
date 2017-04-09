@@ -65,7 +65,10 @@ class OutlineError(object):
 		self.position = position
 		self.kind = kind
 		self.badness = badness
-		self.angle = angle
+		if angle is None:
+			self.angle = 0.25 * pi
+		else:
+			self.angle = angle
 	
 	def __repr__(self):
 		r = "%s" % self.kind
@@ -88,6 +91,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 			self.upm = 1000
 		
 		self.__currentPoint = None
+		self.current_angle = None
 		
 		self.options = options
 		self.run_tests = run_tests
@@ -255,9 +259,9 @@ class OutlineTestPen(BasePointToSegmentPen):
 			if self.extremum_calculate_badness:
 				badness = self._getBadness(pointToCheck, myRect)
 				if badness >= self.extremum_ignore_badness_below:
-					self.errors.append(OutlineError(pointToCheck, "Extremum", badness))
+					self.errors.append(OutlineError(pointToCheck, "Extremum", badness, None))
 			else:
-				self.errors.append(OutlineError(pointToCheck, "Extremum"))
+				self.errors.append(OutlineError(pointToCheck, "Extremum", angle=None))
 	
 	def _checkBboxSegment(self, bcp1, bcp2, pt):
 		# Like _checkBbox, but checks the whole segment and calculates extrema
@@ -330,6 +334,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 		self.errors.append(OutlineError(
 			(int(round(pt[0])), int(round(pt[1]))),
 			"Fractional Coordinates", # (%0.2f, %0.2f)" % (pt[0], pt[1]),
+			angle = None,
 		))
 	
 	def _checkFractionalTransformation(self, baseGlyph, transformation):
@@ -347,6 +352,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 					self.errors.append(OutlineError(
 						half_point((tbox[0], tbox[1]), (tbox[2], tbox[3])),
 						"Fractional transformation", # (%0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f)" % transformation
+						angle = None,
 					))
 					break
 		else:
@@ -355,6 +361,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 					self.errors.append(OutlineError(
 						half_point((tbox[0], tbox[1]), (tbox[2], tbox[3])),
 						"Fractional transformation", # (%0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f)" % transformation
+						angle = None,
 					))
 					break
 	
@@ -408,11 +415,11 @@ class OutlineTestPen(BasePointToSegmentPen):
 	
 	def _checkEmptyLinesAndCurves(self, pt):
 		if self._prev == pt:
-			self.errors.append(OutlineError(pt, "Empty segment"))
+			self.errors.append(OutlineError(pt, "Empty segment", angle = self.current_angle))
 	
 	def _checkVectorsOnClosepath(self, pt):
 		if self._cstart == pt:
-			self.errors.append(OutlineError(pt, "Vector on closepath"))
+			self.errors.append(OutlineError(pt, "Vector on closepath", angle = self.current_angle))
 	
 	def _checkCollinearVectors(self, pt, next_ref):
 		'''Test for consecutive lines that have nearly the same angle.'''
@@ -428,7 +435,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 				projected_pt = (pt[0] + dist * cos(phi1), pt[1] + dist * sin(phi1))
 				badness = distance_between_points(round_point(projected_pt, self.grid_length), next_ref)
 				if badness < self.collinear_vectors_max_distance:
-					self.errors.append(OutlineError(pt, "Collinear vectors", badness))
+					self.errors.append(OutlineError(pt, "Collinear vectors", badness, self.current_angle))
 	
 	def _checkSemiHorizontalVectors(self, p0, p1):
 		'''Test for semi-horizontal lines.'''
@@ -437,7 +444,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 			#                 atan2(1, 31)
 			if 0 < abs(phi) < 0.032 or 0 < abs(phi - pi) < 0.032 or 0 < abs(abs(phi) - pi) < 0.032:
 				if abs(p1[1] - p0[1]) < 2:
-					self.errors.append(OutlineError(half_point(p0, p1), "Semi-horizontal line", degrees(phi)))
+					self.errors.append(OutlineError(half_point(p0, p1), "Semi-horizontal line", degrees(phi), phi))
 	
 	def _checkSemiVerticalVectors(self, p0, p1):
 		'''Test for semi-vertical lines.'''
@@ -446,15 +453,16 @@ class OutlineTestPen(BasePointToSegmentPen):
 			phi = angle_between_points(p0, p1)
 			#                            atan2(31, 1)                       atan2(31, -1)
 			if 0 < abs(phi - 0.5 * pi) < 0.032 or 0 < abs(phi + 0.5 * pi) < 0.032:
-				self.errors.append(OutlineError(half_point(p0, p1), "Semi-vertical line", degrees(phi)))
+				self.errors.append(OutlineError(half_point(p0, p1), "Semi-vertical line", degrees(phi), phi))
 	
 	def _checkZeroHandles(self, p0, p1):
 		badness = distance_between_points(p0, p1)
 		if badness <= self.zero_handles_max_distance:
-			self.errors.append(OutlineError(p1, "Zero handle", badness))
+			self.errors.append(OutlineError(p1, "Zero handle", badness, self.current_angle))
 	
 	def _flushContour(self, segments):
 		first_segment = True
+		self.current_angle = None
 		pt = segments[0][1][0][0]
 		self._prev = None
 		self._prev_ref = None
@@ -482,6 +490,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 		
 			if segment_type == 'curve':
 				bcp1, bcp2, pt = points[0][0], points[1][0], points[2][0]
+				self.current_angle = angle_between_points(bcp2, pt)
 				self._runCurveTests(bcp1, bcp2, pt)
 				self._prev_ref = bcp2
 				self._prev = pt
@@ -493,6 +502,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 				self.current_smooth = points[2][1]
 			elif segment_type == 'line':
 				pt = points[0][0]
+				self.current_angle = angle_between_points(self._prev, pt)
 				self._runLineTests(pt)
 				self._prev_ref = self._prev
 				#?
@@ -507,6 +517,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 				bcp = points[0][0]
 				pt = points[-1][0]
 				bcps = [p[0] for p in points[:-1]]
+				self.current_angle = angle_between_points(bcps[-1], pt)
 				self._runQCurveTests(bcps, pt)
 				self._prev_ref = points[-2][0]
 				self._prev = pt
