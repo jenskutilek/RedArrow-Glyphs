@@ -42,7 +42,7 @@ class SelectGlyphsWindowController(_baseWindowController):
 		"grid_length": "Grid Length",
 	}
 	
-	def __init__(self, options, run_tests):
+	def __init__(self, options={}, run_tests=[]):
 		
 		self.run_tests = {o: True for o in run_tests}
 		self.options = options
@@ -231,7 +231,12 @@ class RedArrow(ReporterPlugin):
 		else:
 			options = self.options
 			run_tests = self.run_tests
-
+		
+		if run_tests is None:
+			return
+		if options is None:
+			return
+		
 		font.disableUpdateInterface()
 		mid = font.selectedFontMaster.id
 		self.options["grid_length"] = font.gridLength
