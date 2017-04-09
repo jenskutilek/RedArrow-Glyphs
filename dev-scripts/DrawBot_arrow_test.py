@@ -76,3 +76,5 @@ for i in range(20):
     _drawArrow((500, 500), "Handgoloves FM", 400, i * 0.1 * pi, 18)
     fill(None)
     line((500, 1000), (500, 0))
+
+saveImage("~/Desktop/Arrows.png")
