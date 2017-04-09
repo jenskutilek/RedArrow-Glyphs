@@ -21,7 +21,11 @@ def getExtremaForCubic(pt1, pt2, pt3, pt4, h=True, v=False):
 	if v:
 		v_roots  = [t for t in solveQuadratic(ax, bx, c[0]) if 0 < t < 1]
 	roots = h_roots + v_roots
-	return [p[3] for p in splitCubicAtT(pt1, pt2, pt3, pt4, *roots)[:-1]]
+	split_segments = [p for p in splitCubicAtT(pt1, pt2, pt3, pt4, *roots)[:-1]]
+	points = [p[3] for p in split_segments]
+	# Calculate the angle of the outline at the extrema
+	angles = [angle_between_points(p[2], p[3]) for p in split_segments]
+	return points, angles
 
 def round_point(pt, gridLength=1):
 	if gridLength == 1:
@@ -57,10 +61,11 @@ def transform_bbox(bbox, matrix):
 
 
 class OutlineError(object):
-	def __init__(self, position=None, kind="Unknown error", badness=None):
+	def __init__(self, position=None, kind="Unknown error", badness=None, angle=0):
 		self.position = position
 		self.kind = kind
 		self.badness = badness
+		self.angle = angle
 	
 	def __repr__(self):
 		r = "%s" % self.kind
@@ -258,14 +263,14 @@ class OutlineTestPen(BasePointToSegmentPen):
 		# Like _checkBbox, but checks the whole segment and calculates extrema
 		myRect = normRect((self._prev[0], self._prev[1], pt[0], pt[1]))
 		if not pointInRect(bcp1, myRect) or not pointInRect(bcp2, myRect):
-			extrema = getExtremaForCubic(self._prev, bcp1, bcp2, pt, h=True, v=True)
-			for p in extrema:
+			extrema, angles = getExtremaForCubic(self._prev, bcp1, bcp2, pt, h=True, v=True)
+			for i, p in enumerate(extrema):
 				if self.extremum_calculate_badness:
 					badness = self._getBadness(p, myRect)
 					if badness >= self.extremum_ignore_badness_below:
-						self.errors.append(OutlineError(p, "Extremum", badness))
+						self.errors.append(OutlineError(p, "Extremum", badness, angles[i]))
 				else:
-					self.errors.append(OutlineError(p, "Extremum"))
+					self.errors.append(OutlineError(p, "Extremum", angle=angles[i]))
 	
 	def _getBadness(self, pointToCheck, myRect):
 			# calculate distance of point to rect
