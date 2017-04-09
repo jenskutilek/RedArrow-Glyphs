@@ -5,7 +5,7 @@ Now Glyphs users can also have red arrows!
 
 This plugin points at possible outline errors, like FontAudit in FontLab Studio. This version only works in Glyphs 2.3 and newer.
 
-<img src="screenshot.png" width="380" height="400" alt="">
+<img src="screenshot.png" width="800" height="790" alt="">
 
 When the plugin is active, red arrows will point to possible mistakes in your outlines.
 
@@ -22,8 +22,11 @@ These kinds of errors are detected:
 
 ### Installation
 
-Download the complete ZIP file and unpack it, or clone the repository.
-Double click the .glyphsReporter file. Confirm the dialog that appears in Glyphs.
+Use the Plugin Manager.
+
+But now that you’re here, you are probably looking for manual installation. Download the complete ZIP file and unpack it, or clone the repository.
+
+Double click the .glyphsReporter file and confirm the dialog that appears in Glyphs.
 
 Restart Glyphs.
 
