@@ -175,7 +175,7 @@ class RedArrow(ReporterPlugin):
 
 	def updateReport(self, notification):
 		self.should_update_report = True
-		#Glyphs.redraw()
+		Glyphs.redraw()
 
 
 	def mouseDidMove(self, notification):
