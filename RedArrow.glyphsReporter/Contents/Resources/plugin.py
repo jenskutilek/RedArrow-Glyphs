@@ -174,6 +174,7 @@ class RedArrow(ReporterPlugin):
 
 
 	def updateReport(self, notification):
+		self.logToConsole( "updateReport")
 		self.should_update_report = True
 		Glyphs.redraw()
 
@@ -303,6 +304,7 @@ class RedArrow(ReporterPlugin):
 		
 	
 	def _updateOutlineCheck(self, layer):
+		self.logToConsole( "_updateOutlineCheck: '%s' from %s" % (layer.parent.name, layer.parent.parent) )
 		self.current_layer = layer
 		self.errors = []
 		if layer is not None:
