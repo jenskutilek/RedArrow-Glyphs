@@ -2,9 +2,11 @@
 from __future__ import division
 
 
+from GlyphsApp import MOUSEMOVED, UPDATEINTERFACE
 from GlyphsApp.plugins import *
 
 from outlineTestPenGlyphs import OutlineTestPenGlyphs
+from geometry_functions import distance_between_points
 from math import cos, pi, sin
 from string import strip
 
@@ -151,8 +153,11 @@ class RedArrow(ReporterPlugin):
 		self.errors = []
 		self.show_labels = Glyphs.defaults["%s.showLabels" % plugin_id]
 		self.show_labels = not(self.show_labels)
+		self.mouse_position = (0, 0)
+		self.should_update_report = True
 		self.toggleLabels()
 	
+
 	def addMenuItem(self):
 		mainMenu = NSApplication.sharedApplication().mainMenu()
 		s = objc.selector(self.selectGlyphsWithErrors,signature='v@:')
@@ -166,9 +171,42 @@ class RedArrow(ReporterPlugin):
 		)
 		newMenuItem.setTarget_(self)
 		mainMenu.itemAtIndex_(2).submenu().insertItem_atIndex_(newMenuItem, 11)
+
+
+	def updateReport(self, notification):
+		self.should_update_report = True
+		#Glyphs.redraw()
+
+
+	def mouseDidMove(self, notification):
+		Glyphs.redraw()
 	
-	def foreground(self, Layer):
+
+	def willActivate(self):
+		Glyphs.addCallback(self.updateReport, UPDATEINTERFACE)
+		Glyphs.addCallback(self.mouseDidMove, MOUSEMOVED)
+
+
+	def willDeactivate(self):
 		try:
+			Glyphs.removeCallback(self.mouseDidMove)
+			Glyphs.removeCallback(self.updateReport)
+		except Exception as e:
+			self.logToConsole( "willDeactivate: %s" % str(e) )
+	
+
+	def foreground(self, layer):
+		if self.should_update_report:
+			#self.logToConsole( "_updateOutlineCheck: %s" % layer)
+			self._updateOutlineCheck(layer)
+			#self.logToConsole( "foreground: Errors: %s" % self.errors )
+			self.should_update_report = False
+		try:
+			try:
+				self.mouse_position = self.controller.graphicView().getActiveLocation_(Glyphs.currentEvent())
+			except Exception as e:
+				self.logToConsole( "foreground: mouse_position: %s" % str(e) )
+				self.mouse_position = (0, 0)
 			currentController = self.controller.view().window().windowController()
 			if currentController:
 				tool = currentController.toolDrawDelegate()
@@ -178,9 +216,12 @@ class RedArrow(ReporterPlugin):
 					or tool.isKindOfClass_(NSClassFromString("GlyphsToolHand"))
 					or tool.isKindOfClass_(NSClassFromString("GlyphsToolTrueTypeInstructor"))
 				):
-					self._updateOutlineCheck(Layer)
+					if len(self.errors) > 0:
+						self._drawArrows()
 		except Exception as e:
-			self.logToConsole( "drawForegroundForLayer_: %s" % str(e) )
+			self.logToConsole( "foreground: %s" % str(e) )
+
+
 	
 	def toggleLabels(self):
 		if self.show_labels:
@@ -265,16 +306,20 @@ class RedArrow(ReporterPlugin):
 		self.current_layer = layer
 		self.errors = []
 		if layer is not None:
+			#try:
+			#	self.mouse_position = self.controller.graphicView().getActiveLocation_(Glyphs.currentEvent())
+			#except Exception as e:
+			#	self.logToConsole( "_updateOutlineCheck: Layer '%s': %s" % (glyph_name, str(e)) )
+			#	self.mouse_position = (0, 0)
 			self.options["grid_length"] = layer.parent.parent.gridLength
 			outline_test_pen = OutlineTestPenGlyphs(layer.parent.parent, self.options, self.run_tests)
 			layer.drawPoints(outline_test_pen)
 			self.errors = outline_test_pen.errors
-			if self.errors:
-				self._drawArrows()
+			#if self.errors:
+			#	self._drawArrows()
 	
 	
 	def _drawArrow(self, position, kind, size, angle=0):
-		text_size = size
 		size *= 2
 		x, y = position
 		head_ratio = 0.7
@@ -300,60 +345,68 @@ class RedArrow(ReporterPlugin):
 		myPath.transformUsingAffineTransform_(t)
 		myPath.fill()
 		
-		#mx, my = NSWindow.mouseLocationOutsideOfEventStream()
-		#NSLog("Mouse %f %f" % (mx, my))
-		#if NSMouseInRect((mx, my), NSMakeRect(x-size, y-size, size, size), False):
-		if self.show_labels:
-			myString = NSString.string().stringByAppendingString_(kind)
-			attrs = {
-				NSFontAttributeName:            NSFont.systemFontOfSize_(text_size),
-				NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.4, 0.4, 0.6, 0.7 ),
-			}
-			bbox = myString.sizeWithAttributes_(attrs)
-			
-			text_pt = NSPoint()
-			text_pt.x = 0
-			
-			if 0 <= angle < pi:
-				text_pt.y = - size - 0.5 * text_size - bbox.height/2 * cos(angle) - bbox.width/2 * sin(angle)
-			else:
-				text_pt.y = - size - 0.5 * text_size + bbox.height/2 * cos(angle) + bbox.width/2 * sin(angle)
-			
-			text_pt = t.transformPoint_(text_pt)
-			
-			rr = NSRect(
-				origin = (text_pt.x - bbox.width/2, text_pt.y - bbox.height/2),
-				size=(bbox.width, bbox.height)
+		if self.show_labels or distance_between_points(self.mouse_position, position) < size:
+			self._drawTextLabel(
+				transform = t,
+				text = kind,
+				size = size,
+				angle = angle,
 			)
-			
-			#myRect = NSBezierPath.bezierPathWithRect_(rr)
-			#myRect.fill()
-			
-			myString.drawInRect_withAttributes_(
-				rr,
-				attrs
-			)
+
+
+	def _drawTextLabel(self, transform, text, size, angle):
+		text_size = 0.5 * size
+		myString = NSString.string().stringByAppendingString_(text)
+		attrs = {
+			NSFontAttributeName:            NSFont.systemFontOfSize_(text_size),
+			NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.4, 0.4, 0.6, 0.7 ),
+		}
+		bbox = myString.sizeWithAttributes_(attrs)
+		
+		text_pt = NSPoint()
+		text_pt.x = 0
+		
+		if 0.001 * pi < angle < pi:
+			text_pt.y = - 1.25 * size - bbox.height/2 * cos(angle) - bbox.width/2 * sin(angle)
+		else:
+			text_pt.y = - 1.25 * size + bbox.height/2 * cos(angle) + bbox.width/2 * sin(angle)
+		
+		text_pt = transform.transformPoint_(text_pt)
+		
+		rr = NSRect(
+			origin = (text_pt.x - bbox.width/2, text_pt.y - bbox.height/2),
+			size=(bbox.width, bbox.height)
+		)
+		
+		#NSColor.colorWithCalibratedRed_green_blue_alpha_( 0, 0, 0, 0.15 ).set()
+		#myRect = NSBezierPath.bezierPathWithRect_(rr)
+		#myRect.setLineWidth_(0.05 * size)
+		#myRect.stroke()
+		
+		myString.drawInRect_withAttributes_(
+			rr,
+			attrs
+		)
 	
 	def _drawUnspecified(self, position, kind, size, angle=0):
 		circle_size = size * 1.3
 		x, y = position
 		NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.9, 0.1, 0.0, 0.85 ).set()
+		
+		t = NSAffineTransform.transform()
+		t.translateXBy_yBy_(x, y)
+		t.rotateByRadians_(angle)
+
 		myPath = NSBezierPath.alloc().init()
 		myPath.setLineWidth_( 0 )
 		myPath.appendBezierPathWithOvalInRect_( NSMakeRect( x - 0.5 * circle_size, y - 0.5 * circle_size, circle_size, circle_size ) )
 		myPath.stroke()
-		# FIXME
-		#mx, my = NSWindow.mouseLocationOutsideOfEventStream()
-		#NSLog("Mouse %f %f" % (mx, my))
-		#if NSMouseInRect((mx, my), NSMakeRect(x-size, y-size, size, size), False):
-		if self.show_labels: # show labels
-			myString = NSString.string().stringByAppendingString_(kind)
-			myString.drawAtPoint_withAttributes_(
-				(position[0] + 1.8 * size, position[1] - 1.8 * size),
-				{
-					NSFontAttributeName: NSFont.systemFontOfSize_(size),
-					NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.4, 0.4, 0.6, 0.7 ),
-				}
+		if self.show_labels or distance_between_points(self.mouse_position, position) < size:
+			self._drawTextLabel(
+				transform = t,
+				text = kind,
+				size = size,
+				angle = angle,
 			)
 	
 	def _drawArrows(self, debug=False):
@@ -374,13 +427,15 @@ class RedArrow(ReporterPlugin):
 			message = ""
 			for e in errors:
 				if e.badness is None or not debug:
-					message += "%s, " % e.kind
+					#message += u"%s (%0.3f π), " % (e.kind, e.angle / pi)
+					message += u"%s, " % e.kind
 				else:
 					message += "%s (Severity %0.1f), " % (e.kind, e.badness)
 			if pos is None:
 				#bb = self.current_layer.bounds
 				#pos = (bb.origin.x + 0.5 * bb.size.width, bb.origin.y + 0.5 * bb.size.height)
 				pos = (self.current_layer.width + 20, -10)
-				self._drawUnspecified(pos, message.strip(", "), size, e.angle)
+				#self._drawUnspecified(pos, message.strip(", "), size, e.angle)
+				pass
 			else:
 				self._drawArrow(pos, message.strip(", "), size, e.angle)
