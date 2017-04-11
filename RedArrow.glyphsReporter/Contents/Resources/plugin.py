@@ -74,7 +74,7 @@ class RedArrow(ReporterPlugin):
 
 
 	def updateReport(self, notification):
-		self.logToConsole( "updateReport")
+		if DEBUG: self.logToConsole( "updateReport")
 		self.should_update_report = True
 		Glyphs.redraw()
 
@@ -183,8 +183,6 @@ class RedArrow(ReporterPlugin):
 		mid = font.selectedFontMaster.id
 		self.options["grid_length"] = font.gridLength
 		selection = []
-		# pre-filter glyph list
-		#glyphlist = [glyph.name for glyph in font.glyphs if len(glyph.layers[mid].paths) > 0]
 		glyphlist = font.glyphs.keys()
 		for glyph_name in glyphlist:
 			glyph = font.glyphs[glyph_name]
@@ -204,21 +202,14 @@ class RedArrow(ReporterPlugin):
 		
 	
 	def _updateOutlineCheck(self, layer):
-		self.logToConsole( "_updateOutlineCheck: '%s' from %s" % (layer.parent.name, layer.parent.parent) )
+		if DEBUG: self.logToConsole( "_updateOutlineCheck: '%s' from %s" % (layer.parent.name, layer.parent.parent) )
 		self.current_layer = layer
 		self.errors = []
 		if layer is not None:
-			#try:
-			#	self.mouse_position = self.controller.graphicView().getActiveLocation_(Glyphs.currentEvent())
-			#except Exception as e:
-			#	self.logToConsole( "_updateOutlineCheck: Layer '%s': %s" % (glyph_name, str(e)) )
-			#	self.mouse_position = (0, 0)
 			self.options["grid_length"] = layer.parent.parent.gridLength
 			outline_test_pen = OutlineTestPenGlyphs(layer.parent.parent, self.options, self.run_tests)
 			layer.drawPoints(outline_test_pen)
 			self.errors = outline_test_pen.errors
-			#if self.errors:
-			#	self._drawArrows()
 	
 	
 	def _drawArrow(self, position, kind, size, angle=0):
@@ -280,10 +271,11 @@ class RedArrow(ReporterPlugin):
 			size=(bbox.width, bbox.height)
 		)
 		
-		#NSColor.colorWithCalibratedRed_green_blue_alpha_( 0, 0, 0, 0.15 ).set()
-		#myRect = NSBezierPath.bezierPathWithRect_(rr)
-		#myRect.setLineWidth_(0.05 * size)
-		#myRect.stroke()
+		if DEBUG:
+			NSColor.colorWithCalibratedRed_green_blue_alpha_( 0, 0, 0, 0.15 ).set()
+			myRect = NSBezierPath.bezierPathWithRect_(rr)
+			myRect.setLineWidth_(0.05 * size)
+			myRect.stroke()
 		
 		myString.drawInRect_withAttributes_(
 			rr,
@@ -326,16 +318,16 @@ class RedArrow(ReporterPlugin):
 				else:
 					errors_by_position[None] = [e]
 		for pos, errors in errors_by_position.iteritems():
-			message = ""
+			message = u""
 			for e in errors:
 				if e.badness is None or not debug:
-					#message += u"%s (%0.3f π), " % (e.kind, e.angle / pi)
-					message += u"%s, " % e.kind
+					if DEBUG:
+						message += u"%s (%0.3f π), " % (e.kind, e.angle / pi)
+					else:
+						message += u"%s, " % e.kind
 				else:
 					message += "%s (Severity %0.1f), " % (e.kind, e.badness)
 			if pos is None:
-				#bb = self.current_layer.bounds
-				#pos = (bb.origin.x + 0.5 * bb.size.width, bb.origin.y + 0.5 * bb.size.height)
 				pos = (self.current_layer.width + 20, -10)
 				self._drawUnspecified(pos, message.strip(", "), size, e.angle)
 			else:
