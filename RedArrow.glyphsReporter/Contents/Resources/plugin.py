@@ -11,8 +11,7 @@ from math import cos, pi, sin
 from string import strip
 
 try:
-	#from defconAppKit.windows.baseWindow import BaseWindowController
-	from robofab.interface.all.dialogs_mac_vanilla import _ModalWindow, _baseWindowController
+	from dialogs_mac_vanilla import _ModalWindow, _baseWindowController
 	import vanilla
 	can_display_ui = True
 except:
