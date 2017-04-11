@@ -443,7 +443,6 @@ class RedArrow(ReporterPlugin):
 				#bb = self.current_layer.bounds
 				#pos = (bb.origin.x + 0.5 * bb.size.width, bb.origin.y + 0.5 * bb.size.height)
 				pos = (self.current_layer.width + 20, -10)
-				#self._drawUnspecified(pos, message.strip(", "), size, e.angle)
-				pass
+				self._drawUnspecified(pos, message.strip(", "), size, e.angle)
 			else:
 				self._drawArrow(pos, message.strip(", "), size, e.angle)
