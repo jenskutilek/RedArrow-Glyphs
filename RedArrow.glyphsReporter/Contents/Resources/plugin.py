@@ -9,7 +9,7 @@ from outlineTestPenGlyphs import OutlineTestPenGlyphs
 from geometry_functions import distance_between_points
 from math import cos, pi, sin
 from string import strip
-from selectGlyphsWithErrorsDialog import can_display_ui, SelectGlyphsWindowController
+from raDialogs import can_display_ui, SelectGlyphsWindowController
 
 
 plugin_id = "de.kutilek.RedArrow"
