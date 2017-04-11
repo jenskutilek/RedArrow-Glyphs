@@ -13,7 +13,7 @@ from raDialogs import can_display_ui, SelectGlyphsWindowController
 
 
 plugin_id = "de.kutilek.RedArrow"
-DEBUG = True
+DEBUG = False
 
 
 
@@ -84,14 +84,14 @@ class RedArrow(ReporterPlugin):
 	
 
 	def willActivate(self):
-		Glyphs.addCallback(self.updateReport, UPDATEINTERFACE)
+		#Glyphs.addCallback(self.updateReport, UPDATEINTERFACE)
 		Glyphs.addCallback(self.mouseDidMove, MOUSEMOVED)
 
 
 	def willDeactivate(self):
 		try:
 			Glyphs.removeCallback(self.mouseDidMove)
-			Glyphs.removeCallback(self.updateReport)
+			#Glyphs.removeCallback(self.updateReport)
 		except Exception as e:
 			self.logToConsole( "willDeactivate: %s" % str(e) )
 	
@@ -101,7 +101,7 @@ class RedArrow(ReporterPlugin):
 			#self.logToConsole( "_updateOutlineCheck: %s" % layer)
 			self._updateOutlineCheck(layer)
 			#self.logToConsole( "foreground: Errors: %s" % self.errors )
-			self.should_update_report = False
+			#self.should_update_report = False
 		try:
 			try:
 				self.mouse_position = self.controller.graphicView().getActiveLocation_(Glyphs.currentEvent())
