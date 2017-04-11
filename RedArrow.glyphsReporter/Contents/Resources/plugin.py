@@ -10,14 +10,21 @@ from geometry_functions import distance_between_points
 from math import cos, pi, sin
 from string import strip
 
+
+DEBUG = True
+
 try:
 	from dialogs_mac_vanilla import _ModalWindow, _baseWindowController
 	import vanilla
 	can_display_ui = True
+	if DEBUG: print "Can display UI dialog"
 except:
 	can_display_ui = False
+	if DEBUG: print "Can not display UI dialog"
 
 plugin_id = "de.kutilek.RedArrow"
+
+
 
 
 class SelectGlyphsWindowController(_baseWindowController):
