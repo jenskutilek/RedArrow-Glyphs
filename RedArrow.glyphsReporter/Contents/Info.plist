@@ -17,9 +17,9 @@
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleVersion</key>
-	<string>64</string>
+	<string>65</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.6.4</string>
+	<string>0.6.5</string>
 	<key>UpdateFeedURL</key>
 	<string>https://raw.githubusercontent.com/jenskutilek/RedArrow-Glyphs/master/RedArrow.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
