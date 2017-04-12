@@ -9,7 +9,15 @@ from outlineTestPenGlyphs import OutlineTestPenGlyphs
 from geometry_functions import distance_between_points
 from math import cos, pi, sin
 from string import strip
-from raDialogs import can_display_ui, SelectGlyphsWindowController
+
+try:
+	import vanilla
+	can_display_ui = True
+except:
+	can_display_ui = False
+	print "Please install vanilla to enable UI dialogs for RedArrow. You can install vanilla through Glyphs > Preferences > Addons > Modules."
+
+if can_display_ui: from raDialogs import SelectGlyphsWindowController
 
 
 plugin_id = "de.kutilek.RedArrow"

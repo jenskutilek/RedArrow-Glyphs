@@ -1,13 +1,8 @@
 # encoding: utf-8
 from __future__ import division
 
-try:
-	from dialogs_mac_vanilla import _ModalWindow, _baseWindowController
-	import vanilla
-	can_display_ui = True
-except:
-	can_display_ui = False
-	print "Please install vanilla to enable UI dialogs for RedArrow. You can install vanilla through Glyphs > Preferences > Addons > Modules."
+import vanilla
+from dialogs_mac_vanilla import _ModalWindow, _baseWindowController
 
 
 
