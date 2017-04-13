@@ -2,12 +2,12 @@
 from __future__ import division
 
 import vanilla
-from dialogs_mac_vanilla import _ModalWindow, _baseWindowController
+from dialogs_mac_vanilla import _RAModalWindow, _RAbaseWindowController
 
 
 
 
-class SelectGlyphsWindowController(_baseWindowController):
+class SelectGlyphsWindowController(_RAbaseWindowController):
 	
 	test_names = {
 		"test_extrema": "Missing Extremum Points",
@@ -44,7 +44,7 @@ class SelectGlyphsWindowController(_baseWindowController):
 		buttons_height = 44
 
 		height = y + title_line_height + entry_line_height * (len(self.options) + len(self.run_tests)) + title_line_height + title_skip + buttons_height
-		self.w = _ModalWindow((300, height), "Select Glyphs With Errors")
+		self.w = _RAModalWindow((300, height), "Select Glyphs With Errors")
 		
 		self.w.tests_title = vanilla.TextBox((x, y, -10, 23), "Run Tests:")
 		y += title_line_height
