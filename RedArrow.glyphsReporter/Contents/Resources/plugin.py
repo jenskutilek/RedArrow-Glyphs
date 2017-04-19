@@ -220,14 +220,15 @@ class RedArrow(ReporterPlugin):
 			self.errors = outline_test_pen.errors
 	
 	
-	def _drawArrow(self, position, kind, size, angle=0):
+	def _drawArrow(self, position, kind, size, angle = 0.25 * pi):
+		angle += 0.5 * pi
 		size *= 2
 		x, y = position
 		head_ratio = 0.7
 		w = size * 0.5
 		tail_width = 0.3
 		
-		hor = 0.5 * (w - w * tail_width) # horizontal part under the head
+		chin = 0.5 * (w - w * tail_width) # part under the head
 
 		NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.9, 0.1, 0.0, 0.85 ).set()
 		t = NSAffineTransform.transform()
@@ -235,13 +236,13 @@ class RedArrow(ReporterPlugin):
 		t.rotateByRadians_(angle)
 		myPath = NSBezierPath.alloc().init()
 
-		myPath.moveToPoint_( (0, 0) )
-		myPath.relativeLineToPoint_( (- w * 0.5,      - size * head_ratio) )
-		myPath.relativeLineToPoint_( (hor,            0) )
-		myPath.relativeLineToPoint_( (0,              - size * (1 - head_ratio)) )
-		myPath.relativeLineToPoint_( (w * tail_width, 0) )
-		myPath.relativeLineToPoint_( (0,              size * (1 - head_ratio)) )
-		myPath.relativeLineToPoint_( (hor,            0) )
+		myPath.moveToPoint_(         (0, 0)                                       )
+		myPath.relativeLineToPoint_( (-size * head_ratio,        w * 0.5)         )
+		myPath.relativeLineToPoint_( (0,                         -chin)           )
+		myPath.relativeLineToPoint_( (-size * (1 - head_ratio),  0)               )
+		myPath.relativeLineToPoint_( (0,                         -w * tail_width) )
+		myPath.relativeLineToPoint_( (size * (1 - head_ratio),   0)               )
+		myPath.relativeLineToPoint_( (0,                         -chin)           )
 		myPath.closePath()
 		myPath.transformUsingAffineTransform_(t)
 		myPath.fill()

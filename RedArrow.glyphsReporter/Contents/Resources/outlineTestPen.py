@@ -411,7 +411,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 					d = self.grid_length * 0.49
 				if d < badness:
 					if self.current_smooth or badness < self.smooth_connection_max_distance:
-						self.errors.append(OutlineError(pt, "Incorrect smooth connection", badness, phi))
+						self.errors.append(OutlineError(pt, "Incorrect smooth connection", badness, phi1))
 	
 	def _checkEmptyLinesAndCurves(self, pt):
 		if self._prev == pt:
