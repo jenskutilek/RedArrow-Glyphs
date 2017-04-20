@@ -7,7 +7,7 @@ from GlyphsApp.plugins import *
 
 from outlineTestPenGlyphs import OutlineTestPenGlyphs
 from geometry_functions import distance_between_points
-from math import cos, pi, sin
+from math import atan2, cos, pi, sin, degrees
 from string import strip
 
 try:
@@ -220,8 +220,8 @@ class RedArrow(ReporterPlugin):
 			self.errors = outline_test_pen.errors
 	
 	
-	def _drawArrow(self, position, kind, size, angle = 0.25 * pi):
-		angle += 0.5 * pi
+	def _drawArrow(self, position, kind, size, vector = (-1, 1)):
+		angle = atan2(vector[0], -vector[1])
 		size *= 2
 		x, y = position
 		head_ratio = 0.7
@@ -252,32 +252,30 @@ class RedArrow(ReporterPlugin):
 				transform = t,
 				text = kind,
 				size = size,
-				angle = angle,
+				vector = vector,
 			)
 
 
-	def _drawTextLabel(self, transform, text, size, angle):
+	def _drawTextLabel(self, transform, text, size, vector):
+		angle = atan2(vector[0], -vector[1])
 		text_size = 0.5 * size
-		myString = NSString.string().stringByAppendingString_(text)
+		myString = NSString.string().stringByAppendingString_("%s (%0.2f)" % (text, degrees(angle)))
 		attrs = {
 			NSFontAttributeName:            NSFont.systemFontOfSize_(text_size),
 			NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.4, 0.4, 0.6, 0.7 ),
 		}
 		bbox = myString.sizeWithAttributes_(attrs)
-		
+
 		text_pt = NSPoint()
-		text_pt.x = 0
-		
-		if 0.001 * pi < angle < pi:
-			text_pt.y = - 1.25 * size - bbox.height/2 * cos(angle) - bbox.width/2 * sin(angle)
-		else:
-			text_pt.y = - 1.25 * size + bbox.height/2 * cos(angle) + bbox.width/2 * sin(angle)
-		
+		text_pt.x = -1.5 * size - bbox.width / 2 * cos(angle) - bbox.height / 2 * sin(angle)
+		text_pt.y = - bbox.width / 2 * sin(angle) - bbox.height / 2 * cos(angle)
+		#transform.rotateByRadians_(-angle)
 		text_pt = transform.transformPoint_(text_pt)
 		
 		rr = NSRect(
-			origin = (text_pt.x - bbox.width/2, text_pt.y - bbox.height/2),
-			size=(bbox.width, bbox.height)
+			origin = (text_pt.x - bbox.width / 2, text_pt.y - bbox.height / 2),
+			#origin = (text_pt.x, text_pt.y),
+			size = (bbox.width, bbox.height)
 		)
 		
 		if DEBUG:
@@ -291,7 +289,8 @@ class RedArrow(ReporterPlugin):
 			attrs
 		)
 	
-	def _drawUnspecified(self, position, kind, size, angle=0):
+	def _drawUnspecified(self, position, kind, size, vector = (-1, 1)):
+		angle = atan2(vector[1], vector[0])
 		circle_size = size * 1.3
 		x, y = position
 		NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.9, 0.1, 0.0, 0.85 ).set()
@@ -331,13 +330,13 @@ class RedArrow(ReporterPlugin):
 			for e in errors:
 				if e.badness is None or not debug:
 					if DEBUG:
-						message += u"%s (%0.3f π), " % (e.kind, e.angle / pi)
+						message += u"%s (%0.3f π), " % (e.kind, e.vector / pi)
 					else:
 						message += u"%s, " % e.kind
 				else:
 					message += "%s (Severity %0.1f), " % (e.kind, e.badness)
 			if pos is None:
 				pos = (self.current_layer.width + 20, -10)
-				self._drawUnspecified(pos, message.strip(", "), size, e.angle)
+				self._drawUnspecified(pos, message.strip(", "), size, e.vector)
 			else:
-				self._drawArrow(pos, message.strip(", "), size, e.angle)
+				self._drawArrow(pos, message.strip(", "), size, e.vector)
