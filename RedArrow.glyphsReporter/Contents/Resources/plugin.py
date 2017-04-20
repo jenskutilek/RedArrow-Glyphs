@@ -288,7 +288,7 @@ class RedArrow(ReporterPlugin):
 			size = (bw, bh)
 		)
 		
-		if True:
+		if DEBUG:
 			NSColor.colorWithCalibratedRed_green_blue_alpha_( 0, 0, 0, 0.15 ).set()
 			myRect = NSBezierPath.bezierPathWithRect_(rr)
 			myRect.setLineWidth_(0.05 * size)
