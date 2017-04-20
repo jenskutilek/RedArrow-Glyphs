@@ -1,7 +1,7 @@
 from __future__ import division
 from AppKit import NSColor, NSBezierPath, NSAffineTransform, NSString, NSFont, NSFontAttributeName, NSPoint, NSForegroundColorAttributeName, NSRect
 
-def _drawArrow(position, kind, size, vector=(-1, 1), label_size=20):
+def _drawArrow(position, kind, size, vector=(-1, 1), label_size=1):
         angle = atan2(vector[0], -vector[1])
         print vector, "%0.2f°" % degrees(angle)
         x, y = position
@@ -31,8 +31,8 @@ def _drawArrow(position, kind, size, vector=(-1, 1), label_size=20):
         
         myString = NSString.string().stringByAppendingString_(kind)
         attrs = {
-                NSFontAttributeName:            NSFont.systemFontOfSize_(label_size),
-                NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.4, 0.4, 0.6, 0.7 ),
+            NSFontAttributeName:            NSFont.systemFontOfSize_(label_size),
+            NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.4, 0.4, 0.6, 0.7 ),
         }
         bbox = myString.sizeWithAttributes_(attrs)
         #print bbox
@@ -55,16 +55,19 @@ def _drawArrow(position, kind, size, vector=(-1, 1), label_size=20):
         p = t.transformPoint_(p)
         #print p
         
-        fontSize(label_size)
+        #fontSize(label_size)
         #text(kind, (p.x - bbox.width/2, p.y - bbox.height/2))
         fill(None)
         rect(p.x - bbox.width/2, p.y - bbox.height/2, bbox.width, bbox.height)
         fill(1, 0, 0)
-        oval(p.x -bh/2.0 , p.y -bh/2.0, bh, bh)
+        #oval(p.x -bh/2.0 , p.y -bh/2.0, bh, bh)
         #myString.drawAtPoint_withAttributes_(p, attrs)
         rr = NSRect(origin=(p.x -bh/2.0, p.y -bw/2.0), size=(bw, bh))
-        print rr
+        #print rr
+        
         myString.drawInRect_withAttributes_(rr, attrs)
+        myString.drawAtPoint_withAttributes_(p, attrs)
+        
         
 
 size(1000, 1000)

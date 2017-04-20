@@ -259,11 +259,16 @@ class RedArrow(ReporterPlugin):
 	def _drawTextLabel(self, transform, text, size, vector):
 		angle = atan2(vector[0], -vector[1])
 		text_size = 0.5 * size
-		myString = NSString.string().stringByAppendingString_(text)
+		
+		#para_style = NSMutableParagraphStyle.alloc().init()
+		#para_style.setAlignment_(NSCenterTextAlignment)
+
 		attrs = {
 			NSFontAttributeName:            NSFont.systemFontOfSize_(text_size),
 			NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.4, 0.4, 0.6, 0.7 ),
+			#NSParagraphStyleAttributeName:  para_style,
 		}
+		myString = NSString.string().stringByAppendingString_(text)
 		bbox = myString.sizeWithAttributes_(attrs)
 		bw = bbox.width
 		bh = bbox.height
@@ -293,6 +298,11 @@ class RedArrow(ReporterPlugin):
 			rr,
 			attrs
 		)
+
+		#myString.drawAtPoint_withAttributes_(
+		#	text_pt,
+		#	attrs
+		#)
 	
 	def _drawUnspecified(self, position, kind, size, vector = (-1, 1)):
 		angle = atan2(vector[1], vector[0])
