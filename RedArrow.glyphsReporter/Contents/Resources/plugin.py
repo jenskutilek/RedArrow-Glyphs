@@ -259,26 +259,31 @@ class RedArrow(ReporterPlugin):
 	def _drawTextLabel(self, transform, text, size, vector):
 		angle = atan2(vector[0], -vector[1])
 		text_size = 0.5 * size
-		myString = NSString.string().stringByAppendingString_("%s (%0.2f)" % (text, degrees(angle)))
+		myString = NSString.string().stringByAppendingString_(text)
 		attrs = {
 			NSFontAttributeName:            NSFont.systemFontOfSize_(text_size),
 			NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.4, 0.4, 0.6, 0.7 ),
 		}
 		bbox = myString.sizeWithAttributes_(attrs)
+		bw = bbox.width
+		bh = bbox.height
 
 		text_pt = NSPoint()
-		text_pt.x = -1.5 * size - bbox.width / 2 * cos(angle) - bbox.height / 2 * sin(angle)
-		text_pt.y = - bbox.width / 2 * sin(angle) - bbox.height / 2 * cos(angle)
-		#transform.rotateByRadians_(-angle)
+		text_pt.y = 0
+
+		if -0.5 * pi < angle <= 0.5 * pi:
+			text_pt.x = -1.3 * size - bw / 2 * cos(angle) - bh / 2 * sin(angle)
+		else:
+			text_pt.x = -1.3 * size + bw / 2 * cos(angle) + bh / 2 * sin(angle)
+		
 		text_pt = transform.transformPoint_(text_pt)
 		
 		rr = NSRect(
-			origin = (text_pt.x - bbox.width / 2, text_pt.y - bbox.height / 2),
-			#origin = (text_pt.x, text_pt.y),
-			size = (bbox.width, bbox.height)
+			origin = (text_pt.x - bw / 2, text_pt.y - bh / 2),
+			size = (bw, bh)
 		)
 		
-		if DEBUG:
+		if True:
 			NSColor.colorWithCalibratedRed_green_blue_alpha_( 0, 0, 0, 0.15 ).set()
 			myRect = NSBezierPath.bezierPathWithRect_(rr)
 			myRect.setLineWidth_(0.05 * size)
@@ -330,7 +335,7 @@ class RedArrow(ReporterPlugin):
 			for e in errors:
 				if e.badness is None or not debug:
 					if DEBUG:
-						message += u"%s (%0.3f π), " % (e.kind, e.vector / pi)
+						message += u"%s (%0.2f|%0.2f = %0.2f π), " % (e.kind, e.vector[0], e.vector[1], atan2(*e.vector) / pi)
 					else:
 						message += u"%s, " % e.kind
 				else:
