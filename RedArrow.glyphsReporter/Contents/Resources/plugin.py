@@ -49,6 +49,7 @@ class RedArrow(ReporterPlugin):
 		}
 		self.run_tests = [
 			"test_extrema",
+			"test_inflections",
 			"test_fractional_coords",
 			"test_fractional_transform",
 			"test_smooth",

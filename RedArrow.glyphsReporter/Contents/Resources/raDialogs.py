@@ -11,6 +11,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
 	
 	test_names = {
 		"test_extrema": "Missing Extremum Points",
+		"test_inflections": "Missing Inflection Points",
 		"test_fractional_coords": "Fractional Coordinates",
 		"test_fractional_transform": "Fractional Transformation",
 		"test_smooth": "Incorrect Smooth Connections",

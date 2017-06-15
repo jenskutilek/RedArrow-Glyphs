@@ -32,6 +32,50 @@ def getExtremaForCubic(pt1, pt2, pt3, pt4, h=True, v=False):
 		vectors += v_vectors
 	return points, vectors
 
+def getInflectionsForCubic(pt1, pt2, pt3, pt4):
+	# After https://github.com/mekkablue/InsertInflections
+	roots = []
+
+	ax = pt2.x - pt1.x
+	ay = pt2.y - pt1.y
+	bx = pt3.x - pt2.x - ax
+	by = pt3.y - pt2.y - ay
+	cx = pt4.x - pt3.x - ax - bx - bx
+	cy = pt4.y - pt3.y - ay - by - by
+	c0 = ( ax * by ) - ( ay * bx )
+	c1 = ( ax * cy ) - ( ay * cx )
+	c2 = ( bx * cy ) - ( by * cx )
+
+	if abs(c2) > 0.00001:
+		discr = ( c1 ** 2 ) - ( 4 * c0 * c2)
+		c2 *= 2
+		if abs(discr) < 0.000001:
+			root = -c1 / c2
+			if (root > 0.001) and (root < 0.99):
+				roots.append(root)
+		elif discr > 0:
+			discr = discr ** 0.5
+			root = ( -c1 - discr ) / c2
+			if (root > 0.001) and (root < 0.99):
+				roots.append(root)
+	
+			root = ( -c1 + discr ) / c2
+			if (root > 0.001) and (root < 0.99):
+				roots.append(root)
+	elif c1 != 0.0:
+		root = - c0 / c1
+		if (root > 0.001) and (root < 0.99):
+			roots.append(root)
+
+	return get_extrema_points_vectors(roots, pt1, pt2, pt3, pt4)
+
+def getInflectionsForQuadratic(pt1, bcps, pt2):
+	if len(bcps) < 2:
+		return [], []
+	else:
+		# TODO: Implement the actual check
+		return [], []
+
 def round_point(pt, gridLength=1):
 	if gridLength == 1:
 		return (int(round(pt[0])), int(round(pt[1])))
@@ -104,6 +148,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 		
 		self.all_tests = [
 			"test_extrema",
+			"test_inflections",
 			"test_fractional_coords",
 			"test_fractional_transform",
 			"test_smooth",
@@ -214,6 +259,8 @@ class OutlineTestPen(BasePointToSegmentPen):
 		#	self._checkBbox(bcp, pt)
 		if self.test_extrema:
 			self._checkBboxSegment(bcp1, bcp2, pt)
+		if self.test_inflections:
+			self._checkInflectionsSegment(bcp1, bcp2, pt)
 		if self.test_fractional_coords:
 			for p in [bcp1, bcp2, pt]:
 				self._checkFractionalCoordinates(p)
@@ -231,6 +278,8 @@ class OutlineTestPen(BasePointToSegmentPen):
 		if self.test_extrema:
 			for bcp in bcps:
 				self._checkBbox(bcp, pt)
+		if self.test_inflections:
+				self._checkInflectionsQuad(bcps, pt)
 		if self.test_fractional_coords:
 			for p in bcps + [pt]:
 				self._checkFractionalCoordinates(p)
@@ -315,7 +364,17 @@ class OutlineTestPen(BasePointToSegmentPen):
 				else:
 					badness = 0
 			return badness
+
+	def _checkInflectionsSegment(self, bcp1, bcp2, pt):
+		inflections, vectors = getInflectionsForCubic(self._prev, bcp1, bcp2, pt)
+		for i, p in enumerate(inflections):
+			self.errors.append(OutlineError(p, "Inflection", vector = vectors[i]))
 	
+	def _checkInflectionsQuad(self, bcps, pt):
+		inflections, vectors = getInflectionsForQuadratic(self._prev, bcps, pt)
+		for i, p in enumerate(inflections):
+			self.errors.append(OutlineError(p, "Inflection", vector = vectors[i]))
+
 	def _countCurveSegment(self):
 		if self.apparentlyQuadratic:
 			self.errors.append(OutlineError(None, "Mixed cubic and quadratic segments"))
