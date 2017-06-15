@@ -2,11 +2,37 @@ from __future__ import division
 from math import atan2, degrees, cos, pi, sin, sqrt
 from types import TupleType
 from miniFontTools.misc.arrayTools import pointInRect, normRect
-from miniFontTools.misc.bezierTools import calcCubicParameters, solveQuadratic, splitCubicAtT
+from miniFontTools.misc.bezierTools import calcQuadraticParameters, calcCubicParameters, solveQuadratic, splitCubicAtT, splitQuadraticAtT, epsilon
 from miniFontTools.misc.transform import Transform
 from miniFontTools.pens.pointPen import BasePointToSegmentPen
 
 # Helper functions
+
+
+def solveLinear(a, b):
+	if abs(a) < epsilon:
+		if abs(b) < epsilon:
+			roots = []
+		else:
+			roots = [0]
+	else:
+		DD = b * b
+		if DD >= 0.0:
+			rDD = sqrt(DD)
+			roots = [(-b+rDD)/2.0/a, (-b-rDD)/2.0/a]
+		else:
+			roots = []
+	return roots
+
+
+def add_implied_oncurve_points_quad(quad):
+	new_quad = [quad[0]]
+	for i in range(1, len(quad)-2):
+		new_quad.append(quad[i])
+		new_quad.append(half_point(quad[i], quad[i+1]))
+	new_quad.extend(quad[-2:])
+	return new_quad
+
 
 def get_extrema_points_vectors(roots, pt1, pt2, pt3, pt4):
 	split_segments = [p for p in splitCubicAtT(pt1, pt2, pt3, pt4, *roots)[:-1]]
@@ -74,6 +100,28 @@ def getInflectionsForCubic(pt1, pt2, pt3, pt4):
 			roots.append(root)
 
 	return get_extrema_points_vectors(roots, pt1, pt2, pt3, pt4)
+
+def get_extrema_points_vectors_quad(roots, pt1, pt2, pt3):
+	split_segments = [p for p in splitQuadraticAtT(pt1, pt2, pt3, *roots)[:-1]]
+	points = [p[2] for p in split_segments]
+	vectors = [get_vector(p[1], p[2]) for p in split_segments]
+	return points, vectors
+
+def getExtremaForQuadratic(pt1, pt2, pt3, h=True, v=False):
+	(ax, ay), (bx, by), c = calcQuadraticParameters(pt1, pt2, pt3)
+	ax *= 2.0
+	ay *= 2.0
+	points = []
+	vectors = []
+	if h:
+		roots = [t for t in solveLinear(ay, by) if 0 < t < 1]
+		points, vectors = get_extrema_points_vectors_quad(roots, pt1, pt2, pt3)
+	if v:
+		roots = [t for t in solveLinear(ax, bx) if 0 < t < 1]
+		v_points, v_vectors = get_extrema_points_vectors_quad(roots, pt1, pt2, pt3)
+		points += v_points
+		vectors += v_vectors
+	return points, vectors
 
 def getInflectionsForQuadratic(pt1, bcps, pt2):
 	if len(bcps) < 2:
@@ -282,8 +330,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 
 	def _runQCurveTests(self, bcps, pt):
 		if self.test_extrema:
-			for bcp in bcps:
-				self._checkBbox(bcp, pt)
+			self._checkExtremaQuad(bcps, pt)
 		if self.test_inflections:
 				self._checkInflectionsQuad(bcps, pt)
 		if self.test_fractional_coords:
@@ -328,6 +375,18 @@ class OutlineTestPen(BasePointToSegmentPen):
 		myRect = normRect((self._prev[0], self._prev[1], pt[0], pt[1]))
 		if not pointInRect(bcp1, myRect) or not pointInRect(bcp2, myRect):
 			extrema, vectors = getExtremaForCubic(self._prev, bcp1, bcp2, pt, h=True, v=True)
+			for i, p in enumerate(extrema):
+				if self.extremum_calculate_badness:
+					badness = self._getBadness(p, myRect)
+					if badness >= self.extremum_ignore_badness_below:
+						self.errors.append(OutlineError(p, "Extremum", badness, vectors[i]))
+				else:
+					self.errors.append(OutlineError(p, "Extremum", vector = vectors[i]))
+
+	def _checkExtremaQuad(self, bcps, pt):
+		quad = add_implied_oncurve_points_quad([self._prev] + bcps + [pt])
+		for i in range(0, len(quad)-1, 2):
+			extrema, vectors = getExtremaForQuadratic(quad[i], quad[i + 1], quad[i + 2], h=True, v=True)
 			for i, p in enumerate(extrema):
 				if self.extremum_calculate_badness:
 					badness = self._getBadness(p, myRect)
