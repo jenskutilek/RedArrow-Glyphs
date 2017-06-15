@@ -36,12 +36,18 @@ def getInflectionsForCubic(pt1, pt2, pt3, pt4):
 	# After https://github.com/mekkablue/InsertInflections
 	roots = []
 
-	ax = pt2.x - pt1.x
-	ay = pt2.y - pt1.y
-	bx = pt3.x - pt2.x - ax
-	by = pt3.y - pt2.y - ay
-	cx = pt4.x - pt3.x - ax - bx - bx
-	cy = pt4.y - pt3.y - ay - by - by
+	x1, y1 = pt1
+	x2, y2 = pt2
+	x3, y3 = pt3
+	x4, y4 = pt4
+
+	ax = x2 - x1
+	ay = y2 - y1
+	bx = x3 - x2 - ax
+	by = y3 - y2 - ay
+	cx = x4 - x3 - ax - bx - bx
+	cy = y4 - y3 - ay - by - by
+	
 	c0 = ( ax * by ) - ( ay * bx )
 	c1 = ( ax * cy ) - ( ay * cx )
 	c2 = ( bx * cy ) - ( by * cx )
