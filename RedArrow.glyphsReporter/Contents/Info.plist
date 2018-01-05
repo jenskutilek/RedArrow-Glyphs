@@ -17,15 +17,15 @@
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleVersion</key>
-	<string>70</string>
+	<string>80</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.7.0</string>
+	<string>0.8.0</string>
 	<key>UpdateFeedURL</key>
 	<string>https://raw.githubusercontent.com/jenskutilek/RedArrow-Glyphs/master/RedArrow.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
 	<string>https://github.com/jenskutilek/RedArrow-Glyphs</string>
 	<key>productReleaseNotes</key>
-	<string>Check for inflection points, improve extremum detection in TrueType curves.</string>
+	<string>Adjustments for future Glyphs API changes.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright by Jens Kutilek, 2016</string>
 	<key>NSPrincipalClass</key>
