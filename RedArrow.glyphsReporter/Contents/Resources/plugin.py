@@ -1,8 +1,8 @@
 # encoding: utf-8
 from __future__ import division
 
-
-from GlyphsApp import MOUSEMOVED, UPDATEINTERFACE
+import objc
+from GlyphsApp import MOUSEMOVED #, UPDATEINTERFACE
 from GlyphsApp.plugins import *
 
 from outlineTestPenGlyphs import OutlineTestPenGlyphs
@@ -10,14 +10,13 @@ from geometry_functions import distance_between_points
 from math import atan2, cos, pi, sin, degrees
 from string import strip
 
+import imp
 try:
-	import vanilla
+	imp.find_module('vanilla')
 	can_display_ui = True
 except:
 	can_display_ui = False
 	print "Please install vanilla to enable UI dialogs for RedArrow. You can install vanilla through Glyphs > Preferences > Addons > Modules."
-
-if can_display_ui: from raDialogs import SelectGlyphsWindowController
 
 
 plugin_id = "de.kutilek.RedArrow"
@@ -164,6 +163,7 @@ class RedArrow(ReporterPlugin):
 
 
 	def selectGlyphsOptions(self):
+		from raDialogs import SelectGlyphsWindowController
 		ui = SelectGlyphsWindowController(self.options, self.run_tests)
 		options, run_tests = ui.get()
 		return options, run_tests
