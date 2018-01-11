@@ -19,13 +19,13 @@
 	<key>CFBundleVersion</key>
 	<string>80</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.8.0</string>
+	<string>0.8.1</string>
 	<key>UpdateFeedURL</key>
 	<string>https://raw.githubusercontent.com/jenskutilek/RedArrow-Glyphs/master/RedArrow.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
 	<string>https://github.com/jenskutilek/RedArrow-Glyphs</string>
 	<key>productReleaseNotes</key>
-	<string>Adjustments for future Glyphs API changes.</string>
+	<string>Python 3 compatibility.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright by Jens Kutilek, 2016</string>
 	<key>NSPrincipalClass</key>

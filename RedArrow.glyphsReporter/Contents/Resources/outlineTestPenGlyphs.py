@@ -1,3 +1,4 @@
+from __future__ import division, print_function
 from outlineTestPen import OutlineTestPen
 
 class OutlineTestPenGlyphs(OutlineTestPen):
@@ -39,8 +40,8 @@ class OutlineTestPenGlyphs(OutlineTestPen):
 		# This seems to be broken again in the current version (873)
 		#segments = self._glyphs_workaround(segments)
 		
-		#print "Raw segments:"
-		#print segments
+		#print("Raw segments:")
+		#print(segments)
 		
 		
 		for segment_type, point in segments:
@@ -82,7 +83,7 @@ class OutlineTestPenGlyphs(OutlineTestPen):
 			elif curve_order == 2:
 				reordered_segments.insert(0, ("qcurve", first))
 			else:
-				print "Warning: Undetermined curve order."
+				print("Warning: Undetermined curve order.")
 		
 		super(OutlineTestPenGlyphs, self)._flushContour(reordered_segments)
 
@@ -94,4 +95,4 @@ if __name__ == "__main__":
 	p = OutlineTestPenGlyphs(Font)
 	g.drawPoints(p)
 	for e in p.errors:
-		print e
+		print(e)

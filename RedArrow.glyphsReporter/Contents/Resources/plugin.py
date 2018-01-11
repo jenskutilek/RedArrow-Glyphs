@@ -1,5 +1,5 @@
 # encoding: utf-8
-from __future__ import division
+from __future__ import division, print_function
 
 import objc
 from GlyphsApp import MOUSEMOVED #, UPDATEINTERFACE
@@ -16,7 +16,7 @@ try:
 	can_display_ui = True
 except:
 	can_display_ui = False
-	print "Please install vanilla to enable UI dialogs for RedArrow. You can install vanilla through Glyphs > Preferences > Addons > Modules."
+	print("Please install vanilla to enable UI dialogs for RedArrow. You can install vanilla through Glyphs > Preferences > Addons > Modules.")
 
 
 plugin_id = "de.kutilek.RedArrow"
@@ -341,7 +341,7 @@ class RedArrow(ReporterPlugin):
 					errors_by_position[None].extend([e])
 				else:
 					errors_by_position[None] = [e]
-		for pos, errors in errors_by_position.iteritems():
+		for pos, errors in errors_by_position.items():
 			message = u""
 			for e in errors:
 				if e.badness is None or not debug:

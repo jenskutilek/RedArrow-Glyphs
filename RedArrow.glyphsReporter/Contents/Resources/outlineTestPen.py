@@ -1,4 +1,4 @@
-from __future__ import division
+from __future__ import division, print_function
 from math import atan2, degrees, cos, pi, sin, sqrt
 from types import TupleType
 from miniFontTools.misc.arrayTools import pointInRect, normRect
@@ -505,9 +505,9 @@ class OutlineTestPen(BasePointToSegmentPen):
 			dist1 = distance_between_points(self._prev_ref, pt)
 			dist2 = distance_between_points(pt, next_ref)
 			
-			#print "Checking:"
-			#print "  ", self._prev_ref, pt, degrees(phi1), dist1
-			#print "  ", pt, next_ref, degrees(phi2), dist2
+			#print("Checking:")
+			#print("  ", self._prev_ref, pt, degrees(phi1), dist1)
+			#print("  ", pt, next_ref, degrees(phi2), dist2)
 			
 			if dist1 >= dist2:
 				# distance 1 is longer, check dist2 for correct angle
@@ -520,7 +520,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 				phi = phi2 - pi
 				ref = self._prev_ref
 			
-			#print "  Chose: %s -> %s, angle %0.2f, dist %0.2f" % (ref, next_ref, degrees(phi), dist)
+			#print("  Chose: %s -> %s, angle %0.2f, dist %0.2f" % (ref, next_ref, degrees(phi), dist))
 			
 			if dist > 2 * self.smooth_connection_max_distance: # Ignore short segments
 				# TODO: Add sanity check to save calculating the projected point for each segment?
@@ -533,7 +533,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 				projected_pt = (pt[0] + dist * cos(phi), pt[1] + dist * sin(phi))
 				# Compare projected position with actual position
 				badness = distance_between_points(round_point(projected_pt, self.grid_length), ref)
-				#print "  Projected: %s, actual: %s, diff: %0.2f" % (projected_pt, ref, badness)
+				#print("  Projected: %s, actual: %s, diff: %0.2f" % (projected_pt, ref, badness))
 				if self.grid_length == 0:
 					d = 0.49
 				else:
@@ -669,4 +669,4 @@ if __name__ == "__main__":
 	p = OutlineTestPen(CurrentFont())
 	g.drawPoints(p)
 	for e in p.errors:
-		print e
+		print(e)
