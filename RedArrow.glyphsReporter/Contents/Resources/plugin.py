@@ -261,6 +261,8 @@ class RedArrow(ReporterPlugin):
 
 
 	def _drawTextLabel(self, transform, text, size, vector):
+		if vector is None:
+			vector = (-1, 1)
 		angle = atan2(vector[0], -vector[1])
 		text_size = 0.5 * size
 		
@@ -309,6 +311,8 @@ class RedArrow(ReporterPlugin):
 		#)
 	
 	def _drawUnspecified(self, position, kind, size, vector = (-1, 1)):
+		if vector is None:
+			vector = (-1, 1)
 		angle = atan2(vector[1], vector[0])
 		circle_size = size * 1.3
 		x, y = position
