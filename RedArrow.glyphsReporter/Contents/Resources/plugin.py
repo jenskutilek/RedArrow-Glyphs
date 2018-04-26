@@ -223,6 +223,8 @@ class RedArrow(ReporterPlugin):
 	
 	
 	def _drawArrow(self, position, kind, size, vector = (-1, 1)):
+		if vector is None:
+			vector = (-1, 1)
 		angle = atan2(vector[0], -vector[1])
 		size *= 2
 		x, y = position
