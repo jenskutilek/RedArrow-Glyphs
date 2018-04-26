@@ -192,18 +192,17 @@ class RedArrow(ReporterPlugin):
 		font.disableUpdateInterface()
 		mid = font.selectedFontMaster.id
 		self.options["grid_length"] = font.gridLength
-		selection = []
 		glyphlist = font.glyphs.keys()
+		outline_test_pen = OutlineTestPenGlyphs(font, options, run_tests)
 		for glyph_name in glyphlist:
 			glyph = font.glyphs[glyph_name]
 			layer = glyph.layers[mid]
+			outline_test_pen.errors = []
 			if layer is not None:
-				outline_test_pen = OutlineTestPenGlyphs(font, options, run_tests)
 				try:
 					layer.drawPoints(outline_test_pen)
 					if len(outline_test_pen.errors) > 0:
 						glyph.selected = True
-						selection.append(glyph_name)
 					else:
 						glyph.selected = False
 				except Exception as e:
