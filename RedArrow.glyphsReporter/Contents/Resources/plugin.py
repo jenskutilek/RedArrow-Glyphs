@@ -11,15 +11,6 @@ from geometry_functions import distance_between_points
 from math import atan2, cos, pi, sin, degrees
 from string import strip
 
-import imp
-try:
-	imp.find_module('vanilla')
-	can_display_ui = True
-except:
-	can_display_ui = False
-	print("Please install vanilla to enable UI dialogs for RedArrow. You can install vanilla through Glyphs > Preferences > Addons > Modules.")
-
-
 plugin_id = "de.kutilek.RedArrow"
 DEBUG = False
 
@@ -64,6 +55,7 @@ class RedArrow(ReporterPlugin):
 		self.show_labels = not(self.show_labels)
 		self.mouse_position = (0, 0)
 		self.should_update_report = True
+		self.vanilla_alerted = False
 		self.toggleLabels()
 	
 
@@ -165,10 +157,18 @@ class RedArrow(ReporterPlugin):
 
 
 	def selectGlyphsOptions(self):
-		from raDialogs import SelectGlyphsWindowController
-		ui = SelectGlyphsWindowController(self.options, self.run_tests)
-		options, run_tests = ui.get()
-		return options, run_tests
+		try:
+			from raDialogs import SelectGlyphsWindowController
+		except ImportError:
+			if not self.vanilla_alerted:
+				print("Please install vanilla to enable UI dialogs for RedArrow. You can install vanilla through Glyphs > Preferences > Addons > Modules.")
+				self.vanilla_alerted = True
+
+		if self.vanilla_alerted:
+			return self.options, self.run_tests
+		else:
+			ui = SelectGlyphsWindowController(self.options, self.run_tests)
+			return ui.get()
 	
 
 	def selectGlyphsWithErrors(self):
@@ -179,12 +179,7 @@ class RedArrow(ReporterPlugin):
 		if font is None:
 			return None
 
-		if can_display_ui:
-			options, run_tests = self.selectGlyphsOptions()
-		else:
-			options = self.options
-			run_tests = self.run_tests
-		
+		options, run_tests = self.selectGlyphsOptions()
 		if run_tests is None:
 			return
 		if options is None:
