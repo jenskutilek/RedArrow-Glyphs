@@ -73,7 +73,8 @@ class RedArrow(ReporterPlugin):
 		newMenuItem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
 			Glyphs.localize({
 				'en': u"Select Glyphs With Outline Errors",
-				'de': u'Glyphen mit Outlinefehlern auswählen'
+				'de': u'Glyphen mit Outlinefehlern auswählen',
+				'ko': u"윤곽선 오류가 있는 글리프 선택"
 			}),
 			s,
 			""
