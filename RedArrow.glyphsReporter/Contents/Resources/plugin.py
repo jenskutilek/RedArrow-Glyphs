@@ -6,7 +6,10 @@ from GlyphsApp import MOUSEMOVED #, UPDATEINTERFACE
 from GlyphsApp.plugins import *
 from AppKit import NSAffineTransform, NSApplication, NSAlternateKeyMask, NSBezierPath, NSClassFromString, NSColor, NSCommandKeyMask, NSFont, NSFontAttributeName, NSForegroundColorAttributeName, NSMakeRect, NSMenuItem, NSMutableParagraphStyle, NSPoint, NSRect, NSShiftKeyMask, NSString
 
-from outlineTestPenGlyphs import OutlineTestPenGlyphs
+if hasattr(Glyphs, 'buildNumber') and Glyphs.buildNumber >= 1147:
+	from outlineTestPen import OutlineTestPen
+else:
+	from outlineTestPenGlyphs import OutlineTestPenGlyphs as OutlineTestPen
 from geometry_functions import distance_between_points
 from math import atan2, cos, pi, sin, degrees
 from string import strip
@@ -189,7 +192,7 @@ class RedArrow(ReporterPlugin):
 		mid = font.selectedFontMaster.id
 		self.options["grid_length"] = font.gridLength
 		glyphlist = font.glyphs.keys()
-		outline_test_pen = OutlineTestPenGlyphs(font, options, run_tests)
+		outline_test_pen = OutlineTestPen(font, options, run_tests)
 		for glyph_name in glyphlist:
 			glyph = font.glyphs[glyph_name]
 			layer = glyph.layers[mid]
@@ -212,7 +215,7 @@ class RedArrow(ReporterPlugin):
 		self.errors = []
 		if layer is not None:
 			self.options["grid_length"] = layer.parent.parent.gridLength
-			outline_test_pen = OutlineTestPenGlyphs(layer.parent.parent, self.options, self.run_tests)
+			outline_test_pen = OutlineTestPen(layer.parent.parent, self.options, self.run_tests)
 			layer.drawPoints(outline_test_pen)
 			self.errors = outline_test_pen.errors
 	
