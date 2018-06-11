@@ -1,12 +1,42 @@
 from __future__ import division, print_function
 from math import atan2, degrees, cos, pi, sin, sqrt
-from types import TupleType
-from miniFontTools.misc.arrayTools import pointInRect, normRect
-from miniFontTools.misc.bezierTools import calcQuadraticParameters, calcCubicParameters, solveQuadratic, splitCubicAtT, splitQuadraticAtT, epsilon
-from miniFontTools.misc.transform import Transform
-from miniFontTools.pens.pointPen import BasePointToSegmentPen
+
+try:
+	from fontTools.misc.arrayTools import pointInRect, normRect
+	from fontTools.misc.bezierTools import calcCubicParameters, solveQuadratic, splitCubicAtT
+	from fontTools.misc.transform import Transform
+except ImportError:
+	from miniFontTools.misc.arrayTools import pointInRect, normRect
+	from miniFontTools.misc.bezierTools import calcQuadraticParameters, calcCubicParameters, solveQuadratic, splitCubicAtT, splitQuadraticAtT, epsilon
+	from miniFontTools.misc.transform import Transform
+
+try:
+	from mojo.roboFont import version as roboFontVersion
+	if roboFontVersion >= "3.0":
+		v = "rf3"
+		from ufoLib.pointPen import BasePointToSegmentPen
+	else:
+		v = "rf1"
+		from robofab.pens import BasePointToSegmentPen
+except ImportError:
+	v = "g"
+	from miniFontTools.pens.pointPen import BasePointToSegmentPen
+
+
 
 # Helper functions
+
+if v == "g":
+	def get_bounds(font, glyphname):
+		return (0, 0, 0, 0)
+		# FIXME: We need to find the layer.bounds() in Glyphs
+		# return font.glyphs[glyphname].bounds()
+elif v == "rf3":
+	def get_bounds(font, glyphname):
+		return font[glyphname].bounds
+else:
+	def get_bounds(font, glyphname):
+		return font[glyphname].box
 
 
 def solveLinear(a, b):
@@ -150,7 +180,7 @@ def distance_between_points(p0, p1):
 	return sqrt((p1[1] - p0[1])**2 + (p1[0] - p0[0])**2)
 
 def half_point(p0, p1):
-	if type(p0) == TupleType:
+	if type(p0) == tuple:
 		p01 = ((p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2)
 	else:
 		# NSPoint (Glyphs)
@@ -467,13 +497,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 		))
 	
 	def _checkFractionalTransformation(self, baseGlyph, transformation):
-		try:
-			# RF
-			bbox = self.glyphSet[baseGlyph].box
-		except:
-			# Glyphs FIXME
-			# bbox = self.glyphSet.glyphs[baseGlyph].bounds()
-			bbox = (0, 0, 0, 0)
+		bbox = get_bounds(self.glyphSet, baseGlyph)
 		tbox = transform_bbox(bbox, transformation)
 		if self.fractional_ignore_point_zero:
 			for p in transformation:

@@ -12,7 +12,6 @@ else:
 	from outlineTestPenGlyphs import OutlineTestPenGlyphs as OutlineTestPen
 from geometry_functions import distance_between_points
 from math import atan2, cos, pi, sin, degrees
-from string import strip
 
 plugin_id = "de.kutilek.RedArrow"
 DEBUG = False
