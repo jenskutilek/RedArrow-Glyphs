@@ -209,10 +209,10 @@ class RedArrow(ReporterPlugin):
 		
 	
 	def _updateOutlineCheck(self, layer):
-		if DEBUG: self.logToConsole( "_updateOutlineCheck: '%s' from %s" % (layer.parent.name, layer.parent.parent) )
+		if DEBUG and hasattr(layer, "parent"): self.logToConsole( "_updateOutlineCheck: '%s' from %s" % (layer.parent.name, layer.parent.parent) )
 		self.current_layer = layer
 		self.errors = []
-		if layer is not None:
+		if layer is not None and hasattr(layer, "parent"):
 			self.options["grid_length"] = layer.parent.parent.gridLength
 			outline_test_pen = OutlineTestPen(layer.parent.parent, self.options, self.run_tests)
 			layer.drawPoints(outline_test_pen)
