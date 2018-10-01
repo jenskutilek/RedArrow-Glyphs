@@ -2,7 +2,7 @@
 from __future__ import division, print_function
 
 import objc
-from GlyphsApp import MOUSEMOVED #, UPDATEINTERFACE
+from GlyphsApp import Glyphs, MOUSEMOVED #, UPDATEINTERFACE
 from GlyphsApp.plugins import *
 from AppKit import NSAffineTransform, NSApplication, NSAlternateKeyMask, NSBezierPath, NSClassFromString, NSColor, NSCommandKeyMask, NSFont, NSFontAttributeName, NSForegroundColorAttributeName, NSMakeRect, NSMenuItem, NSMutableParagraphStyle, NSPoint, NSRect, NSShiftKeyMask, NSString
 

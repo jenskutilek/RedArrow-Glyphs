@@ -1,9 +1,9 @@
-from __future__ import division, print_function
+from __future__ import absolute_import, division, print_function
 from math import atan2, degrees, cos, pi, sin, sqrt
 
 try:
 	from fontTools.misc.arrayTools import pointInRect, normRect
-	from fontTools.misc.bezierTools import calcCubicParameters, solveQuadratic, splitCubicAtT
+	from fontTools.misc.bezierTools import calcQuadraticParameters, calcCubicParameters, solveQuadratic, splitCubicAtT, splitQuadraticAtT, epsilon
 	from fontTools.misc.transform import Transform
 except ImportError:
 	from miniFontTools.misc.arrayTools import pointInRect, normRect
