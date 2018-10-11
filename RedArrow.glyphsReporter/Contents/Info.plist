@@ -17,15 +17,15 @@
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleVersion</key>
-	<string>87</string>
+	<string>88</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.8.7</string>
+	<string>0.8.8</string>
 	<key>UpdateFeedURL</key>
 	<string>https://raw.githubusercontent.com/jenskutilek/RedArrow-Glyphs/master/RedArrow.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
 	<string>https://github.com/jenskutilek/RedArrow-Glyphs</string>
 	<key>productReleaseNotes</key>
-	<string>Python 3 compatibility, bugfixes, speed improvements.</string>
+	<string>Now also shows angled handles.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright by Jens Kutilek, 2016-2018</string>
 	<key>NSPrincipalClass</key>
