@@ -429,12 +429,12 @@ class OutlineTestPen(BasePointToSegmentPen):
 		for i in range(0, len(quad)-1, 2):
 			extrema, vectors = getExtremaForQuadratic(quad[i], quad[i + 1], quad[i + 2], h=True, v=True)
 			for i, p in enumerate(extrema):
-				if self.extremum_calculate_badness:
-					badness = self._getBadness(p, myRect)
-					if badness >= self.extremum_ignore_badness_below:
-						self.errors.append(OutlineError(p, "Extremum", badness, vectors[i]))
-				else:
-					self.errors.append(OutlineError(p, "Extremum", vector = vectors[i]))
+				#if self.extremum_calculate_badness:
+				#	badness = self._getBadness(p, myRect)
+				#	if badness >= self.extremum_ignore_badness_below:
+				#		self.errors.append(OutlineError(p, "Extremum", badness, vectors[i]))
+				#else:
+				self.errors.append(OutlineError(p, "Extremum", vector = vectors[i]))
 	
 	def _getBadness(self, pointToCheck, myRect):
 			# calculate distance of point to rect
