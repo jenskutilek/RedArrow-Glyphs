@@ -10,12 +10,9 @@ from AppKit import NSAffineTransform, NSApplication, NSAlternateKeyMask, \
     NSMenuItem, NSMutableParagraphStyle, NSPoint, NSRect, NSShiftKeyMask, \
     NSString
 
-if hasattr(Glyphs, 'buildNumber') and Glyphs.buildNumber >= 1147:
-    from outlineTestPen import OutlineTestPen
-else:
-    from outlineTestPenGlyphs import OutlineTestPenGlyphs as OutlineTestPen
 from geometry_functions import distance_between_points
 from math import atan2, cos, pi, sin, degrees
+from outlineTestPen import OutlineTestPen
 
 plugin_id = "de.kutilek.RedArrow"
 DEBUG = False
