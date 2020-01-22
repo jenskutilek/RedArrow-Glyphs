@@ -20,6 +20,7 @@ DEBUG = False
 
 class RedArrow(ReporterPlugin):
 
+    @objc.python_method
     def settings(self):
         self.menuName = "Red Arrows"
         self.keyboardShortcut = 'a'
@@ -33,6 +34,7 @@ class RedArrow(ReporterPlugin):
             },
         ]
 
+    @objc.python_method
     def start(self):
         self.addMenuItem()
         self.options = {
@@ -64,6 +66,7 @@ class RedArrow(ReporterPlugin):
         self.vanilla_alerted = False
         self.toggleLabels()
 
+    @objc.python_method
     def addMenuItem(self):
         mainMenu = NSApplication.sharedApplication().mainMenu()
         s = objc.selector(self.selectGlyphsWithErrors,signature='v@:')
@@ -79,18 +82,22 @@ class RedArrow(ReporterPlugin):
         newMenuItem.setTarget_(self)
         mainMenu.itemAtIndex_(2).submenu().insertItem_atIndex_(newMenuItem, 11)
 
+    @objc.python_method
     def updateReport(self, notification):
         if DEBUG: self.logToConsole("updateReport")
         self.should_update_report = True
         Glyphs.redraw()
 
+    @objc.python_method
     def mouseDidMove(self, notification):
         Glyphs.redraw()
 
+    @objc.python_method
     def willActivate(self):
         # Glyphs.addCallback(self.updateReport, UPDATEINTERFACE)
         Glyphs.addCallback(self.mouseDidMove, MOUSEMOVED)
 
+    @objc.python_method
     def willDeactivate(self):
         try:
             Glyphs.removeCallback(self.mouseDidMove)
@@ -98,6 +105,7 @@ class RedArrow(ReporterPlugin):
         except Exception as e:
             self.logToConsole("willDeactivate: %s" % str(e))
 
+    @objc.python_method
     def foreground(self, layer):
         if self.should_update_report:
             # self.logToConsole( "_updateOutlineCheck: %s" % layer)
@@ -124,6 +132,7 @@ class RedArrow(ReporterPlugin):
         except Exception as e:
             self.logToConsole("foreground: %s" % str(e))
 
+    @objc.python_method
     def toggleLabels(self):
         if self.show_labels:
             self.show_labels = False
@@ -153,6 +162,7 @@ class RedArrow(ReporterPlugin):
             ]
         Glyphs.defaults["%s.showLabels" % plugin_id] = self.show_labels
 
+    @objc.python_method
     def selectGlyphsOptions(self):
         try:
             from raDialogs import SelectGlyphsWindowController
@@ -167,6 +177,7 @@ class RedArrow(ReporterPlugin):
             ui = SelectGlyphsWindowController(self.options, self.run_tests)
             return ui.get()
 
+    @objc.python_method
     def selectGlyphsWithErrors(self):
         """
         Selects all glyphs with errors in the active layer
@@ -206,6 +217,7 @@ class RedArrow(ReporterPlugin):
                     )
         font.enableUpdateInterface()
 
+    @objc.python_method
     def _updateOutlineCheck(self, layer):
         if DEBUG and hasattr(layer, "parent"):
             self.logToConsole("_updateOutlineCheck: '%s' from %s" % (
@@ -220,6 +232,7 @@ class RedArrow(ReporterPlugin):
             layer.drawPoints(outline_test_pen)
             self.errors = outline_test_pen.errors
 
+    @objc.python_method
     def _drawArrow(self, position, kind, size, vector=(-1, 1)):
         if vector is None:
             vector = (-1, 1)
@@ -257,6 +270,7 @@ class RedArrow(ReporterPlugin):
                 vector=vector,
             )
 
+    @objc.python_method
     def _drawTextLabel(self, transform, text, size, vector):
         if vector is None:
             vector = (-1, 1)
@@ -307,6 +321,7 @@ class RedArrow(ReporterPlugin):
         #    attrs
         # )
 
+    @objc.python_method
     def _drawUnspecified(self, position, kind, size, vector=(-1, 1)):
         if vector is None:
             vector = (-1, 1)
@@ -335,6 +350,7 @@ class RedArrow(ReporterPlugin):
                 angle=angle,
             )
 
+    @objc.python_method
     def _drawArrows(self, debug=False):
         size = 10.0 / self.getScale()
         errors_by_position = {}
