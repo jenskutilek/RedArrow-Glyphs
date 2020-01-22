@@ -1,5 +1,5 @@
 # encoding: utf-8
-from __future__ import division, print_function
+from __future__ import division, print_function, unicode_literals
 
 import objc
 from GlyphsApp import Glyphs, MOUSEMOVED  #, UPDATEINTERFACE
