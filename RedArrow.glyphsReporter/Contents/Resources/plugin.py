@@ -25,7 +25,12 @@ class RedArrow(ReporterPlugin):
         self.keyboardShortcut = 'a'
         self.keyboardShortcutModifier = NSCommandKeyMask | NSShiftKeyMask | NSAlternateKeyMask
         self.generalContextMenus = [
-            {"name": Glyphs.localize({'en': u'Show Error Labels', 'de': u'Fehlerbeschriftung anzeigen'}), "action": self.toggleLabels},
+            {
+                "name": Glyphs.localize({
+                    'en': u'Show Error Labels',
+                    'de': u'Fehlerbeschriftung anzeigen'}),
+                "action": self.toggleLabels
+            },
         ]
 
     def start(self):
