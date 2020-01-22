@@ -11,7 +11,7 @@ from AppKit import NSAffineTransform, NSApplication, NSAlternateKeyMask, \
     NSString
 
 from geometry_functions import distance_between_points
-from math import atan2, cos, pi, sin, degrees
+from math import atan2, cos, pi, sin
 from outlineTestPen import OutlineTestPen
 
 plugin_id = "de.kutilek.RedArrow"
