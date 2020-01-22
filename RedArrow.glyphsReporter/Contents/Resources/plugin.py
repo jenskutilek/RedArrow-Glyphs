@@ -69,7 +69,7 @@ class RedArrow(ReporterPlugin):
     @objc.python_method
     def addMenuItem(self):
         mainMenu = NSApplication.sharedApplication().mainMenu()
-        s = objc.selector(self.selectGlyphsWithErrors,signature='v@:')
+        s = objc.selector(self.selectGlyphsWithErrors, signature=b'v@:')
         newMenuItem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
             Glyphs.localize({
                 'en': u"Select Glyphs With Outline Errors",
