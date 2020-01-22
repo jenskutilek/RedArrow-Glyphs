@@ -177,7 +177,6 @@ class RedArrow(ReporterPlugin):
             ui = SelectGlyphsWindowController(self.options, self.run_tests)
             return ui.get()
 
-    @objc.python_method
     def selectGlyphsWithErrors(self):
         """
         Selects all glyphs with errors in the active layer
