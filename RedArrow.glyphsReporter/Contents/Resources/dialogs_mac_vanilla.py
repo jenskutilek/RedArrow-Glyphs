@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import vanilla.dialogs
 from AppKit import NSApp, NSModalPanelWindowLevel, NSWindowCloseButton, \
     NSWindowZoomButton, NSWindowMiniaturizeButton
@@ -46,7 +47,7 @@ class _RAbaseWindowController(object):
             sizeStyle="small"
         )
         self.w.closeButton.bind(".", ["command"])
-        self.w.closeButton.bind(unichr(27), [])
+        self.w.closeButton.bind(chr(27), [])
 
         self.cancelled = False
 
