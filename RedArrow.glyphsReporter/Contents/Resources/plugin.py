@@ -2,8 +2,8 @@
 from __future__ import division, print_function, unicode_literals
 
 import objc
-from GlyphsApp import Glyphs, MOUSEMOVED  #, UPDATEINTERFACE
-from GlyphsApp.plugins import *
+from GlyphsApp import Glyphs, MOUSEMOVED, UPDATEINTERFACE
+from GlyphsApp.plugins import ReporterPlugin
 from AppKit import NSAffineTransform, NSApplication, NSAlternateKeyMask, \
     NSBezierPath, NSClassFromString, NSColor, NSCommandKeyMask, NSFont, \
     NSFontAttributeName, NSForegroundColorAttributeName, NSMakeRect, \
@@ -28,8 +28,8 @@ class RedArrow(ReporterPlugin):
         self.generalContextMenus = [
             {
                 "name": Glyphs.localize({
-                    'en': u'Show Error Labels',
-                    'de': u'Fehlerbeschriftung anzeigen'}),
+                    'en': 'Show Error Labels',
+                    'de': 'Fehlerbeschriftung anzeigen'}),
                 "action": self.toggleLabels
             },
         ]
@@ -72,9 +72,9 @@ class RedArrow(ReporterPlugin):
         s = objc.selector(self.selectGlyphsWithErrors, signature=b'v@:@')
         newMenuItem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
             Glyphs.localize({
-                'en': u"Select Glyphs With Outline Errors",
-                'de': u'Glyphen mit Outlinefehlern auswählen',
-                'ko': u"윤곽선 오류가 있는 글리프 선택"
+                'en': "Select Glyphs With Outline Errors",
+                'de': 'Glyphen mit Outlinefehlern auswählen',
+                'ko': "윤곽선 오류가 있는 글리프 선택"
             }),
             s,
             ""
@@ -92,16 +92,14 @@ class RedArrow(ReporterPlugin):
     def mouseDidMove(self, notification):
         Glyphs.redraw()
 
-    @objc.python_method
     def willActivate(self):
-        # Glyphs.addCallback(self.updateReport, UPDATEINTERFACE)
+        Glyphs.addCallback(self.updateReport, UPDATEINTERFACE)
         Glyphs.addCallback(self.mouseDidMove, MOUSEMOVED)
 
-    @objc.python_method
     def willDeactivate(self):
         try:
             Glyphs.removeCallback(self.mouseDidMove)
-            # Glyphs.removeCallback(self.updateReport)
+            Glyphs.removeCallback(self.updateReport)
         except Exception as e:
             self.logToConsole("willDeactivate: %s" % str(e))
 
@@ -132,7 +130,6 @@ class RedArrow(ReporterPlugin):
         except Exception as e:
             self.logToConsole("foreground: %s" % str(e))
 
-    @objc.python_method
     def toggleLabels(self):
         if self.show_labels:
             self.show_labels = False
@@ -140,29 +137,30 @@ class RedArrow(ReporterPlugin):
                 {
                     "name": Glyphs.localize(
                         {
-                            'en': u'Show Error Labels',
-                            'de': u'Fehlerbeschriftung anzeigen'
+                            'en': 'Show Error Labels',
+                            'de': 'Fehlerbeschriftung anzeigen'
                         }
                     ),
                     "action": self.toggleLabels
                 },
             ]
+            self.willActivate()
         else:
             self.show_labels = True
             self.generalContextMenus = [
                 {
                     "name": Glyphs.localize(
                         {
-                            'en': u'Hide Error Labels',
-                            'de': u'Fehlerbeschriftung ausblenden'
+                            'en': 'Hide Error Labels',
+                            'de': 'Fehlerbeschriftung ausblenden'
                         }
                     ),
                     "action": self.toggleLabels
                 },
             ]
+            self.willDeactivate()
         Glyphs.defaults["%s.showLabels" % plugin_id] = self.show_labels
 
-    @objc.python_method
     def selectGlyphsOptions(self):
         try:
             from raDialogs import SelectGlyphsWindowController
