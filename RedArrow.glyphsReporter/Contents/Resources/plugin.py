@@ -86,7 +86,7 @@ class RedArrow(ReporterPlugin):
     def updateReport(self, notification):
         if DEBUG: self.logToConsole("updateReport")
         self.should_update_report = True
-        Glyphs.redraw()
+        # Glyphs.redraw()
 
     @objc.python_method
     def mouseDidMove(self, notification):
@@ -106,11 +106,10 @@ class RedArrow(ReporterPlugin):
     @objc.python_method
     def foreground(self, layer):
         if self.should_update_report:
-            # self.logToConsole( "_updateOutlineCheck: %s" % layer)
+            # self.logToConsole("_updateOutlineCheck: %s" % layer)
             self._updateOutlineCheck(layer)
-            # self.logToConsole( "foreground: Errors: %s" % self.errors )
-            # self.should_update_report = False
-        try:
+            # self.logToConsole("foreground: Errors: %s" % self.errors )
+            self.should_update_report = False
         # try:
         if True:
             try:
