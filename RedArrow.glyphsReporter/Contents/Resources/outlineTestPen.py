@@ -363,6 +363,7 @@ class OutlineTestPen(BasePointToSegmentPen):
     # Tests for different segment types
 
     def _runMoveTests(self, pt):
+        print("_runMoveTests", pt)
         if self.test_fractional_coords:
             self._checkFractionalCoordinates(pt)
         if self.test_smooth and self._contour_start_ref is not None:
@@ -373,6 +374,7 @@ class OutlineTestPen(BasePointToSegmentPen):
         #    self._checkEmptyLinesAndCurves(pt)
 
     def _runLineTests(self, pt):
+        print("_runLineTests", pt)
         if self.test_fractional_coords:
             self._checkFractionalCoordinates(pt)
         if self.test_smooth:
@@ -386,6 +388,7 @@ class OutlineTestPen(BasePointToSegmentPen):
             self._checkSemiVerticalVectors(self._prev, pt)
 
     def _runCurveTests(self, bcp1, bcp2, pt):
+        print("_runCurveTests", bcp1, bcp2, pt)
         # for bcp in [bcp1, bcp2]:
         #    self._checkBbox(bcp, pt)
         if self.test_extrema:
@@ -555,6 +558,7 @@ class OutlineTestPen(BasePointToSegmentPen):
         return badness
 
     def _checkInflectionsSegment(self, bcp1, bcp2, pt):
+        print("_checkInflectionsSegment", self._prev, bcp1, bcp2, pt)
         inflections, vectors = getInflectionsForCubic(
             self._prev, bcp1, bcp2, pt
         )
@@ -829,6 +833,7 @@ class OutlineTestPen(BasePointToSegmentPen):
             )
 
     def _flushContour(self, segments):
+        print("_flushContour")
         first_segment = True
         self.current_vector = None
         pt = segments[0][1][0][0]
@@ -844,6 +849,7 @@ class OutlineTestPen(BasePointToSegmentPen):
         self._is_contour_start = True
         self._should_test_collinear = False
         for segment_type, points in segments:
+            print(segment_type, points)
 
             if first_segment:
                 self._prev_type, prev_points = segments[-1]
