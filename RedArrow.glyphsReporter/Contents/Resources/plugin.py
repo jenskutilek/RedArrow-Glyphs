@@ -84,9 +84,11 @@ class RedArrow(ReporterPlugin):
 
     @objc.python_method
     def updateReport(self, notification):
-        if DEBUG: self.logToConsole("updateReport")
-        self.should_update_report = True
-        # Glyphs.redraw()
+        if DEBUG:
+            self.logToConsole("updateReport")
+        if not self.should_update_report:
+            self.should_update_report = True
+            Glyphs.redraw()
 
     @objc.python_method
     def mouseDidMove(self, notification):
