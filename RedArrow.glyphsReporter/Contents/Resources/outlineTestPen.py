@@ -600,7 +600,7 @@ class OutlineTestPen(BasePointToSegmentPen):
         bbox = get_bounds(self.glyphSet, baseGlyph)
         tbox = transform_bbox(bbox, transformation)
         if self.fractional_ignore_point_zero:
-            for p in transformation:
+            for p in transformation[-2:]:
                 if round(p) != p:
                     self.errors.append(OutlineError(
                         half_point((tbox[0], tbox[1]), (tbox[2], tbox[3])),
@@ -610,7 +610,7 @@ class OutlineTestPen(BasePointToSegmentPen):
                     ))
                     break
         else:
-            for p in transformation:
+            for p in transformation[-2:]:
                 if type(p) == float:
                     self.errors.append(OutlineError(
                         half_point((tbox[0], tbox[1]), (tbox[2], tbox[3])),
