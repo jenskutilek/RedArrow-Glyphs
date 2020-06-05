@@ -111,6 +111,8 @@ class RedArrow(ReporterPlugin):
             # self.logToConsole( "foreground: Errors: %s" % self.errors )
             # self.should_update_report = False
         try:
+        # try:
+        if True:
             try:
                 self.mouse_position = self.controller.graphicView().getActiveLocation_(Glyphs.currentEvent())
             except Exception as e:
@@ -127,8 +129,8 @@ class RedArrow(ReporterPlugin):
                 ):
                     if len(self.errors) > 0:
                         self._drawArrows()
-        except Exception as e:
-            self.logToConsole("foreground: %s" % str(e))
+        # except Exception as e:
+        #     self.logToConsole("foreground: %s" % str(e))
 
     def toggleLabels(self):
         if self.show_labels:
@@ -228,6 +230,8 @@ class RedArrow(ReporterPlugin):
             outline_test_pen = OutlineTestPen(layer.parent.parent, self.options, self.run_tests)
             layer.drawPoints(outline_test_pen)
             self.errors = outline_test_pen.errors
+        if DEBUG:
+            self.logToConsole("Errors: %s" % self.errors)
 
     @objc.python_method
     def _drawArrow(self, position, kind, size, vector=(-1, 1)):
@@ -367,6 +371,8 @@ class RedArrow(ReporterPlugin):
             for e in errors:
                 if e.badness is None or not debug:
                     if DEBUG:
+                        if e.vector is None:
+                            e.vector = (1, 1)
                         message += u"%s (%0.2f|%0.2f = %0.2f π), " % (
                             e.kind,
                             e.vector[0],
