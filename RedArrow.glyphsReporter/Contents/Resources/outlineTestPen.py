@@ -16,6 +16,9 @@ except ImportError:
 
 try:
     from mojo.roboFont import version as roboFontVersion
+    CURVE = "curve"
+    LINE = "line"
+    QCURVE = "qcurve"
     if roboFontVersion >= "3.0":
         v = "rf3"
         from ufoLib.pointPen import BasePointToSegmentPen
@@ -25,6 +28,7 @@ try:
 except ImportError:
     v = "g"
     from miniFontTools.pens.pointPen import BasePointToSegmentPen
+    from GlyphsApp import CURVE, LINE, QCURVE
 
 
 # Helper functions
@@ -844,7 +848,7 @@ class OutlineTestPen(BasePointToSegmentPen):
             if first_segment:
                 self._prev_type, prev_points = segments[-1]
                 self._prev = prev_points[-1][0]
-                if self._prev_type in ['curve', 'qcurve']:
+                if self._prev_type in [CURVE, QCURVE]:
                     self._prev_ref = prev_points[-2][0]
                     self.current_smooth = prev_points[-1][1]
                 else:
@@ -852,19 +856,19 @@ class OutlineTestPen(BasePointToSegmentPen):
                     self.current_smooth = prev_points[0][1]
                 first_segment = False
 
-            if segment_type == 'curve':
+            if segment_type == CURVE:
                 bcp1, bcp2, pt = points[0][0], points[1][0], points[2][0]
                 self.current_vector = get_vector(bcp2, pt)
                 self._runCurveTests(bcp1, bcp2, pt)
                 self._prev_ref = bcp2
                 self._prev = pt
-                self._prev_type = "curve"
+                self._prev_type = CURVE
                 if self._is_contour_start:
                     self._contour_start_ref = bcp1
                     self._is_contour_start = False
                 self._should_test_collinear = False
                 self.current_smooth = points[2][1]
-            elif segment_type == 'line':
+            elif segment_type == LINE:
                 pt = points[0][0]
                 self.current_vector = get_vector(self._prev, pt)
                 self._runLineTests(pt)
@@ -872,12 +876,12 @@ class OutlineTestPen(BasePointToSegmentPen):
                 # ?
                 # self._prev_ref = pt
                 self._prev = pt
-                self._prev_type = "line"
+                self._prev_type = LINE
                 if self._is_contour_start:
                     self._contour_start_ref = pt
                 self._should_test_collinear = True
                 self.current_smooth = points[0][1]
-            elif segment_type == 'qcurve':
+            elif segment_type == QCURVE:
                 bcp = points[0][0]
                 pt = points[-1][0]
                 bcps = [p[0] for p in points[:-1]]
@@ -885,7 +889,7 @@ class OutlineTestPen(BasePointToSegmentPen):
                 self._runQCurveTests(bcps, pt)
                 self._prev_ref = points[-2][0]
                 self._prev = pt
-                self._prev_type = "qcurve"
+                self._prev_type = QCURVE
                 if self._is_contour_start:
                     self._contour_start_ref = bcp
                     self._is_contour_start = False
