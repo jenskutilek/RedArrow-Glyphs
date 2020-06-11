@@ -98,11 +98,9 @@ class RedArrow(ReporterPlugin):
 
 	def willActivate(self):
 		Glyphs.addCallback(self.updateReport, UPDATEINTERFACE)
-		Glyphs.addCallback(self.mouseDidMove, MOUSEMOVED)
 
 	def willDeactivate(self):
 		try:
-			Glyphs.removeCallback(self.mouseDidMove)
 			Glyphs.removeCallback(self.updateReport)
 		except Exception as e:
 			self.logToConsole("willDeactivate: %s" % str(e))
@@ -149,7 +147,7 @@ class RedArrow(ReporterPlugin):
 					"action": self.toggleLabels
 				},
 			]
-			self.willActivate()
+			Glyphs.addCallback(self.mouseDidMove, MOUSEMOVED)
 		else:
 			self.show_labels = True
 			self.generalContextMenus = [
@@ -163,8 +161,9 @@ class RedArrow(ReporterPlugin):
 					"action": self.toggleLabels
 				},
 			]
-			self.willDeactivate()
+			Glyphs.removeCallback(self.mouseDidMove)
 		Glyphs.defaults["%s.showLabels" % plugin_id] = self.show_labels
+		Glyphs.redraw()
 
 	def selectGlyphsOptions(self):
 		try:
