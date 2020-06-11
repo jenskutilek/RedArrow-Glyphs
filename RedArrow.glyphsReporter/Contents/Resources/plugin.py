@@ -258,13 +258,13 @@ class RedArrow(ReporterPlugin):
 		t.rotateByRadians_(angle)
 		myPath = NSBezierPath.alloc().init()
 
-		myPath.moveToPoint_(		 (0, 0)									   )
-		myPath.relativeLineToPoint_( (-size * head_ratio,		w * 0.5)		 )
-		myPath.relativeLineToPoint_( (0,						 -chin)		   )
-		myPath.relativeLineToPoint_( (-size * (1 - head_ratio),  0)			   )
-		myPath.relativeLineToPoint_( (0,						 -w * tail_width) )
-		myPath.relativeLineToPoint_( (size * (1 - head_ratio),   0)			   )
-		myPath.relativeLineToPoint_( (0,						 -chin)		   )
+		myPath.moveToPoint_((0, 0))
+		myPath.relativeLineToPoint_((-size * head_ratio, w * 0.5))
+		myPath.relativeLineToPoint_((0, -chin))
+		myPath.relativeLineToPoint_((-size * (1 - head_ratio), 0))
+		myPath.relativeLineToPoint_((0, -w * tail_width))
+		myPath.relativeLineToPoint_((size * (1 - head_ratio), 0))
+		myPath.relativeLineToPoint_((0, -chin))
 		myPath.closePath()
 		myPath.transformUsingAffineTransform_(t)
 		myPath.fill()
@@ -279,6 +279,9 @@ class RedArrow(ReporterPlugin):
 
 	@objc.python_method
 	def _drawTextLabel(self, transform, text, size, vector):
+		if text is None:
+			return
+
 		if vector is None:
 			vector = (-1, 1)
 		angle = atan2(vector[0], -vector[1])
@@ -288,7 +291,7 @@ class RedArrow(ReporterPlugin):
 		# para_style.setAlignment_(NSCenterTextAlignment)
 
 		attrs = {
-			NSFontAttributeName:			NSFont.systemFontOfSize_(text_size),
+			NSFontAttributeName: NSFont.systemFontOfSize_(text_size),
 			NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_(0.4, 0.4, 0.6, 0.7),
 			# NSParagraphStyleAttributeName:  para_style,
 		}
