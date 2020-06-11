@@ -63,6 +63,8 @@ class RedArrow(ReporterPlugin):
 		self.show_labels = not(self.show_labels)
 		self.mouse_position = (0, 0)
 		self.should_update_report = True
+		self.lastChangeDate = 0
+		self.current_layer = None
 		self.vanilla_alerted = False
 		self.toggleLabels()
 
@@ -219,12 +221,15 @@ class RedArrow(ReporterPlugin):
 
 	@objc.python_method
 	def _updateOutlineCheck(self, layer):
+		if self.current_layer == layer and self.lastChangeDate >= layer.parent.lastOperationInterval():
+			return
 		if DEBUG and hasattr(layer, "parent"):
 			self.logToConsole("_updateOutlineCheck: '%s' from %s" % (
 				layer.parent.name,
 				layer.parent.parent
 			))
 		self.current_layer = layer
+		self.lastChangeDate = layer.parent.lastOperationInterval()
 		self.errors = []
 		if layer is not None and hasattr(layer, "parent"):
 			self.options["grid_length"] = layer.parent.parent.gridLength
