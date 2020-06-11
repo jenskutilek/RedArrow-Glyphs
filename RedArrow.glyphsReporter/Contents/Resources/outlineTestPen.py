@@ -844,7 +844,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 		self._is_contour_start = True
 		self._should_test_collinear = False
 		for segment_type, points in segments:
-			print(segment_type, points)
+			# print(segment_type, points)
 
 			if first_segment:
 				self._prev_type, prev_points = segments[-1]
