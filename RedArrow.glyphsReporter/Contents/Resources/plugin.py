@@ -102,6 +102,8 @@ class RedArrow(ReporterPlugin):
 	def willDeactivate(self):
 		try:
 			Glyphs.removeCallback(self.updateReport)
+			if not self.show_labels:
+				Glyphs.removeCallback(self.mouseDidMove)
 		except Exception as e:
 			self.logToConsole("willDeactivate: %s" % str(e))
 
