@@ -62,7 +62,6 @@ class RedArrow(ReporterPlugin):
 		self.show_labels = Glyphs.defaults["%s.showLabels" % plugin_id]
 		self.show_labels = not(self.show_labels)
 		self.mouse_position = (0, 0)
-		self.should_update_report = True
 		self.lastChangeDate = 0
 		self.current_layer = None
 		self.vanilla_alerted = False
@@ -85,35 +84,22 @@ class RedArrow(ReporterPlugin):
 		mainMenu.itemAtIndex_(2).submenu().insertItem_atIndex_(newMenuItem, 11)
 
 	@objc.python_method
-	def updateReport(self, notification):
-		if DEBUG:
-			self.logToConsole("updateReport")
-		if not self.should_update_report:
-			self.should_update_report = True
-			Glyphs.redraw()
-
-	@objc.python_method
 	def mouseDidMove(self, notification):
 		Glyphs.redraw()
 
-	def willActivate(self):
-		Glyphs.addCallback(self.updateReport, UPDATEINTERFACE)
-
 	def willDeactivate(self):
 		try:
-			Glyphs.removeCallback(self.updateReport)
 			if not self.show_labels:
 				Glyphs.removeCallback(self.mouseDidMove)
 		except Exception as e:
 			self.logToConsole("willDeactivate: %s" % str(e))
-
+	
 	@objc.python_method
 	def foreground(self, layer):
-		if self.should_update_report:
-			# self.logToConsole("_updateOutlineCheck: %s" % layer)
-			self._updateOutlineCheck(layer)
-			# self.logToConsole("foreground: Errors: %s" % self.errors )
-			self.should_update_report = False
+		# self.logToConsole("_updateOutlineCheck: %s" % layer)
+		self._updateOutlineCheck(layer)
+		# self.logToConsole("foreground: Errors: %s" % self.errors )
+	
 		# try:
 		if True:
 			try:
@@ -222,7 +208,7 @@ class RedArrow(ReporterPlugin):
 
 	@objc.python_method
 	def _updateOutlineCheck(self, layer):
-		if self.current_layer == layer and self.lastChangeDate >= layer.parent.lastOperationInterval():
+		if self.current_layer is layer and self.lastChangeDate >= layer.parent.lastOperationInterval():
 			return
 		if DEBUG and hasattr(layer, "parent"):
 			self.logToConsole("_updateOutlineCheck: '%s' from %s" % (
