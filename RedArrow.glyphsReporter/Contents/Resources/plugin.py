@@ -171,7 +171,7 @@ class RedArrow(ReporterPlugin):
 		"""
 		Selects all glyphs with errors in the active layer
 		"""
-		font = NSApplication.sharedApplication().font
+		font = Glyphs.font
 		if font is None:
 			return None
 
