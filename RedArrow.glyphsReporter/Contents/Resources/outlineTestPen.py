@@ -3,19 +3,30 @@ from math import atan2, degrees, cos, pi, sin, sqrt
 
 try:
 	from fontTools.misc.arrayTools import pointInRect, normRect
-	from fontTools.misc.bezierTools import calcQuadraticParameters, \
-		calcCubicParameters, solveQuadratic, splitCubicAtT, \
-		splitQuadraticAtT, epsilon
+	from fontTools.misc.bezierTools import (
+		calcQuadraticParameters,
+		calcCubicParameters,
+		solveQuadratic,
+		splitCubicAtT,
+		splitQuadraticAtT,
+		epsilon,
+	)
 	from fontTools.misc.transform import Transform
 except ImportError:
 	from miniFontTools.misc.arrayTools import pointInRect, normRect
-	from miniFontTools.misc.bezierTools import calcQuadraticParameters, \
-		calcCubicParameters, solveQuadratic, splitCubicAtT, \
-		splitQuadraticAtT, epsilon
+	from miniFontTools.misc.bezierTools import (
+		calcQuadraticParameters,
+		calcCubicParameters,
+		solveQuadratic,
+		splitCubicAtT,
+		splitQuadraticAtT,
+		epsilon,
+	)
 	from miniFontTools.misc.transform import Transform
 
 try:
 	from mojo.roboFont import version as roboFontVersion
+
 	CURVE = "curve"
 	LINE = "line"
 	QCURVE = "qcurve"
@@ -34,14 +45,21 @@ except ImportError:
 # Helper functions
 
 if v == "g":
+
 	def get_bounds(font, glyphname):
 		return (0, 0, 0, 0)
 		# FIXME: We need to find the layer.bounds() in Glyphs
 		# return font.glyphs[glyphname].bounds()
+
+
 elif v == "rf3":
+
 	def get_bounds(font, glyphname):
 		return font[glyphname].bounds
+
+
 else:
+
 	def get_bounds(font, glyphname):
 		return font[glyphname].box
 
@@ -56,7 +74,7 @@ def solveLinear(a, b):
 		DD = b * b
 		if DD >= 0.0:
 			rDD = sqrt(DD)
-			roots = [(-b+rDD)/2.0/a, (-b-rDD)/2.0/a]
+			roots = [(-b + rDD) / 2.0 / a, (-b - rDD) / 2.0 / a]
 		else:
 			roots = []
 	return roots
@@ -64,17 +82,16 @@ def solveLinear(a, b):
 
 def add_implied_oncurve_points_quad(quad):
 	new_quad = [quad[0]]
-	for i in range(1, len(quad)-2):
+	for i in range(1, len(quad) - 2):
 		new_quad.append(quad[i])
-		new_quad.append(half_point(quad[i], quad[i+1]))
+		new_quad.append(half_point(quad[i], quad[i + 1]))
 	new_quad.extend(quad[-2:])
 	return new_quad
 
 
 def get_extrema_points_vectors(roots, pt1, pt2, pt3, pt4):
 	split_segments = [
-		p
-		for p in splitCubicAtT(pt1, pt2, pt3, pt4, *roots)[:-1]
+		p for p in splitCubicAtT(pt1, pt2, pt3, pt4, *roots)[:-1]
 	]
 	points = [p[3] for p in split_segments]
 	vectors = [get_vector(p[2], p[3]) for p in split_segments]
@@ -123,7 +140,7 @@ def getInflectionsForCubic(pt1, pt2, pt3, pt4):
 	c2 = (bx * cy) - (by * cx)
 
 	if abs(c2) > 0.00001:
-		discr = (c1**2) - (4 * c0 * c2)
+		discr = (c1 ** 2) - (4 * c0 * c2)
 		c2 *= 2
 		if abs(discr) < 0.000001:
 			root = -c1 / c2
@@ -139,7 +156,7 @@ def getInflectionsForCubic(pt1, pt2, pt3, pt4):
 			if (root > 0.001) and (root < 0.99):
 				roots.append(root)
 	elif c1 != 0.0:
-		root = - c0 / c1
+		root = -c0 / c1
 		if (root > 0.001) and (root < 0.99):
 			roots.append(root)
 
@@ -200,7 +217,7 @@ def angle_between_points(p0, p1):
 
 
 def distance_between_points(p0, p1):
-	return sqrt((p1[1] - p0[1])**2 + (p1[0] - p0[0])**2)
+	return sqrt((p1[1] - p0[1]) ** 2 + (p1[0] - p0[0]) ** 2)
 
 
 def half_point(p0, p1):
@@ -243,6 +260,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 	"""
 	Reimplementation of FontLab's FontAudit.
 	"""
+
 	def __init__(self, glyphSet, options={}, run_tests=[]):
 		self.glyphSet = glyphSet
 		try:
@@ -370,7 +388,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 				self._prev, self._contour_start_ref
 			)
 		# if self.test_empty_segments:
-		#	self._checkEmptyLinesAndCurves(pt)
+		# 	self._checkEmptyLinesAndCurves(pt)
 
 	def _runLineTests(self, pt):
 		if self.test_fractional_coords:
@@ -387,7 +405,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 
 	def _runCurveTests(self, bcp1, bcp2, pt):
 		# for bcp in [bcp1, bcp2]:
-		#	self._checkBbox(bcp, pt)
+		# 	self._checkBbox(bcp, pt)
 		if self.test_extrema:
 			self._checkBboxSegment(bcp1, bcp2, pt)
 		if self.test_inflections:
@@ -485,15 +503,15 @@ class OutlineTestPen(BasePointToSegmentPen):
 
 	def _checkExtremaQuad(self, bcps, pt):
 		quad = add_implied_oncurve_points_quad([self._prev] + bcps + [pt])
-		for i in range(0, len(quad)-1, 2):
+		for i in range(0, len(quad) - 1, 2):
 			extrema, vectors = getExtremaForQuadratic(
 				quad[i], quad[i + 1], quad[i + 2], h=True, v=True
 			)
 			for i, p in enumerate(extrema):
 				# if self.extremum_calculate_badness:
-				#	badness = self._getBadness(p, myRect)
-				#	if badness >= self.extremum_ignore_badness_below:
-				#		self.errors.append(OutlineError(p, "Extremum", badness, vectors[i]))
+				# 	badness = self._getBadness(p, myRect)
+				# 	if badness >= self.extremum_ignore_badness_below:
+				# 		self.errors.append(OutlineError(p, "Extremum", badness, vectors[i]))
 				# else:
 				self.errors.append(
 					OutlineError(p, "Extremum", vector=vectors[i])
@@ -506,40 +524,48 @@ class OutlineTestPen(BasePointToSegmentPen):
 			# point is left from rect
 			if pointToCheck[1] < myRect[1]:
 				# point is lower left from rect
-				badness = int(round(
-					sqrt(
-						(myRect[0] - pointToCheck[0])**2
-						+ (myRect[1] - pointToCheck[1])**2
+				badness = int(
+					round(
+						sqrt(
+							(myRect[0] - pointToCheck[0]) ** 2
+							+ (myRect[1] - pointToCheck[1]) ** 2
+						)
 					)
-				))
+				)
 			elif pointToCheck[1] > myRect[3]:
 				# point is upper left from rect
-				badness = int(round(
-					sqrt(
-						(myRect[0] - pointToCheck[0])**2
-						+ (myRect[3] - pointToCheck[1])**2
+				badness = int(
+					round(
+						sqrt(
+							(myRect[0] - pointToCheck[0]) ** 2
+							+ (myRect[3] - pointToCheck[1]) ** 2
+						)
 					)
-				))
+				)
 			else:
 				badness = myRect[0] - pointToCheck[0]
 		elif pointToCheck[0] > myRect[2]:
 			# point is right from rect
 			if pointToCheck[1] < myRect[1]:
 				# point is lower right from rect
-				badness = int(round(
-					sqrt(
-						(myRect[2] - pointToCheck[0])**2
-						+ (myRect[1] - pointToCheck[1])**2
+				badness = int(
+					round(
+						sqrt(
+							(myRect[2] - pointToCheck[0]) ** 2
+							+ (myRect[1] - pointToCheck[1]) ** 2
+						)
 					)
-				))
+				)
 			elif pointToCheck[1] > myRect[3]:
 				# point is upper right from rect
-				badness = int(round(
-					sqrt(
-						(myRect[2] - pointToCheck[0])**2
-						+ (myRect[3] - pointToCheck[1])**2
+				badness = int(
+					round(
+						sqrt(
+							(myRect[2] - pointToCheck[0]) ** 2
+							+ (myRect[3] - pointToCheck[1]) ** 2
+						)
 					)
-				))
+				)
 			else:
 				badness = pointToCheck[0] - myRect[2]
 		else:
@@ -594,11 +620,13 @@ class OutlineTestPen(BasePointToSegmentPen):
 		else:
 			if type(pt[0]) == int and type(pt[1] == int):
 				return False
-		self.errors.append(OutlineError(
-			(int(round(pt[0])), int(round(pt[1]))),
-			"Fractional Coordinates",  # (%0.2f, %0.2f)" % (pt[0], pt[1]),
-			vector=None,
-		))
+		self.errors.append(
+			OutlineError(
+				(int(round(pt[0])), int(round(pt[1]))),
+				"Fractional Coordinates",  # (%0.2f, %0.2f)" % (pt[0], pt[1]),
+				vector=None,
+			)
+		)
 
 	def _checkFractionalTransformation(self, baseGlyph, transformation):
 		bbox = get_bounds(self.glyphSet, baseGlyph)
@@ -606,22 +634,26 @@ class OutlineTestPen(BasePointToSegmentPen):
 		if self.fractional_ignore_point_zero:
 			for p in transformation[-2:]:
 				if round(p) != p:
-					self.errors.append(OutlineError(
-						half_point((tbox[0], tbox[1]), (tbox[2], tbox[3])),
-						"Fractional transformation",
-						# (%0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f)" % transformation
-						vector=None,
-					))
+					self.errors.append(
+						OutlineError(
+							half_point((tbox[0], tbox[1]), (tbox[2], tbox[3])),
+							"Fractional transformation",
+							# (%0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f)" % transformation
+							vector=None,
+						)
+					)
 					break
 		else:
 			for p in transformation[-2:]:
 				if type(p) == float:
-					self.errors.append(OutlineError(
-						half_point((tbox[0], tbox[1]), (tbox[2], tbox[3])),
-						"Fractional transformation",
-						# (%0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f)" % transformation
-						vector=None,
-					))
+					self.errors.append(
+						OutlineError(
+							half_point((tbox[0], tbox[1]), (tbox[2], tbox[3])),
+							"Fractional transformation",
+							# (%0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f)" % transformation
+							vector=None,
+						)
+					)
 					break
 
 	def _checkIncorrectSmoothConnection(self, pt, next_ref):
@@ -668,12 +700,11 @@ class OutlineTestPen(BasePointToSegmentPen):
 				# or always consider the longer segment more important?
 				projected_pt = (
 					pt[0] + dist * cos(phi),
-					pt[1] + dist * sin(phi)
+					pt[1] + dist * sin(phi),
 				)
 				# Compare projected position with actual position
 				badness = distance_between_points(
-					round_point(projected_pt, self.grid_length),
-					ref
+					round_point(projected_pt, self.grid_length), ref
 				)
 				# print("  Projected: %s, actual: %s, diff: %0.2f" % (projected_pt, ref, badness))
 				if self.grid_length == 0:
@@ -690,7 +721,8 @@ class OutlineTestPen(BasePointToSegmentPen):
 								pt,
 								"Incorrect smooth connection",
 								badness,
-								vector=get_vector(self._prev_ref, pt))
+								vector=get_vector(self._prev_ref, pt),
+							)
 						)
 
 	def _checkEmptyLinesAndCurves(self, pt):
@@ -703,9 +735,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 		if self._cstart == pt:
 			self.errors.append(
 				OutlineError(
-					pt,
-					"Vector on closepath",
-					vector=self.current_vector
+					pt, "Vector on closepath", vector=self.current_vector
 				)
 			)
 
@@ -724,11 +754,10 @@ class OutlineTestPen(BasePointToSegmentPen):
 				dist = distance_between_points(pt, next_ref)
 				projected_pt = (
 					pt[0] + dist * cos(phi1),
-					pt[1] + dist * sin(phi1)
+					pt[1] + dist * sin(phi1),
 				)
 				badness = distance_between_points(
-					round_point(projected_pt, self.grid_length),
-					next_ref
+					round_point(projected_pt, self.grid_length), next_ref
 				)
 				if badness < self.collinear_vectors_max_distance:
 					self.errors.append(
@@ -736,7 +765,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 							pt,
 							"Collinear vectors",
 							badness,
-							self.current_vector
+							self.current_vector,
 						)
 					)
 
@@ -746,7 +775,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 		"""
 		if distance_between_points(p0, p1) > self.semi_hv_vectors_min_distance:
 			phi = angle_between_points(p0, p1)
-			#				 atan2(1, 31)
+			# 				 atan2(1, 31)
 			if (
 				0 < abs(phi) < 0.032
 				or 0 < abs(phi - pi) < 0.032
@@ -758,7 +787,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 							half_point(p0, p1),
 							"Semi-horizontal line",
 							degrees(phi),
-							get_vector(p0, p1)
+							get_vector(p0, p1),
 						)
 					)
 
@@ -778,7 +807,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 						half_point(p0, p1),
 						"Semi-vertical line",
 						degrees(phi),
-						get_vector(p0, p1)
+						get_vector(p0, p1),
 					)
 				)
 
@@ -798,7 +827,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 						half_point(p0, p1),
 						"Semi-horizontal handle",
 						degrees(phi),
-						get_vector(p0, p1)
+						get_vector(p0, p1),
 					)
 				)
 
@@ -817,7 +846,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 					half_point(p0, p1),
 					"Semi-vertical handle",
 					degrees(phi),
-					get_vector(p0, p1)
+					get_vector(p0, p1),
 				)
 			)
 
