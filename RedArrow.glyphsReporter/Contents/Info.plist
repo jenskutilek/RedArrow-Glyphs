@@ -13,15 +13,15 @@
 	<key>CFBundleName</key>
 	<string>RedArrow</string>
 	<key>CFBundleVersion</key>
-	<string>96</string>
+	<string>97</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.9.6</string>
+	<string>0.9.7</string>
 	<key>UpdateFeedURL</key>
 	<string>https://raw.githubusercontent.com/jenskutilek/RedArrow-Glyphs/master/RedArrow.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
 	<string>https://github.com/jenskutilek/RedArrow-Glyphs</string>
 	<key>productReleaseNotes</key>
-	<string>Bug fixes, performance improvements.</string>
+	<string>Bug fixes, improve inflection flagging.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright by Jens Kutilek, 2016-2020</string>
 	<key>NSPrincipalClass</key>

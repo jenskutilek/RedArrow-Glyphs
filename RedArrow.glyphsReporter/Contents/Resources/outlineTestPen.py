@@ -119,7 +119,7 @@ def getExtremaForCubic(pt1, pt2, pt3, pt4, h=True, v=False):
 	return points, vectors
 
 
-def getInflectionsForCubic(pt1, pt2, pt3, pt4):
+def getInflectionsForCubic(pt1, pt2, pt3, pt4, err_min=0.3, err_max=0.7):
 	# After https://github.com/mekkablue/InsertInflections
 	roots = []
 
@@ -160,7 +160,17 @@ def getInflectionsForCubic(pt1, pt2, pt3, pt4):
 		if (root > 0.001) and (root < 0.99):
 			roots.append(root)
 
-	return get_extrema_points_vectors(roots, pt1, pt2, pt3, pt4)
+	ok_inflections = []
+	err_inflections = []
+	for r in roots:
+		if err_min < r < err_max:
+			ok_inflections.append(r)
+		else:
+			err_inflections.append(r)
+	return (
+		get_extrema_points_vectors(ok_inflections, pt1, pt2, pt3, pt4),
+		get_extrema_points_vectors(err_inflections, pt1, pt2, pt3, pt4)
+	)
 
 
 def get_extrema_points_vectors_quad(roots, pt1, pt2, pt3):
@@ -239,6 +249,8 @@ def transform_bbox(bbox, matrix):
 
 
 class OutlineError(object):
+	level = "e"
+
 	def __init__(
 		self, position=None, kind="Unknown error", badness=None, vector=None
 	):
@@ -254,6 +266,10 @@ class OutlineError(object):
 		if self.badness is not None:
 			r += " (badness %i)" % self.badness
 		return r
+
+
+class OutlineWarning(OutlineError):
+	level = "w"
 
 
 class OutlineTestPen(BasePointToSegmentPen):
@@ -581,12 +597,20 @@ class OutlineTestPen(BasePointToSegmentPen):
 		return badness
 
 	def _checkInflectionsSegment(self, bcp1, bcp2, pt):
-		inflections, vectors = getInflectionsForCubic(
-			self._prev, bcp1, bcp2, pt
+		ok, err = getInflectionsForCubic(
+			self._prev, bcp1, bcp2, pt,
+			self.options["inflection_min"],
+			self.options["inflection_max"],
 		)
-		for i, p in enumerate(inflections):
+		ok_inflections, ok_vectors = ok
+		err_inflections, err_vectors =err
+		for i, p in enumerate(err_inflections):
 			self.errors.append(
-				OutlineError(p, "Inflection", vector=vectors[i])
+				OutlineError(p, "Inflection", vector=err_vectors[i])
+			)
+		for i, p in enumerate(ok_inflections):
+			self.errors.append(
+				OutlineWarning(p, "Inflection", vector=ok_vectors[i])
 			)
 
 	def _checkInflectionsQuad(self, bcps, pt):

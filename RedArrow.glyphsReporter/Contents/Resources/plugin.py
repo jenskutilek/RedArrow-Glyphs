@@ -18,6 +18,11 @@ plugin_id = "de.kutilek.RedArrow"
 DEBUG = False
 
 
+error_color = (0.9019, 0.25, 0.0, 0.85)
+warning_color = (0.9019, 0.7215, 0.0, 0.85)
+text_color = (0.4, 0.4, 0.6, 0.7)
+
+
 class RedArrow(ReporterPlugin):
 
 	@objc.python_method
@@ -45,6 +50,8 @@ class RedArrow(ReporterPlugin):
 			"collinear_vectors_max_distance": 2,
 			# "test_closepath": False,
 			"grid_length": 1,
+			"inflection_min": 0.3,
+			"inflection_max": 0.7,
 		}
 		self.run_tests = [
 			"test_extrema",
@@ -227,7 +234,7 @@ class RedArrow(ReporterPlugin):
 			self.logToConsole("Errors: %s" % self.errors)
 
 	@objc.python_method
-	def _drawArrow(self, position, kind, size, vector=(-1, 1)):
+	def _drawArrow(self, position, kind, size, vector=(-1, 1), level="e"):
 		if vector is None:
 			vector = (-1, 1)
 		angle = atan2(vector[0], -vector[1])
@@ -239,7 +246,11 @@ class RedArrow(ReporterPlugin):
 
 		chin = 0.5 * (w - w * tail_width)  # part under the head
 
-		NSColor.colorWithCalibratedRed_green_blue_alpha_(0.9, 0.1, 0.0, 0.85).set()
+		if level == "e":
+			arrow_color = error_color
+		else:
+			arrow_color = warning_color
+		NSColor.colorWithCalibratedRed_green_blue_alpha_(*arrow_color).set()
 		t = NSAffineTransform.transform()
 		t.translateXBy_yBy_(x, y)
 		t.rotateByRadians_(angle)
@@ -279,7 +290,7 @@ class RedArrow(ReporterPlugin):
 
 		attrs = {
 			NSFontAttributeName: NSFont.systemFontOfSize_(text_size),
-			NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_(0.4, 0.4, 0.6, 0.7),
+			NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_(*text_color),
 			# NSParagraphStyleAttributeName:  para_style,
 		}
 		myString = NSString.string().stringByAppendingString_(text)
@@ -319,13 +330,17 @@ class RedArrow(ReporterPlugin):
 		# )
 
 	@objc.python_method
-	def _drawUnspecified(self, position, kind, size, vector=(-1, 1)):
+	def _drawUnspecified(self, position, kind, size, vector=(-1, 1), level="e"):
 		if vector is None:
 			vector = (-1, 1)
 		angle = atan2(vector[1], vector[0])
 		circle_size = size * 1.3
 		x, y = position
-		NSColor.colorWithCalibratedRed_green_blue_alpha_(0.9, 0.1, 0.0, 0.85).set()
+		if level == "e":
+			arrow_color = error_color
+		else:
+			arrow_color = warning_color
+		NSColor.colorWithCalibratedRed_green_blue_alpha_(*arrow_color).set()
 
 		t = NSAffineTransform.transform()
 		t.translateXBy_yBy_(x, y)
@@ -381,6 +396,6 @@ class RedArrow(ReporterPlugin):
 					message += "%s (Severity %0.1f), " % (e.kind, e.badness)
 			if pos is None:
 				pos = (self.current_layer.width + 20, -10)
-				self._drawUnspecified(pos, message.strip(", "), size, e.vector)
+				self._drawUnspecified(pos, message.strip(", "), size, e.vector, e.level)
 			else:
-				self._drawArrow(pos, message.strip(", "), size, e.vector)
+				self._drawArrow(pos, message.strip(", "), size, e.vector, e.level)
