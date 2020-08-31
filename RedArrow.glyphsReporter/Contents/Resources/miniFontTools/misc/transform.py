@@ -45,8 +45,8 @@ Examples:
 	>>>
 """
 
-from typing import NamedTuple
-
+from __future__ import print_function, division, absolute_import
+from miniFontTools.misc.py23 import *
 
 __all__ = ["Transform", "Identity", "Offset", "Scale"]
 
@@ -66,7 +66,7 @@ def _normSinCos(v):
 	return v
 
 
-class Transform(NamedTuple):
+class Transform(object):
 
 	"""2x2 transformation matrix plus offset, a.k.a. Affine transform.
 	Transform instances are immutable: all transforming methods, eg.
@@ -83,68 +83,20 @@ class Transform(NamedTuple):
 		>>>
 		>>> t.scale(2, 3).transformPoint((100, 100))
 		(200, 300)
-
-	Transform's constructor takes six arguments, all of which are
-	optional, and can be used as keyword arguments:
-		>>> Transform(12)
-		<Transform [12 0 0 1 0 0]>
-		>>> Transform(dx=12)
-		<Transform [1 0 0 1 12 0]>
-		>>> Transform(yx=12)
-		<Transform [1 0 12 1 0 0]>
-
-	Transform instances also behave like sequences of length 6:
-		>>> len(Identity)
-		6
-		>>> list(Identity)
-		[1, 0, 0, 1, 0, 0]
-		>>> tuple(Identity)
-		(1, 0, 0, 1, 0, 0)
-
-	Transform instances are comparable:
-		>>> t1 = Identity.scale(2, 3).translate(4, 6)
-		>>> t2 = Identity.translate(8, 18).scale(2, 3)
-		>>> t1 == t2
-		1
-
-	But beware of floating point rounding errors:
-		>>> t1 = Identity.scale(0.2, 0.3).translate(0.4, 0.6)
-		>>> t2 = Identity.translate(0.08, 0.18).scale(0.2, 0.3)
-		>>> t1
-		<Transform [0.2 0 0 0.3 0.08 0.18]>
-		>>> t2
-		<Transform [0.2 0 0 0.3 0.08 0.18]>
-		>>> t1 == t2
-		0
-
-	Transform instances are hashable, meaning you can use them as
-	keys in dictionaries:
-		>>> d = {Scale(12, 13): None}
-		>>> d
-		{<Transform [12 0 0 13 0 0]>: None}
-
-	But again, beware of floating point rounding errors:
-		>>> t1 = Identity.scale(0.2, 0.3).translate(0.4, 0.6)
-		>>> t2 = Identity.translate(0.08, 0.18).scale(0.2, 0.3)
-		>>> t1
-		<Transform [0.2 0 0 0.3 0.08 0.18]>
-		>>> t2
-		<Transform [0.2 0 0 0.3 0.08 0.18]>
-		>>> d = {t1: None}
-		>>> d
-		{<Transform [0.2 0 0 0.3 0.08 0.18]>: None}
-		>>> d[t2]
-		Traceback (most recent call last):
-		  File "<stdin>", line 1, in ?
-		KeyError: <Transform [0.2 0 0 0.3 0.08 0.18]>
 	"""
 
-	xx: float = 1
-	xy: float = 0
-	yx: float = 0
-	yy: float = 1
-	dx: float = 0
-	dy: float = 0
+	def __init__(self, xx=1, xy=0, yx=0, yy=1, dx=0, dy=0):
+		"""Transform's constructor takes six arguments, all of which are
+		optional, and can be used as keyword arguments:
+			>>> Transform(12)
+			<Transform [12 0 0 1 0 0]>
+			>>> Transform(dx=12)
+			<Transform [1 0 0 1 12 0]>
+			>>> Transform(yx=12)
+			<Transform [1 0 12 1 0 0]>
+			>>>
+		"""
+		self.__affine = xx, xy, yx, yy, dx, dy
 
 	def transformPoint(self, p):
 		"""Transform a point.
@@ -156,7 +108,7 @@ class Transform(NamedTuple):
 			(250.0, 550.0)
 		"""
 		(x, y) = p
-		xx, xy, yx, yy, dx, dy = self
+		xx, xy, yx, yy, dx, dy = self.__affine
 		return (xx*x + yx*y + dx, xy*x + yy*y + dy)
 
 	def transformPoints(self, points):
@@ -168,7 +120,7 @@ class Transform(NamedTuple):
 			[(0, 0), (0, 300), (200, 300), (200, 0)]
 			>>>
 		"""
-		xx, xy, yx, yy, dx, dy = self
+		xx, xy, yx, yy, dx, dy = self.__affine
 		return [(xx*x + yx*y + dx, xy*x + yy*y + dy) for x, y in points]
 
 	def translate(self, x=0, y=0):
@@ -237,7 +189,7 @@ class Transform(NamedTuple):
 			>>>
 		"""
 		xx1, xy1, yx1, yy1, dx1, dy1 = other
-		xx2, xy2, yx2, yy2, dx2, dy2 = self
+		xx2, xy2, yx2, yy2, dx2, dy2 = self.__affine
 		return self.__class__(
 				xx1*xx2 + xy1*yx2,
 				xx1*xy2 + xy1*yy2,
@@ -259,7 +211,7 @@ class Transform(NamedTuple):
 			<Transform [8 6 6 3 21 15]>
 			>>>
 		"""
-		xx1, xy1, yx1, yy1, dx1, dy1 = self
+		xx1, xy1, yx1, yy1, dx1, dy1 = self.__affine
 		xx2, xy2, yx2, yy2, dx2, dy2 = other
 		return self.__class__(
 				xx1*xx2 + xy1*yx2,
@@ -281,9 +233,9 @@ class Transform(NamedTuple):
 			(10.0, 20.0)
 			>>>
 		"""
-		if self == Identity:
+		if self.__affine == (1, 0, 0, 1, 0, 0):
 			return self
-		xx, xy, yx, yy, dx, dy = self
+		xx, xy, yx, yy, dx, dy = self.__affine
 		det = xx*yy - yx*xy
 		xx, xy, yx, yy = yy/det, -xy/det, -yx/det, xx/det
 		dx, dy = -xx*dx - yx*dy, -xy*dx - yy*dy
@@ -296,29 +248,81 @@ class Transform(NamedTuple):
 			'[2 0 0 3 8 15]'
 			>>>
 		"""
-		return "[%s %s %s %s %s %s]" % self
+		return "[%s %s %s %s %s %s]" % self.__affine
 
-	def __bool__(self):
-		"""Returns True if transform is not identity, False otherwise.
-			>>> bool(Identity)
-			False
-			>>> bool(Transform())
-			False
-			>>> bool(Scale(1.))
-			False
-			>>> bool(Scale(2))
-			True
-			>>> bool(Offset())
-			False
-			>>> bool(Offset(0))
-			False
-			>>> bool(Offset(2))
-			True
+	def __len__(self):
+		"""Transform instances also behave like sequences of length 6:
+			>>> len(Identity)
+			6
+			>>>
 		"""
-		return self != Identity
+		return 6
+
+	def __getitem__(self, index):
+		"""Transform instances also behave like sequences of length 6:
+			>>> list(Identity)
+			[1, 0, 0, 1, 0, 0]
+			>>> tuple(Identity)
+			(1, 0, 0, 1, 0, 0)
+			>>>
+		"""
+		return self.__affine[index]
+
+	def __ne__(self, other):
+		return not self.__eq__(other)
+	def __eq__(self, other):
+		"""Transform instances are comparable:
+			>>> t1 = Identity.scale(2, 3).translate(4, 6)
+			>>> t2 = Identity.translate(8, 18).scale(2, 3)
+			>>> t1 == t2
+			1
+			>>>
+
+		But beware of floating point rounding errors:
+			>>> t1 = Identity.scale(0.2, 0.3).translate(0.4, 0.6)
+			>>> t2 = Identity.translate(0.08, 0.18).scale(0.2, 0.3)
+			>>> t1
+			<Transform [0.2 0 0 0.3 0.08 0.18]>
+			>>> t2
+			<Transform [0.2 0 0 0.3 0.08 0.18]>
+			>>> t1 == t2
+			0
+			>>>
+		"""
+		xx1, xy1, yx1, yy1, dx1, dy1 = self.__affine
+		xx2, xy2, yx2, yy2, dx2, dy2 = other
+		return (xx1, xy1, yx1, yy1, dx1, dy1) == \
+				(xx2, xy2, yx2, yy2, dx2, dy2)
+
+	def __hash__(self):
+		"""Transform instances are hashable, meaning you can use them as
+		keys in dictionaries:
+			>>> d = {Scale(12, 13): None}
+			>>> d
+			{<Transform [12 0 0 13 0 0]>: None}
+			>>>
+
+		But again, beware of floating point rounding errors:
+			>>> t1 = Identity.scale(0.2, 0.3).translate(0.4, 0.6)
+			>>> t2 = Identity.translate(0.08, 0.18).scale(0.2, 0.3)
+			>>> t1
+			<Transform [0.2 0 0 0.3 0.08 0.18]>
+			>>> t2
+			<Transform [0.2 0 0 0.3 0.08 0.18]>
+			>>> d = {t1: None}
+			>>> d
+			{<Transform [0.2 0 0 0.3 0.08 0.18]>: None}
+			>>> d[t2]
+			Traceback (most recent call last):
+			  File "<stdin>", line 1, in ?
+			KeyError: <Transform [0.2 0 0 0.3 0.08 0.18]>
+			>>>
+		"""
+		return hash(self.__affine)
 
 	def __repr__(self):
-		return "<%s [%g %g %g %g %g %g]>" % ((self.__class__.__name__,) + self)
+		return "<%s [%g %g %g %g %g %g]>" % ((self.__class__.__name__,) \
+				+ self.__affine)
 
 
 Identity = Transform()
