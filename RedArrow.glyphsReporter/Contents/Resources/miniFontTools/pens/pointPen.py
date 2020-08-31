@@ -1,9 +1,35 @@
-__all__ = ["AbstractPointPen", "BasePointToSegmentPen"]
+"""
+=========
+PointPens
+=========
+
+Where **SegmentPens** have an intuitive approach to drawing
+(if you're familiar with postscript anyway), the **PointPen**
+is geared towards accessing all the data in the contours of
+the glyph. A PointPen has a very simple interface, it just
+steps through all the points in a call from glyph.drawPoints().
+This allows the caller to provide more data for each point.
+For instance, whether or not a point is smooth, and its name.
+"""
+from __future__ import absolute_import, unicode_literals
+import math
+
+__all__ = [
+	"AbstractPointPen",
+	"BasePointToSegmentPen",
+	"PointToSegmentPen",
+	"SegmentToPointPen",
+	"GuessSmoothPointPen",
+	"ReverseContourPointPen",
+]
 
 
 class AbstractPointPen(object):
+	"""
+	Baseclass for all PointPens.
+	"""
 
-	def beginPath(self):
+	def beginPath(self, identifier=None, **kwargs):
 		"""Start a new sub path."""
 		raise NotImplementedError
 
@@ -11,18 +37,20 @@ class AbstractPointPen(object):
 		"""End the current sub path."""
 		raise NotImplementedError
 
-	def addPoint(self, pt, segmentType=None, smooth=False, name=None, **kwargs):
+	def addPoint(self, pt, segmentType=None, smooth=False, name=None,
+				 identifier=None, **kwargs):
 		"""Add a point to the current sub path."""
 		raise NotImplementedError
 
-	def addComponent(self, baseGlyphName, transformation):
+	def addComponent(self, baseGlyphName, transformation, identifier=None,
+					 **kwargs):
 		"""Add a sub glyph."""
 		raise NotImplementedError
 
 
 class BasePointToSegmentPen(AbstractPointPen):
-
-	"""Base class for retrieving the outline in a segment-oriented
+	"""
+	Base class for retrieving the outline in a segment-oriented
 	way. The PointPen protocol is simple yet also a little tricky,
 	so when you need an outline presented as segments but you have
 	as points, do use this base implementation as it properly takes
@@ -32,7 +60,7 @@ class BasePointToSegmentPen(AbstractPointPen):
 	def __init__(self):
 		self.currentPath = None
 
-	def beginPath(self):
+	def beginPath(self, identifier=None, **kwargs):
 		assert self.currentPath is None
 		self.currentPath = []
 
@@ -111,5 +139,6 @@ class BasePointToSegmentPen(AbstractPointPen):
 
 		self._flushContour(segments)
 
-	def addPoint(self, pt, segmentType=None, smooth=False, name=None, **kwargs):
+	def addPoint(self, pt, segmentType=None, smooth=False, name=None,
+				 identifier=None, **kwargs):
 		self.currentPath.append((pt, segmentType, smooth, name, kwargs))
