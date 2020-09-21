@@ -144,20 +144,20 @@ def getInflectionsForCubic(pt1, pt2, pt3, pt4, err_min=0.3, err_max=0.7):
 		c2 *= 2
 		if abs(discr) < 0.000001:
 			root = -c1 / c2
-			if (root > 0.001) and (root < 0.99):
+			if 0.001 < root < 0.999:
 				roots.append(root)
 		elif discr > 0:
 			discr = discr ** 0.5
 			root = (-c1 - discr) / c2
-			if (root > 0.001) and (root < 0.99):
+			if 0.001 < root < 0.999:
 				roots.append(root)
 
 			root = (-c1 + discr) / c2
-			if (root > 0.001) and (root < 0.99):
+			if 0.001 < root < 0.999:
 				roots.append(root)
 	elif c1 != 0.0:
 		root = -c0 / c1
-		if (root > 0.001) and (root < 0.99):
+		if 0.001 < root < 0.999:
 			roots.append(root)
 
 	ok_inflections = []
