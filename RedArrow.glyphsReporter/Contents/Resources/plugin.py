@@ -88,7 +88,7 @@ class RedArrow(ReporterPlugin):
 			""
 		)
 		newMenuItem.setTarget_(self)
-		mainMenu.itemAtIndex_(2).submenu().insertItem_atIndex_(newMenuItem, 11)
+		mainMenu.itemAtIndex_(2).submenu().insertItem_atIndex_(newMenuItem, 12)
 
 	@objc.python_method
 	def mouseDidMove(self, notification):
