@@ -35,7 +35,7 @@ class RedArrow(ReporterPlugin):
 				"name": Glyphs.localize({
 					'en': 'Show Error Labels',
 					'de': 'Fehlerbeschriftung anzeigen'}),
-				"action": self.toggleLabels
+				"action": self.toggleLabels_
 			},
 		]
 
@@ -72,7 +72,7 @@ class RedArrow(ReporterPlugin):
 		self.lastChangeDate = 0
 		self.current_layer = None
 		self.vanilla_alerted = False
-		self.toggleLabels()
+		self.toggleLabels_(None)
 
 	@objc.python_method
 	def addMenuItem(self):
@@ -128,7 +128,7 @@ class RedArrow(ReporterPlugin):
 		# except Exception as e:
 		#	 self.logToConsole("foreground: %s" % str(e))
 
-	def toggleLabels(self):
+	def toggleLabels_(self, sender):
 		if self.show_labels:
 			self.show_labels = False
 			self.generalContextMenus = [
@@ -139,7 +139,7 @@ class RedArrow(ReporterPlugin):
 							'de': 'Fehlerbeschriftung anzeigen'
 						}
 					),
-					"action": self.toggleLabels
+					"action": self.toggleLabels_
 				},
 			]
 			Glyphs.addCallback(self.mouseDidMove, MOUSEMOVED)
@@ -153,7 +153,7 @@ class RedArrow(ReporterPlugin):
 							'de': 'Fehlerbeschriftung ausblenden'
 						}
 					),
-					"action": self.toggleLabels
+					"action": self.toggleLabels_
 				},
 			]
 			Glyphs.removeCallback(self.mouseDidMove)
