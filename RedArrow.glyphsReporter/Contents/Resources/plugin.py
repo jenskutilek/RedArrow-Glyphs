@@ -350,7 +350,7 @@ class RedArrow(ReporterPlugin):
 				transform=t,
 				text=kind,
 				size=size,
-				angle=angle,
+				vector=vector,
 			)
 
 	@objc.python_method
