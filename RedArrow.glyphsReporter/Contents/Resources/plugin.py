@@ -270,16 +270,18 @@ class RedArrow(ReporterPlugin):
 		myPath.transformUsingAffineTransform_(t)
 		myPath.fill()
 
-		if self.show_labels or distance_between_points(self.mouse_position, position) < size:
+		percent = -distance_between_points(self.mouse_position, position) / size * 2 + 2
+		if self.show_labels or percent > 0.2:
 			self._drawTextLabel(
 				transform=t,
 				text=kind,
 				size=size,
 				vector=vector,
+				percent=percent
 			)
 
 	@objc.python_method
-	def _drawTextLabel(self, transform, text, size, vector):
+	def _drawTextLabel(self, transform, text, size, vector, percent=1.0):
 		if text is None:
 			return
 
@@ -293,7 +295,7 @@ class RedArrow(ReporterPlugin):
 
 		attrs = {
 			NSFontAttributeName: NSFont.systemFontOfSize_(text_size),
-			NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_(*text_color),
+			NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_(text_color[0], text_color[1], text_color[2], text_color[3] * percent),
 			# NSParagraphStyleAttributeName:  para_style,
 		}
 		myString = NSString.string().stringByAppendingString_(text)
@@ -357,12 +359,14 @@ class RedArrow(ReporterPlugin):
 			circle_size, circle_size
 		))
 		myPath.stroke()
-		if self.show_labels or distance_between_points(self.mouse_position, position) < size:
+		percent = -distance_between_points(self.mouse_position, position) / size * 2 + 2
+		if self.show_labels or percent > 0.2:
 			self._drawTextLabel(
 				transform=t,
 				text=kind,
 				size=size,
 				vector=vector,
+				percent=percent
 			)
 
 	@objc.python_method
