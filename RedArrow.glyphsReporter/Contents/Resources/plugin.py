@@ -30,7 +30,18 @@ class RedArrow(ReporterPlugin):
 		self.menuName = "Red Arrows"
 		self.keyboardShortcut = 'a'
 		self.keyboardShortcutModifier = NSCommandKeyMask | NSShiftKeyMask | NSAlternateKeyMask
-		self.generalContextMenus = [
+		self.hide_labels_menu = [
+			{
+				"name": Glyphs.localize(
+					{
+						'en': 'Hide Error Labels',
+						'de': 'Fehlerbeschriftung ausblenden'
+					}
+				),
+				"action": self.toggleLabels_
+			},
+		]
+		self.show_labels_menu = [
 			{
 				"name": Glyphs.localize({
 					'en': 'Show Error Labels',
@@ -38,6 +49,9 @@ class RedArrow(ReporterPlugin):
 				"action": self.toggleLabels_
 			},
 		]
+		self.show_labels = Glyphs.defaults["%s.showLabels" % plugin_id]
+		self.show_labels = not(self.show_labels)
+		self.toggleLabels_(None)
 
 	@objc.python_method
 	def start(self):
@@ -66,13 +80,10 @@ class RedArrow(ReporterPlugin):
 			"test_zero_handles",
 		]
 		self.errors = []
-		self.show_labels = Glyphs.defaults["%s.showLabels" % plugin_id]
-		self.show_labels = not(self.show_labels)
 		self.mouse_position = (0, 0)
 		self.lastChangeDate = 0
 		self.current_layer = None
 		self.vanilla_alerted = False
-		self.toggleLabels_(None)
 
 	@objc.python_method
 	def addMenuItem(self):
@@ -100,62 +111,42 @@ class RedArrow(ReporterPlugin):
 				Glyphs.removeCallback(self.mouseDidMove)
 		except Exception as e:
 			self.logToConsole("willDeactivate: %s" % str(e))
-	
+
 	@objc.python_method
 	def foreground(self, layer):
 		# self.logToConsole("_updateOutlineCheck: %s" % layer)
 		self._updateOutlineCheck(layer)
 		# self.logToConsole("foreground: Errors: %s" % self.errors )
-	
+
 		# try:
-		if True:
-			try:
-				self.mouse_position = self.controller.graphicView().getActiveLocation_(Glyphs.currentEvent())
-			except Exception as e:
-				self.logToConsole("foreground: mouse_position: %s" % str(e))
-				self.mouse_position = (0, 0)
-			currentController = self.controller.view().window().windowController()
-			if currentController:
-				tool = currentController.toolDrawDelegate()
-				# don't activate if on cursor tool, or pan tool
-				if not (
-					tool.isKindOfClass_(NSClassFromString("GlyphsToolText"))
-					or tool.isKindOfClass_(NSClassFromString("GlyphsToolHand"))
-					or tool.isKindOfClass_(NSClassFromString("GlyphsToolTrueTypeInstructor"))
-				):
-					if len(self.errors) > 0:
-						self._drawArrows()
+		# if True:
+		try:
+			self.mouse_position = self.controller.graphicView().getActiveLocation_(Glyphs.currentEvent())
+		except Exception as e:
+			self.logToConsole("foreground: mouse_position: %s" % str(e))
+			self.mouse_position = (0, 0)
+		currentController = self.controller.view().window().windowController()
+		if currentController:
+			tool = currentController.toolDrawDelegate()
+			# don't activate if on cursor tool, or pan tool
+			if not (
+				tool.isKindOfClass_(NSClassFromString("GlyphsToolText"))
+				or tool.isKindOfClass_(NSClassFromString("GlyphsToolHand"))
+				or tool.isKindOfClass_(NSClassFromString("GlyphsToolTrueTypeInstructor"))
+			):
+				if len(self.errors) > 0:
+					self._drawArrows()
 		# except Exception as e:
 		#	 self.logToConsole("foreground: %s" % str(e))
 
 	def toggleLabels_(self, sender):
 		if self.show_labels:
 			self.show_labels = False
-			self.generalContextMenus = [
-				{
-					"name": Glyphs.localize(
-						{
-							'en': 'Show Error Labels',
-							'de': 'Fehlerbeschriftung anzeigen'
-						}
-					),
-					"action": self.toggleLabels_
-				},
-			]
+			self.generalContextMenus = self.show_labels_menu
 			Glyphs.addCallback(self.mouseDidMove, MOUSEMOVED)
 		else:
 			self.show_labels = True
-			self.generalContextMenus = [
-				{
-					"name": Glyphs.localize(
-						{
-							'en': 'Hide Error Labels',
-							'de': 'Fehlerbeschriftung ausblenden'
-						}
-					),
-					"action": self.toggleLabels_
-				},
-			]
+			self.generalContextMenus = self.hide_labels_menu
 			Glyphs.removeCallback(self.mouseDidMove)
 		Glyphs.defaults["%s.showLabels" % plugin_id] = self.show_labels
 		Glyphs.redraw()
