@@ -8,7 +8,7 @@ from AppKit import NSAffineTransform, NSApplication, NSAlternateKeyMask, \
 	NSBezierPath, NSClassFromString, NSColor, NSCommandKeyMask, NSFont, \
 	NSFontAttributeName, NSForegroundColorAttributeName, NSMakeRect, \
 	NSMenuItem, NSMutableParagraphStyle, NSPoint, NSRect, NSShiftKeyMask, \
-	NSString
+	NSString, NSNotificationCenter
 
 from geometry_functions import distance_between_points
 from math import atan2, cos, pi, sin
@@ -101,14 +101,13 @@ class RedArrow(ReporterPlugin):
 		newMenuItem.setTarget_(self)
 		mainMenu.itemAtIndex_(2).submenu().insertItem_atIndex_(newMenuItem, 12)
 
-	@objc.python_method
-	def mouseDidMove(self, notification):
+	def mouseDidMove_(self, notification):
 		Glyphs.redraw()
 
 	def willDeactivate(self):
 		try:
 			if not self.show_labels:
-				Glyphs.removeCallback(self.mouseDidMove)
+				self.stopMouseMoved()
 		except Exception as e:
 			self.logToConsole("willDeactivate: %s" % str(e))
 
@@ -143,13 +142,19 @@ class RedArrow(ReporterPlugin):
 		if self.show_labels:
 			self.show_labels = False
 			self.generalContextMenus = self.show_labels_menu
-			Glyphs.addCallback(self.mouseDidMove, MOUSEMOVED)
+			self.startMouseMoved()
 		else:
 			self.show_labels = True
 			self.generalContextMenus = self.hide_labels_menu
-			Glyphs.removeCallback(self.mouseDidMove)
+			self.stopMouseMoved()
 		Glyphs.defaults["%s.showLabels" % plugin_id] = self.show_labels
 		Glyphs.redraw()
+
+	def startMouseMoved(self):
+		NSNotificationCenter.defaultCenter().addObserver_selector_name_object_(self, self.mouseDidMove_, MOUSEMOVED, objc.nil)
+
+	def stopMouseMoved(self):
+		NSNotificationCenter.defaultCenter().removeObserver_(self)
 
 	def selectGlyphsOptions(self):
 		try:
