@@ -104,6 +104,13 @@ class RedArrow(ReporterPlugin):
 	def mouseDidMove_(self, notification):
 		Glyphs.redraw()
 
+	def willActivate(self):
+		try:
+			if not self.show_labels:
+				self.startMouseMoved()
+		except Exception as e:
+			self.logToConsole("willDeactivate: %s" % str(e))
+
 	def willDeactivate(self):
 		try:
 			if not self.show_labels:
