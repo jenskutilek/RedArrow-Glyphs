@@ -270,7 +270,9 @@ class RedArrow(ReporterPlugin):
 		myPath.transformUsingAffineTransform_(t)
 		myPath.fill()
 
-		percent = -distance_between_points(self.mouse_position, position) / size * 2 + 2
+		percent = 1
+		if not self.show_labels:
+			percent = -distance_between_points(self.mouse_position, position) / size * 2 + 2
 		if self.show_labels or percent > 0.2:
 			self._drawTextLabel(
 				transform=t,
