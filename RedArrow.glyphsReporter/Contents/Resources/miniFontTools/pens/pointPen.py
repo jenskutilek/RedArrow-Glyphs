@@ -37,13 +37,21 @@ class AbstractPointPen(object):
 		"""End the current sub path."""
 		raise NotImplementedError
 
-	def addPoint(self, pt, segmentType=None, smooth=False, name=None,
-				 identifier=None, **kwargs):
+	def addPoint(
+		self,
+		pt,
+		segmentType=None,
+		smooth=False,
+		name=None,
+		identifier=None,
+		**kwargs
+	):
 		"""Add a point to the current sub path."""
 		raise NotImplementedError
 
-	def addComponent(self, baseGlyphName, transformation, identifier=None,
-					 **kwargs):
+	def addComponent(
+		self, baseGlyphName, transformation, identifier=None, **kwargs
+	):
 		"""Add a sub glyph."""
 		raise NotImplementedError
 
@@ -71,7 +79,7 @@ class BasePointToSegmentPen(AbstractPointPen):
 		of segments: the 'segments' argument.
 
 		The segments list contains tuples of length 2:
-			(segmentType, points)
+				(segmentType, points)
 
 		segmentType is one of "move", "line", "curve" or "qcurve".
 		"move" may only occur as the first segment, and it signifies
@@ -81,7 +89,7 @@ class BasePointToSegmentPen(AbstractPointPen):
 		The 'points' field in the 2-tuple is a list of point info
 		tuples. The list has 1 or more items, a point tuple has
 		four items:
-			(point, smooth, name, kwargs)
+				(point, smooth, name, kwargs)
 		'point' is an (x, y) coordinate pair.
 
 		For a closed path, the initial moveTo point is defined as
@@ -127,7 +135,7 @@ class BasePointToSegmentPen(AbstractPointPen):
 				# qCurveTo() method and fontTools.pens.basePen.py.)
 				points.append((None, "qcurve", None, None, None))
 			else:
-				points = points[firstOnCurve+1:] + points[:firstOnCurve+1]
+				points = points[firstOnCurve + 1 :] + points[: firstOnCurve + 1]
 
 		currentSegment = []
 		for pt, segmentType, smooth, name, kwargs in points:
@@ -139,6 +147,13 @@ class BasePointToSegmentPen(AbstractPointPen):
 
 		self._flushContour(segments)
 
-	def addPoint(self, pt, segmentType=None, smooth=False, name=None,
-				 identifier=None, **kwargs):
+	def addPoint(
+		self,
+		pt,
+		segmentType=None,
+		smooth=False,
+		name=None,
+		identifier=None,
+		**kwargs
+	):
 		self.currentPath.append((pt, segmentType, smooth, name, kwargs))

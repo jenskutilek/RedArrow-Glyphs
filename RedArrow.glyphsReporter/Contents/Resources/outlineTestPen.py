@@ -603,7 +603,7 @@ class OutlineTestPen(BasePointToSegmentPen):
 			self.options["inflection_max"],
 		)
 		ok_inflections, ok_vectors = ok
-		err_inflections, err_vectors =err
+		err_inflections, err_vectors = err
 		for i, p in enumerate(err_inflections):
 			self.errors.append(
 				OutlineError(p, "Inflection", vector=err_vectors[i])
@@ -708,7 +708,11 @@ class OutlineTestPen(BasePointToSegmentPen):
 				phi = phi2 - pi
 				ref = self._prev_ref
 
-			# print("  Chose: %s -> %s, angle %0.2f, dist %0.2f" % (ref, next_ref, degrees(phi), dist))
+			# print(
+			# 	"  Chose: %s -> %s, angle %0.2f, dist %0.2f" % (
+			# 		ref, next_ref, degrees(phi), dist
+			# 	)
+			# )
 
 			# Ignore short segments
 			if dist > 2 * self.smooth_connection_max_distance:
@@ -730,7 +734,11 @@ class OutlineTestPen(BasePointToSegmentPen):
 				badness = distance_between_points(
 					round_point(projected_pt, self.grid_length), ref
 				)
-				# print("  Projected: %s, actual: %s, diff: %0.2f" % (projected_pt, ref, badness))
+				# print(
+				# 	"  Projected: %s, actual: %s, diff: %0.2f" % (
+				# 		projected_pt, ref, badness
+				# 	)
+				# )
 				if self.grid_length == 0:
 					d = 0.49
 				else:

@@ -16,7 +16,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         "test_empty_segments": "Empty Segments",
         "test_collinear": "Collinear Vectors",
         "test_semi_hv": "Semi-horizontal/-vertical Vectors",
-        #"test_closepath": "",
+        # "test_closepath": "",
         "test_zero_handles": "Zero Handles",
     }
 
@@ -42,7 +42,14 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         title_skip = 8
         buttons_height = 44
 
-        height = y + title_line_height + entry_line_height * (len(self.options) + len(self.run_tests)) + title_line_height + title_skip + buttons_height
+        height = (
+            y
+            + title_line_height
+            + entry_line_height * (len(self.options) + len(self.run_tests))
+            + title_line_height
+            + title_skip
+            + buttons_height
+        )
         self.w = _RAModalWindow((300, height), "Select Glyphs With Errors")
 
         self.w.tests_title = vanilla.TextBox((x, y, -10, 23), "Run Tests:")
@@ -50,20 +57,23 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
 
         for k in sorted(self.run_tests.keys()):
             setattr(
-                self.w, k,
+                self.w,
+                k,
                 vanilla.CheckBox(
                     (x + 3, y, -10, 20),
                     self.test_names.get(k, k),
                     value=self.run_tests[k],
                     sizeStyle="small",
-                )
+                ),
             )
             y += entry_line_height
 
         vanilla.HorizontalLine((x, y, -10, 1))
 
         y += 8
-        self.w.options_title = vanilla.TextBox((x, y, -10, 23), "Test Options (For Advanced Users):")
+        self.w.options_title = vanilla.TextBox(
+            (x, y, -10, 23), "Test Options (For Advanced Users):"
+        )
         y += title_line_height
 
         for k in sorted(self.options.keys()):
@@ -73,28 +83,30 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
                     self.w,
                     "%s_label" % k,
                     vanilla.TextBox(
-                        (x + 18, y+3, -10, 20),
+                        (x + 18, y + 3, -10, 20),
                         self.option_names.get(k, k),
                         sizeStyle="small",
-                    )
+                    ),
                 )
                 setattr(
-                    self.w, k,
+                    self.w,
+                    k,
                     vanilla.EditText(
-                        (col, y+1, -14, 18),
+                        (col, y + 1, -14, 18),
                         text=v,
                         sizeStyle="small",
-                    )
+                    ),
                 )
             elif type(v) == bool:
                 setattr(
-                    self.w, k,
+                    self.w,
+                    k,
                     vanilla.CheckBox(
                         (x + 3, y, -10, 20),
                         self.option_names.get(k, k),
                         value=v,
                         sizeStyle="small",
-                    )
+                    ),
                 )
             y += entry_line_height
 
