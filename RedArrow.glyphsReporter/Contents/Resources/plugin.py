@@ -123,7 +123,14 @@ class RedArrow(ReporterPlugin):
 		mainMenu.itemAtIndex_(2).submenu().insertItem_atIndex_(newMenuItem, 12)
 
 	def mouseDidMove_(self, notification):
-		Glyphs.redraw()
+		try:
+			notification.object().window().windowController().activeEditViewController().graphicView().setNeedsDisplay_(
+				True
+			)
+		except Exception:
+			import traceback
+
+			print(traceback.format_exc())
 
 	def willActivate(self):
 		try:
