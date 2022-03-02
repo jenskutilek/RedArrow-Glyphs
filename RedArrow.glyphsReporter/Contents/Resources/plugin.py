@@ -378,7 +378,9 @@ class RedArrow(ReporterPlugin):
 		# )
 
 	@objc.python_method
-	def _drawUnspecified(self, position, kind, size, vector=(-1, 1), level="e"):
+	def _drawUnspecified(
+		self, position, kind, size, vector=(-1, 1), level="e"
+	):
 		if vector is None:
 			vector = (-1, 1)
 		angle = atan2(vector[1], vector[0])
