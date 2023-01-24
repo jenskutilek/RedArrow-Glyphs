@@ -13,13 +13,13 @@
 	<key>CFBundleName</key>
 	<string>RedArrow</string>
 	<key>CFBundleVersion</key>
-	<string>110</string>
+	<string>200</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.1.0</string>
 	<key>UpdateFeedURL</key>
 	<string>https://raw.githubusercontent.com/jenskutilek/RedArrow-Glyphs/master/RedArrow.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
 	<string>https://github.com/jenskutilek/RedArrow-Glyphs</string>
+	<string>2.0.0</string>
 	<key>productReleaseNotes</key>
 	<string>Performance improvements.</string>
 	<key>NSHumanReadableCopyright</key>
