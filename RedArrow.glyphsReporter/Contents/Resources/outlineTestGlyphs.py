@@ -364,9 +364,9 @@ class OutlineTest:
         #     self._checkEmptyLinesAndCurves(segment)
         # if self.test_collinear and self._should_test_collinear:
         #     self._checkCollinearVectors(segment)
-        # if self.test_semi_hv:
-        #     self._checkSemiHorizontalVectors(segment)
-        #     self._checkSemiVerticalVectors(segment)
+        if self.test_semi_hv:
+            self._checkSemiHorizontalVectors(segment)
+            self._checkSemiVerticalVectors(segment)
 
     def _runCurveTests(self, segment):
         if self.test_extrema:
@@ -704,10 +704,17 @@ class OutlineTest:
                         )
                     )
 
-    def _checkSemiHorizontalVectors(self, p0, p1):
+    def _checkSemiHorizontalVectors(self, segment):
         """
         Test for semi-horizontal lines.
         """
+        print("_checkSemiHorizontalVectors", segment)
+        if len(segment) < 2:
+            # FIXME
+            return
+
+        p0 = (segment[0].x, segment[0].y)
+        p1 = (segment[1].x, segment[1].y)
         if distance_between_points(p0, p1) > self.semi_hv_vectors_min_distance:
             phi = angle_between_points(p0, p1)
             # 				 atan2(1, 31)
@@ -726,11 +733,18 @@ class OutlineTest:
                         )
                     )
 
-    def _checkSemiVerticalVectors(self, p0, p1):
+    def _checkSemiVerticalVectors(self, segment):
         """
         Test for semi-vertical lines.
         """
         # TODO: Option to respect Italic angle?
+        print("_checkSemiVerticalVectors", segment)
+        if len(segment) < 2:
+            # FIXME
+            return
+
+        p0 = (segment[0].x, segment[0].y)
+        p1 = (segment[1].x, segment[1].y)
         if distance_between_points(p0, p1) > self.semi_hv_vectors_min_distance:
             phi = angle_between_points(p0, p1)
             if (
