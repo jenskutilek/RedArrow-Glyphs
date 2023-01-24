@@ -8,7 +8,7 @@ from fontTools.misc.bezierTools import (
     epsilon,
 )
 from fontTools.misc.transform import Transform
-from GlyphsApp import CURVE, LINE, QCURVE
+from GlyphsApp import CURVE, LINE, QCURVE, OFFCURVE
 from math import atan2, degrees, cos, pi, sin, sqrt
 
 
@@ -221,19 +221,14 @@ class OutlineWarning(OutlineError):
     level = "w"
 
 
-class OutlineTestPen(BasePointToSegmentPen):
+class OutlineTest:
     """
     Reimplementation of FontLab's FontAudit.
     """
 
-    def __init__(self, glyphSet, options={}, run_tests=[]):
-        self.glyphSet = glyphSet
-        try:
-            self.upm = self.glyphSet.info.unitsPerEm
-        except AttributeError:
-            self.upm = 1000
+    def __init__(self, layer, options={}, run_tests=[]):
+        self.layer = layer
 
-        self.__currentPoint = None
         self.current_vector = None
 
         self.options = options
@@ -263,31 +258,16 @@ class OutlineTestPen(BasePointToSegmentPen):
         self.glyphHasComponents = False
         self.glyphHasOutlines = False
 
-        # Keep track of the final point of the previous segment,
-        # needed for bbox calculation
-        self._prev = None
-        self._prev_type = None
-
-        # Reference point for smooth connections
-        # The previous bcp or pt depending on segment type
-        self._prev_ref = None
-
-        # Reference point for smooth connection check on last segment of
-        # contour
-        self._contour_start_ref = None
-
-        # Start point of previous and current contours
-        self._prev_cstart = None
-        self._cstart = None
-
-        self._should_test_collinear = False
-
-        # From BasePointToSegmentPen.__init__()
-        self.currentPath = None
-
-        self.current_smooth = False
-
         self._cache_options()
+
+    @property
+    def layer(self):
+        return self._layer
+
+    @layer.setter
+    def layer(self, value):
+        self._layer = value
+        self.upm = self.layer.parent.parent.upm
 
     def _normalize_upm(self, value):
         """
@@ -340,114 +320,101 @@ class OutlineTestPen(BasePointToSegmentPen):
                 else:
                     setattr(self, t, False)
 
-    def addComponent(self, baseGlyph, transformation):
-        self._runComponentTests(baseGlyph, transformation)
+    def checkLayer(self):
+        self.errors = []
+        for path in self.layer.paths:
+
+            # Organize nodes as segments
+            segments = []
+            segment = []
+            for node in path.nodes:
+                segment.append(node)
+                if node.type != OFFCURVE:
+                    segments.append(segment)
+                    segment = [node]
+            if len(segment) > 1:
+                segments[0].insert(segment, 0)
+
+            # Run checks for each segment
+            for segment in segments:
+                last_node_type = segment[-1].type
+                if last_node_type == CURVE:
+                    self._runCurveTests(segment)
+                elif last_node_type == QCURVE:
+                    self._runQCurveTests(segment)
+                elif last_node_type == LINE:
+                    self._runLineTests(segment)
+
+        for component in self.layer.components:
+            self._runComponentTests(component)
 
     # Tests for different segment types
 
-    def _runMoveTests(self, pt):
-        if self.test_fractional_coords:
-            self._checkFractionalCoordinates(pt)
-        if self.test_smooth and self._contour_start_ref is not None:
-            self._checkIncorrectSmoothConnection(self._prev, self._contour_start_ref)
+    def _runLineTests(self, segment):
+        pass
+        # if self.test_fractional_coords:
+        #     self._checkFractionalCoordinates(segment)
+        # if self.test_smooth:
+        #     self._checkIncorrectSmoothConnection(segment)
         # if self.test_empty_segments:
-        # 	self._checkEmptyLinesAndCurves(pt)
+        #     self._checkEmptyLinesAndCurves(segment)
+        # if self.test_collinear and self._should_test_collinear:
+        #     self._checkCollinearVectors(segment)
+        # if self.test_semi_hv:
+        #     self._checkSemiHorizontalVectors(segment)
+        #     self._checkSemiVerticalVectors(segment)
 
-    def _runLineTests(self, pt):
-        if self.test_fractional_coords:
-            self._checkFractionalCoordinates(pt)
-        if self.test_smooth:
-            self._checkIncorrectSmoothConnection(self._prev, pt)
-        if self.test_empty_segments:
-            self._checkEmptyLinesAndCurves(pt)
-        if self.test_collinear and self._should_test_collinear:
-            self._checkCollinearVectors(self._prev, pt)
-        if self.test_semi_hv:
-            self._checkSemiHorizontalVectors(self._prev, pt)
-            self._checkSemiVerticalVectors(self._prev, pt)
-
-    def _runCurveTests(self, bcp1, bcp2, pt):
-        # for bcp in [bcp1, bcp2]:
-        # 	self._checkBbox(bcp, pt)
+    def _runCurveTests(self, segment):
         if self.test_extrema:
-            self._checkBboxSegment(bcp1, bcp2, pt)
-        if self.test_inflections:
-            self._checkInflectionsSegment(bcp1, bcp2, pt)
-        if self.test_fractional_coords:
-            for p in [bcp1, bcp2, pt]:
-                self._checkFractionalCoordinates(p)
-        if not self.curveTypeDetected:
-            self._countCurveSegment()
-        if self.test_smooth:
-            self._checkIncorrectSmoothConnection(self._prev, bcp1)
-        if self.test_empty_segments:
-            self._checkEmptyLinesAndCurves(pt)
-        if self.test_zero_handles:
-            self._checkZeroHandles(self._prev, bcp1)
-            self._checkZeroHandles(pt, bcp2)
-        if self.test_semi_hv:
-            self._checkSemiHorizontalHandle(self._prev, bcp1)
-            self._checkSemiHorizontalHandle(bcp2, pt)
-            self._checkSemiVerticalHandle(self._prev, bcp1)
-            self._checkSemiVerticalHandle(bcp2, pt)
+            self._checkBboxSegment(segment)
+        # if self.test_inflections:
+        #     self._checkInflectionsSegment(segment)
+        # if self.test_fractional_coords:
+        #     for node in segment:
+        #         self._checkFractionalCoordinates(node)
+        # if not self.curveTypeDetected:
+        #     self._countCurveSegment()
+        # if self.test_smooth:
+        #     self._checkIncorrectSmoothConnection(segment)
+        # if self.test_empty_segments:
+        #     self._checkEmptyLinesAndCurves(segment)
+        # if self.test_zero_handles:
+        #     self._checkZeroHandles(segment)
+        # if self.test_semi_hv:
+        #     self._checkSemiHorizontalHandles(segment)
+        #     self._checkSemiVerticalHandles(segment)
 
-    def _runQCurveTests(self, bcps, pt):
+    def _runQCurveTests(self, segment):
         if self.test_extrema:
-            self._checkExtremaQuad(bcps, pt)
+            self._checkExtremaQuad(segment)
         if self.test_inflections:
-            self._checkInflectionsQuad(bcps, pt)
+            self._checkInflectionsQuad(segment)
         if self.test_fractional_coords:
-            for p in bcps + [pt]:
-                self._checkFractionalCoordinates(p)
+            for node in segment:
+                self._checkFractionalCoordinates(node)
         if not self.curveTypeDetected:
             self._countQCurveSegment()
         if self.test_smooth:
-            self._checkIncorrectSmoothConnection(self._prev, bcps[0])
+            self._checkIncorrectSmoothConnection(segment)
         if self.test_empty_segments:
-            self._checkEmptyLinesAndCurves(pt)
+            self._checkEmptyLinesAndCurves(segment)
         if self.test_semi_hv:
-            pp = self._prev
-            for p in bcps + [pt]:
-                self._checkSemiHorizontalHandle(pp, p)
-                self._checkSemiVerticalHandle(pp, p)
-                pp = p
+            self._checkSemiHorizontalHandles(segment)
+            self._checkSemiVerticalHandles(segment)
 
-    def _runClosePathTests(self):
-        if self.test_closepath and self._prev_type == "line":
-            self._checkVectorsOnClosepath(self._prev)
-        if self.test_collinear and self._should_test_collinear:
-            self._checkCollinearVectors(self._prev, self._cstart)
-        if self.test_semi_hv:
-            self._checkSemiHorizontalVectors(self._prev, self._cstart)
-            self._checkSemiVerticalVectors(self._prev, self._cstart)
-
-    def _runComponentTests(self, baseGlyph, transformation):
+    def _runComponentTests(self, component):
         if self.test_fractional_transform:
-            self._checkFractionalTransformation(baseGlyph, transformation)
+            self._checkFractionalTransformation(
+                component.componentName, component.transform
+            )
 
     # Implementations for all the different tests
 
-    def _checkBbox(self, pointToCheck, boxPoint):
-        # boxPoint is the final point of the current node,
-        # the other bbox point is the previous final point
-        myRect = normRect((self._prev[0], self._prev[1], boxPoint[0], boxPoint[1]))
-        if not pointInRect(pointToCheck, myRect):
-            if self.extremum_calculate_badness:
-                badness = self._getBadness(pointToCheck, myRect)
-                if badness >= self.extremum_ignore_badness_below:
-                    self.errors.append(
-                        OutlineError(pointToCheck, "Extremum", badness, None)
-                    )
-            else:
-                self.errors.append(OutlineError(pointToCheck, "Extremum", vector=None))
-
-    def _checkBboxSegment(self, bcp1, bcp2, pt):
-        # Like _checkBbox, but checks the whole segment and calculates extrema
-        myRect = normRect((self._prev[0], self._prev[1], pt[0], pt[1]))
+    def _checkBboxSegment(self, segment):
+        pt0, bcp1, bcp2, pt3 = segment
+        myRect = normRect((pt0.x, pt0.y, pt3.x, pt3.y))
         if not pointInRect(bcp1, myRect) or not pointInRect(bcp2, myRect):
-            extrema, vectors = getExtremaForCubic(
-                self._prev, bcp1, bcp2, pt, h=True, v=True
-            )
+            extrema, vectors = getExtremaForCubic(pt0, bcp1, bcp2, pt3, h=True, v=True)
             for i, p in enumerate(extrema):
                 if self.extremum_calculate_badness:
                     badness = self._getBadness(p, myRect)
