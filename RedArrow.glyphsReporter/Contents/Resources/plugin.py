@@ -228,15 +228,14 @@ class RedArrow(ReporterPlugin):
         mid = font.selectedFontMaster.id
         self.options["grid_length"] = font.gridLength
         glyphlist = font.glyphs.keys()
-        outline_test_pen = OutlineTest(font, options, run_tests)
         for glyph_name in glyphlist:
             glyph = font.glyphs[glyph_name]
             layer = glyph.layers[mid]
-            outline_test_pen.errors = []
             if layer is not None:
+                outline_test = OutlineTest(layer, options, run_tests)
                 try:
-                    layer.drawPoints(outline_test_pen)
-                    if len(outline_test_pen.errors) > 0:
+                    outline_test.checkLayer()
+                    if len(outline_test.errors) > 0:
                         glyph.selected = True
                     else:
                         glyph.selected = False
@@ -263,11 +262,11 @@ class RedArrow(ReporterPlugin):
         self.errors = []
         if layer is not None and hasattr(layer, "parent"):
             self.options["grid_length"] = layer.parent.parent.gridLength
-            outline_test_pen = OutlineTest(
-                layer.parent.parent, self.options, self.run_tests
+            outline_test = OutlineTest(
+                layer, self.options, self.run_tests
             )
-            layer.drawPoints(outline_test_pen)
-            self.errors = outline_test_pen.errors
+            outline_test.checkLayer()
+            self.errors = outline_test.errors
         if DEBUG:
             self.logToConsole("Errors: %s" % self.errors)
 
