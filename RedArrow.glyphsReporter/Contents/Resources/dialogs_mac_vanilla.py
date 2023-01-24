@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-import vanilla.dialogs
 from AppKit import (
     NSApp,
     NSModalPanelWindowLevel,
@@ -7,6 +5,7 @@ from AppKit import (
     NSWindowZoomButton,
     NSWindowMiniaturizeButton,
 )
+import vanilla.dialogs
 
 
 class _RAModalWindow(vanilla.Window):

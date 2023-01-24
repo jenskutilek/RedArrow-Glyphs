@@ -1,7 +1,6 @@
-# encoding: utf-8
-from __future__ import division, print_function, unicode_literals
-
 import objc
+
+from geometry_functions import distance_between_points
 from GlyphsApp import Glyphs, MOUSEMOVED
 from GlyphsApp.plugins import ReporterPlugin
 from AppKit import (
@@ -24,10 +23,9 @@ from AppKit import (
     NSString,
     NSNotificationCenter,
 )
-
-from geometry_functions import distance_between_points
 from math import atan2, cos, pi, sin
 from outlineTestGlyphs import OutlineTest
+
 
 plugin_id = "de.kutilek.RedArrow"
 DEBUG = False

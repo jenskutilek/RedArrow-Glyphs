@@ -1,65 +1,24 @@
-from __future__ import absolute_import, division, print_function
+from fontTools.misc.arrayTools import pointInRect, normRect
+from fontTools.misc.bezierTools import (
+    calcQuadraticParameters,
+    calcCubicParameters,
+    solveQuadratic,
+    splitCubicAtT,
+    splitQuadraticAtT,
+    epsilon,
+)
+from fontTools.misc.transform import Transform
+from GlyphsApp import CURVE, LINE, QCURVE
 from math import atan2, degrees, cos, pi, sin, sqrt
-
-try:
-    from fontTools.misc.arrayTools import pointInRect, normRect
-    from fontTools.misc.bezierTools import (
-        calcQuadraticParameters,
-        calcCubicParameters,
-        solveQuadratic,
-        splitCubicAtT,
-        splitQuadraticAtT,
-        epsilon,
-    )
-    from fontTools.misc.transform import Transform
-except ImportError:
-    from miniFontTools.misc.arrayTools import pointInRect, normRect
-    from miniFontTools.misc.bezierTools import (
-        calcQuadraticParameters,
-        calcCubicParameters,
-        solveQuadratic,
-        splitCubicAtT,
-        splitQuadraticAtT,
-        epsilon,
-    )
-    from miniFontTools.misc.transform import Transform
-
-try:
-    from mojo.roboFont import version as roboFontVersion
-
-    CURVE = "curve"
-    LINE = "line"
-    QCURVE = "qcurve"
-    if roboFontVersion >= "3.0":
-        v = "rf3"
-        from ufoLib.pointPen import BasePointToSegmentPen
-    else:
-        v = "rf1"
-        from robofab.pens import BasePointToSegmentPen
-except ImportError:
-    v = "g"
-    from miniFontTools.pens.pointPen import BasePointToSegmentPen
-    from GlyphsApp import CURVE, LINE, QCURVE
 
 
 # Helper functions
 
-if v == "g":
 
-    def get_bounds(font, glyphname):
-        return (0, 0, 0, 0)
-        # FIXME: We need to find the layer.bounds() in Glyphs
-        # return font.glyphs[glyphname].bounds()
-
-elif v == "rf3":
-
-    def get_bounds(font, glyphname):
-        return font[glyphname].bounds
-
-else:
-
-    def get_bounds(font, glyphname):
-        return font[glyphname].box
+def get_bounds(font, glyphname):
+    return (0, 0, 0, 0)
+    # FIXME: We need to find the layer.bounds() in Glyphs
+    # return font.glyphs[glyphname].bounds()
 
 
 def solveLinear(a, b):
