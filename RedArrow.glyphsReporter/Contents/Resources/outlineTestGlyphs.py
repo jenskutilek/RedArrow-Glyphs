@@ -54,6 +54,10 @@ def get_extrema_points_vectors(roots, pt1, pt2, pt3, pt4):
 
 
 def getExtremaForCubic(pt1, pt2, pt3, pt4, h=True, v=False):
+    pt1 = (pt1.x, pt1.y)
+    pt2 = (pt2.x, pt2.y)
+    pt3 = (pt3.x, pt3.y)
+    pt4 = (pt4.x, pt4.y)
     (ax, ay), (bx, by), c, d = calcCubicParameters(pt1, pt2, pt3, pt4)
     ax *= 3.0
     ay *= 3.0
@@ -352,8 +356,8 @@ class OutlineTest:
 
     def _runLineTests(self, segment):
         pass
-        # if self.test_fractional_coords:
-        #     self._checkFractionalCoordinates(segment)
+        if self.test_fractional_coords:
+            self._checkFractionalCoordinates(segment[-1])
         # if self.test_smooth:
         #     self._checkIncorrectSmoothConnection(segment)
         # if self.test_empty_segments:
@@ -367,11 +371,11 @@ class OutlineTest:
     def _runCurveTests(self, segment):
         if self.test_extrema:
             self._checkBboxSegment(segment)
-        # if self.test_inflections:
-        #     self._checkInflectionsSegment(segment)
-        # if self.test_fractional_coords:
-        #     for node in segment:
-        #         self._checkFractionalCoordinates(node)
+        if self.test_inflections:
+            self._checkInflectionsSegment(segment)
+        if self.test_fractional_coords:
+            for node in segment[1:]:
+                self._checkFractionalCoordinates(node)
         # if not self.curveTypeDetected:
         #     self._countCurveSegment()
         # if self.test_smooth:
@@ -405,7 +409,7 @@ class OutlineTest:
     def _runComponentTests(self, component):
         if self.test_fractional_transform:
             self._checkFractionalTransformation(
-                component.componentName, component.transform
+                component.component, component.transform
             )
 
     # Implementations for all the different tests
@@ -413,7 +417,7 @@ class OutlineTest:
     def _checkBboxSegment(self, segment):
         pt0, bcp1, bcp2, pt3 = segment
         myRect = normRect((pt0.x, pt0.y, pt3.x, pt3.y))
-        if not pointInRect(bcp1, myRect) or not pointInRect(bcp2, myRect):
+        if not pointInRect((bcp1.x, bcp1.y), myRect) or not pointInRect((bcp2.x, bcp2.y), myRect):
             extrema, vectors = getExtremaForCubic(pt0, bcp1, bcp2, pt3, h=True, v=True)
             for i, p in enumerate(extrema):
                 if self.extremum_calculate_badness:
@@ -502,12 +506,13 @@ class OutlineTest:
                 badness = 0
         return badness
 
-    def _checkInflectionsSegment(self, bcp1, bcp2, pt):
+    def _checkInflectionsSegment(self, segment):
+        pt0, bcp1, bcp2, pt3 = segment
         ok, err = getInflectionsForCubic(
-            self._prev,
-            bcp1,
-            bcp2,
-            pt,
+            (pt0.x, pt0.y),
+            (bcp1.x, bcp1.y),
+            (bcp2.x, bcp2.y),
+            (pt3.x, pt3.y),
             self.options["inflection_min"],
             self.options["inflection_max"],
         )
@@ -537,15 +542,16 @@ class OutlineTest:
 
     def _checkFractionalCoordinates(self, pt):
         if self.fractional_ignore_point_zero:
-            pr = round_point(pt, self.grid_length)
-            if abs(pr[0] - pt[0]) < 0.001 and abs(pr[1] - pt[1]) < 0.001:
+            pr = round_point((pt.x, pt.y), self.grid_length)
+            if abs(pr[0] - pt.x) < 0.001 and abs(pr[1] - pt.y) < 0.001:
                 return False
         else:
-            if type(pt[0]) == int and type(pt[1] == int):
+            if type(pt.x) == int and type(pt.y == int):
                 return False
+
         self.errors.append(
             OutlineError(
-                (int(round(pt[0])), int(round(pt[1]))),
+                (int(round(pt.x)), int(round(pt.y))),
                 "Fractional Coordinates",  # (%0.2f, %0.2f)" % (pt[0], pt[1]),
                 vector=None,
             )
