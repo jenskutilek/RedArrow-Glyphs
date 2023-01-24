@@ -1,7 +1,12 @@
 from __future__ import unicode_literals
 import vanilla.dialogs
-from AppKit import NSApp, NSModalPanelWindowLevel, NSWindowCloseButton, \
-    NSWindowZoomButton, NSWindowMiniaturizeButton
+from AppKit import (
+    NSApp,
+    NSModalPanelWindowLevel,
+    NSWindowCloseButton,
+    NSWindowZoomButton,
+    NSWindowMiniaturizeButton,
+)
 
 
 class _RAModalWindow(vanilla.Window):
@@ -13,7 +18,7 @@ class _RAModalWindow(vanilla.Window):
         for button in (
             NSWindowCloseButton,
             NSWindowZoomButton,
-            NSWindowMiniaturizeButton
+            NSWindowMiniaturizeButton,
         ):
             self._window.standardWindowButton_(button).setHidden_(True)
 
@@ -28,15 +33,11 @@ class _RAModalWindow(vanilla.Window):
 
 
 class _RAbaseWindowController(object):
-
     def setUpBaseWindowBehavior(self):
         self._getValue = None
 
         self.w.okButton = vanilla.Button(
-            (-70, -30, -15, 20),
-            "OK",
-            callback=self.okCallback,
-            sizeStyle="small"
+            (-70, -30, -15, 20), "OK", callback=self.okCallback, sizeStyle="small"
         )
         self.w.setDefaultButton(self.w.okButton)
 
@@ -44,7 +45,7 @@ class _RAbaseWindowController(object):
             (-150, -30, -80, 20),
             "Cancel",
             callback=self.closeCallback,
-            sizeStyle="small"
+            sizeStyle="small",
         )
         self.w.closeButton.bind(".", ["command"])
         self.w.closeButton.bind(chr(27), [])
