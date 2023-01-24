@@ -3,7 +3,7 @@ from AppKit import NSColor, NSBezierPath, NSAffineTransform, NSString, NSFont, N
 
 def _drawArrow(position, kind, size, vector=(-1, 1), label_size=1):
         angle = atan2(vector[0], -vector[1])
-        print vector, "%0.2f°" % degrees(angle)
+        print(vector, "%0.2f°" % degrees(angle))
         x, y = position
         head_ratio = 0.7
         w = size * 0.5
@@ -35,13 +35,13 @@ def _drawArrow(position, kind, size, vector=(-1, 1), label_size=1):
             NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_( 0.4, 0.4, 0.6, 0.7 ),
         }
         bbox = myString.sizeWithAttributes_(attrs)
-        #print bbox
+        #print(bbox)
         
         p = NSPoint()
         bw = bbox.width
         bh = bbox.height
         
-        #print "   ", cos(angle)
+        #print("   ", cos(angle))
         if -0.5 * pi < angle <= 0.5 * pi:
             p.x, p.y = (
                 - size - 20 - bh/2 * sin(angle) - bw/2 * cos(angle), # + bw/2.0 * cos(angle - pi)
@@ -53,7 +53,7 @@ def _drawArrow(position, kind, size, vector=(-1, 1), label_size=1):
                 0,
             )
         p = t.transformPoint_(p)
-        #print p
+        #print(p)
         
         #fontSize(label_size)
         #text(kind, (p.x - bbox.width/2, p.y - bbox.height/2))
@@ -63,7 +63,7 @@ def _drawArrow(position, kind, size, vector=(-1, 1), label_size=1):
         #oval(p.x -bh/2.0 , p.y -bh/2.0, bh, bh)
         #myString.drawAtPoint_withAttributes_(p, attrs)
         rr = NSRect(origin=(p.x -bh/2.0, p.y -bw/2.0), size=(bw, bh))
-        #print rr
+        #print(rr)
         
         myString.drawInRect_withAttributes_(rr, attrs)
         myString.drawAtPoint_withAttributes_(p, attrs)
@@ -73,7 +73,7 @@ def _drawArrow(position, kind, size, vector=(-1, 1), label_size=1):
 size(1000, 1000)
 
 for i in range(20):
-    #print degrees(i * 0.1 * pi)
+    #print(degrees(i * 0.1 * pi))
     stroke(0.2)
     strokeWidth(1)
 

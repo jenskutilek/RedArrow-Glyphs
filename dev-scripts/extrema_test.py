@@ -1,6 +1,6 @@
 from __future__ import division
 from math import atan2, degrees, cos, pi, sin, sqrt
-from types import TupleType
+# from types import TupleType
 from fontTools.misc.arrayTools import pointInRect, normRect
 from fontTools.misc.bezierTools import calcCubicParameters, solveQuadratic, splitCubicAtT
 from fontTools.misc.transform import Transform
@@ -11,7 +11,7 @@ def get_extrema_points_vectors(roots, pt1, pt2, pt3, pt4):
     points = [p[3] for p in split_segments]
     vectors = [get_vector(p[2], p[3]) for p in split_segments]
     for s in split_segments:
-        print "    Split:", s
+        print("    Split:", s)
         save()
         stroke(None)
         fill(1, 0.6, 0, 0.8)
@@ -92,12 +92,12 @@ for j, cubic in enumerate(cubics):
     #endPath()
     drawPath()
     
-    print "\nCubic %i:" % (j + 1)
-    print cubic
+    print("\nCubic %i:" % (j + 1))
+    print(cubic)
 
     points, vectors = getExtremaForCubic(*cubic, h=True, v=True)
-    print "    Points: ", points
-    print "    Vectors:", vectors
+    print("    Points: ", points)
+    print("    Vectors:", vectors)
 
     for i, p in enumerate(points):
         phi = atan2(vectors[i][1], vectors[i][0])
