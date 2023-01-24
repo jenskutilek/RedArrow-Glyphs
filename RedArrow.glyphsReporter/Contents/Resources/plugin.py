@@ -27,7 +27,7 @@ from AppKit import (
 
 from geometry_functions import distance_between_points
 from math import atan2, cos, pi, sin
-from outlineTestPen import OutlineTestPen
+from outlineTestGlyphs import OutlineTest
 
 plugin_id = "de.kutilek.RedArrow"
 DEBUG = False
@@ -230,7 +230,7 @@ class RedArrow(ReporterPlugin):
         mid = font.selectedFontMaster.id
         self.options["grid_length"] = font.gridLength
         glyphlist = font.glyphs.keys()
-        outline_test_pen = OutlineTestPen(font, options, run_tests)
+        outline_test_pen = OutlineTest(font, options, run_tests)
         for glyph_name in glyphlist:
             glyph = font.glyphs[glyph_name]
             layer = glyph.layers[mid]
@@ -265,7 +265,7 @@ class RedArrow(ReporterPlugin):
         self.errors = []
         if layer is not None and hasattr(layer, "parent"):
             self.options["grid_length"] = layer.parent.parent.gridLength
-            outline_test_pen = OutlineTestPen(
+            outline_test_pen = OutlineTest(
                 layer.parent.parent, self.options, self.run_tests
             )
             layer.drawPoints(outline_test_pen)
