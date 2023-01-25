@@ -358,12 +358,13 @@ class RedArrow(ReporterPlugin):
 
         rr = NSRect(origin=(text_pt.x - bw / 2, text_pt.y - bh / 2), size=(bw, bh))
 
-        myRect = NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(
-            NSInsetRect(NSOffsetRect(rr, 0, -1), -6, -3), 4, 4
-        )
+        # Draw background box for the text label
+        # myRect = NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(
+        #     NSInsetRect(NSOffsetRect(rr, 0, -1), -6, -3), 4, 4
+        # )
 
-        label_background.colorWithAlphaComponent_(0.8 * percent).setFill()
-        myRect.fill()
+        # label_background.colorWithAlphaComponent_(0.8 * percent).setFill()
+        # myRect.fill()
 
         # text_color.colorWithAlphaComponent_(0.8 * percent).setStroke()
         # myRect.setLineWidth_(0.05 * size)
