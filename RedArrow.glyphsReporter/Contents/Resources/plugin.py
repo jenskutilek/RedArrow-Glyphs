@@ -267,7 +267,7 @@ class RedArrow(ReporterPlugin):
             outline_test = OutlineTest(layer, self.options, self.run_tests)
             outline_test.checkLayer()
             self.errors = outline_test.errors
-            print("\n".join([str(e) for e in self.errors]))
+            # print("\n".join([str(e) for e in self.errors]))
         if DEBUG:
             self.logToConsole("Errors: %s" % self.errors)
 

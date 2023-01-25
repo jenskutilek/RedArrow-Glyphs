@@ -344,9 +344,7 @@ class OutlineTest:
     def checkLayer(self):
         self.errors = []
         for path in self.layer.paths:
-            print("Path start")
             for node in path.nodes:
-                print(f"    {node}")
                 node_type = node.type
                 if node_type == CURVE:
                     self._runCurveTests(node)
@@ -356,7 +354,6 @@ class OutlineTest:
                     self._runLineTests(node)
                 else:
                     self._runOffcurveTests(node)
-            print("Path end")
 
         for component in self.layer.components:
             self._runComponentTests(component)
