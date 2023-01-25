@@ -14,6 +14,7 @@ from AppKit import (
     NSFont,
     NSFontAttributeName,
     NSForegroundColorAttributeName,
+    NSMakePoint,
     NSMakeRect,
     NSMenuItem,
     # NSMutableParagraphStyle,
@@ -34,6 +35,8 @@ DEBUG = False
 error_color = (0.9019, 0.25, 0.0, 0.85)
 warning_color = (0.9019, 0.7215, 0.0, 0.85)
 text_color = (0.4, 0.4, 0.6, 0.7)
+
+normal_vector = (1, 1)
 
 
 class RedArrow(ReporterPlugin):
@@ -97,7 +100,7 @@ class RedArrow(ReporterPlugin):
             "test_zero_handles",
         ]
         self.errors = []
-        self.mouse_position = (0, 0)
+        self.mouse_position = NSMakePoint(0, 0)
         self.lastChangeDate = 0
         self.current_layer = None
         self.vanilla_alerted = False
@@ -156,7 +159,7 @@ class RedArrow(ReporterPlugin):
             )
         except Exception as e:
             self.logToConsole("foreground: mouse_position: %s" % str(e))
-            self.mouse_position = (0, 0)
+            self.mouse_position = NSMakePoint(0, 0)
 
         currentController = self.controller.view().window().windowController()
         if currentController:
@@ -262,21 +265,19 @@ class RedArrow(ReporterPlugin):
         self.errors = []
         if layer is not None and hasattr(layer, "parent"):
             self.options["grid_length"] = layer.parent.parent.gridLength
-            outline_test = OutlineTest(
-                layer, self.options, self.run_tests
-            )
+            outline_test = OutlineTest(layer, self.options, self.run_tests)
             outline_test.checkLayer()
             self.errors = outline_test.errors
+            print("\n".join([str(e) for e in self.errors]))
         if DEBUG:
             self.logToConsole("Errors: %s" % self.errors)
 
     @objc.python_method
-    def _drawArrow(self, position, kind, size, vector=(-1, 1), level="e"):
+    def _drawArrow(self, position, kind, size, vector=normal_vector, level="e"):
         if vector is None:
-            vector = (-1, 1)
+            vector = normal_vector
         angle = atan2(vector[0], -vector[1])
         size *= 2
-        x, y = position
         head_ratio = 0.7
         w = size * 0.5
         tail_width = 0.3
@@ -289,7 +290,7 @@ class RedArrow(ReporterPlugin):
             arrow_color = warning_color
         NSColor.colorWithCalibratedRed_green_blue_alpha_(*arrow_color).set()
         t = NSAffineTransform.transform()
-        t.translateXBy_yBy_(x, y)
+        t.translateXBy_yBy_(position.x, position.y)
         t.rotateByRadians_(angle)
         myPath = NSBezierPath.alloc().init()
 
@@ -324,7 +325,7 @@ class RedArrow(ReporterPlugin):
             return
 
         if vector is None:
-            vector = (-1, 1)
+            vector = normal_vector
         angle = atan2(vector[0], -vector[1])
         text_size = 0.5 * size
 
@@ -372,12 +373,11 @@ class RedArrow(ReporterPlugin):
         # )
 
     @objc.python_method
-    def _drawUnspecified(self, position, kind, size, vector=(-1, 1), level="e"):
+    def _drawUnspecified(self, position, kind, size, vector=normal_vector, level="e"):
         if vector is None:
-            vector = (-1, 1)
+            vector = normal_vector
         angle = atan2(vector[1], vector[0])
         circle_size = size * 1.3
-        x, y = position
         if level == "e":
             arrow_color = error_color
         else:
@@ -385,15 +385,15 @@ class RedArrow(ReporterPlugin):
         NSColor.colorWithCalibratedRed_green_blue_alpha_(*arrow_color).set()
 
         t = NSAffineTransform.transform()
-        t.translateXBy_yBy_(x, y)
+        t.translateXBy_yBy_(position.x, position.y)
         t.rotateByRadians_(angle)
 
         myPath = NSBezierPath.alloc().init()
         myPath.setLineWidth_(0)
         myPath.appendBezierPathWithOvalInRect_(
             NSMakeRect(
-                x - 0.5 * circle_size,
-                y - 0.5 * circle_size,
+                position.x - 0.5 * circle_size,
+                position.y - 0.5 * circle_size,
                 circle_size,
                 circle_size,
             )
@@ -415,13 +415,14 @@ class RedArrow(ReporterPlugin):
         errors_by_position = {}
         for e in self.errors:
             if e.position is not None:
-                if (e.position[0], e.position[1]) in errors_by_position:
-                    errors_by_position[(e.position[0], e.position[1])].extend([e])
+                pos_key = (int(e.position.x), int(e.position.y))
+                if pos_key in errors_by_position:
+                    errors_by_position[pos_key].append(e)
                 else:
-                    errors_by_position[(e.position[0], e.position[1])] = [e]
+                    errors_by_position[pos_key] = [e]
             else:
                 if None in errors_by_position:
-                    errors_by_position[None].extend([e])
+                    errors_by_position[None].append(e)
                 else:
                     errors_by_position[None] = [e]
         for pos, errors in errors_by_position.items():
@@ -430,7 +431,7 @@ class RedArrow(ReporterPlugin):
                 if e.badness is None or not debug:
                     if DEBUG:
                         if e.vector is None:
-                            e.vector = (1, 1)
+                            e.vector = normal_vector
                         message += "%s (%0.2f|%0.2f = %0.2f π), " % (
                             e.kind,
                             e.vector[0],
@@ -442,7 +443,9 @@ class RedArrow(ReporterPlugin):
                 else:
                     message += "%s (Severity %0.1f), " % (e.kind, e.badness)
             if pos is None:
-                pos = (self.current_layer.width + 20, -10)
+                pos = NSMakePoint(self.current_layer.width + 20, -10)
                 self._drawUnspecified(pos, message.strip(", "), size, e.vector, e.level)
             else:
-                self._drawArrow(pos, message.strip(", "), size, e.vector, e.level)
+                self._drawArrow(
+                    e.position, message.strip(", "), size, e.vector, e.level
+                )

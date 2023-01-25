@@ -1,4 +1,5 @@
-from fontTools.misc.arrayTools import pointInRect, normRect
+from AppKit import NSMakePoint
+from fontTools.misc.arrayTools import normRect
 from fontTools.misc.bezierTools import (
     calcQuadraticParameters,
     calcCubicParameters,
@@ -8,7 +9,7 @@ from fontTools.misc.bezierTools import (
     epsilon,
 )
 from fontTools.misc.transform import Transform
-from GlyphsApp import CURVE, LINE, QCURVE, OFFCURVE
+from GlyphsApp import CURVE, LINE, QCURVE
 from math import atan2, degrees, cos, pi, sin, sqrt
 
 
@@ -19,6 +20,13 @@ def get_bounds(font, glyphname):
     return (0, 0, 0, 0)
     # FIXME: We need to find the layer.bounds() in Glyphs
     # return font.glyphs[glyphname].bounds()
+
+
+# from fontTools.misc.arrayTools
+def pointInRect(p, rect):
+    """Test if a point is inside a bounding rectangle."""
+    xMin, yMin, xMax, yMax = rect
+    return (xMin <= p.x <= xMax) and (yMin <= p.y <= yMax)
 
 
 def solveLinear(a, b):
@@ -49,7 +57,7 @@ def add_implied_oncurve_points_quad(quad):
 def get_extrema_points_vectors(roots, pt1, pt2, pt3, pt4):
     split_segments = [p for p in splitCubicAtT(pt1, pt2, pt3, pt4, *roots)[:-1]]
     points = [p[3] for p in split_segments]
-    vectors = [get_vector(p[2], p[3]) for p in split_segments]
+    vectors = [get_vector_tuple(p[2], p[3]) for p in split_segments]
     return points, vectors
 
 
@@ -133,7 +141,7 @@ def getInflectionsForCubic(pt1, pt2, pt3, pt4, err_min=0.3, err_max=0.7):
 def get_extrema_points_vectors_quad(roots, pt1, pt2, pt3):
     split_segments = [p for p in splitQuadraticAtT(pt1, pt2, pt3, *roots)[:-1]]
     points = [p[2] for p in split_segments]
-    vectors = [get_vector(p[1], p[2]) for p in split_segments]
+    vectors = [get_vector_tuple(p[1], p[2]) for p in split_segments]
     return points, vectors
 
 
@@ -163,36 +171,42 @@ def getInflectionsForQuadratic(pt1, bcps, pt2):
 
 
 def round_point(pt, gridLength=1):
+    # Return a rounded copy of point pt, depending on gridLength
+    pr = NSMakePoint(pt.x, pt.y)
     if gridLength == 1:
-        return (int(round(pt[0])), int(round(pt[1])))
+        pr.x = int(round(pt.x))
+        pr.y = int(round(pt.y))
+        return pr
     elif gridLength == 0:
-        return pt
+        return pr
     else:
-        x = round(pt[0] / gridLength) * gridLength
-        y = round(pt[1] / gridLength) * gridLength
-        return (x, y)
+        pr.x = round(pt.x / gridLength) * gridLength
+        pr.y = round(pt.y / gridLength) * gridLength
+        return pr
 
 
 def get_vector(p0, p1):
-    return (p1[0] - p0[0], p1[1] - p0[1])
+    return (p1.x - p0.x, p1.y - p0.y)
+
+
+def get_vector_tuple(p0, p1):
+    p0x, p0y = p0
+    p1x, p1y = p1
+    return (p1x - p0x, p1y - p0y)
 
 
 def angle_between_points(p0, p1):
-    return atan2(p1[1] - p0[1], p1[0] - p0[0])
+    return atan2(p1.y - p0.y, p1.x - p0.x)
 
 
 def distance_between_points(p0, p1):
-    return sqrt((p1[1] - p0[1]) ** 2 + (p1[0] - p0[0]) ** 2)
+    return sqrt((p1.y - p0.y) ** 2 + (p1.x - p0.x) ** 2)
 
 
 def half_point(p0, p1):
-    if type(p0) == tuple:
-        p01 = ((p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2)
-    else:
-        # NSPoint (Glyphs)
-        p01 = p0.copy()
-        p01[0] = (p0[0] + p1[0]) / 2
-        p01[1] = (p0[1] + p1[1]) / 2
+    p01 = NSMakePoint(p0.x, p0.y)
+    p01.x = (p0.x + p1.x) / 2
+    p01.y = (p0.y + p1.y) / 2
     return p01
 
 
@@ -215,7 +229,7 @@ class OutlineError(object):
     def __repr__(self):
         r = "%s" % self.kind
         if self.position is not None:
-            r += " at (%i, %i)" % (self.position[0], self.position[1])
+            r += " at (%i, %i)" % (self.position.x, self.position.y)
         if self.badness is not None:
             r += " (badness %i)" % self.badness
         return r
@@ -327,84 +341,78 @@ class OutlineTest:
     def checkLayer(self):
         self.errors = []
         for path in self.layer.paths:
-
-            # Organize nodes as segments
-            segments = []
-            segment = []
+            print("Path start")
             for node in path.nodes:
-                segment.append(node)
-                if node.type != OFFCURVE:
-                    segments.append(segment)
-                    segment = [node]
-            if len(segment) > 1:
-                segments[0].insert(segment, 0)
-
-            # Run checks for each segment
-            for segment in segments:
-                last_node_type = segment[-1].type
-                if last_node_type == CURVE:
-                    self._runCurveTests(segment)
-                elif last_node_type == QCURVE:
-                    self._runQCurveTests(segment)
-                elif last_node_type == LINE:
-                    self._runLineTests(segment)
+                print(f"    {node}")
+                node_type = node.type
+                if node_type == CURVE:
+                    self._runCurveTests(node)
+                elif node_type == QCURVE:
+                    self._runQCurveTests(node)
+                elif node_type == LINE:
+                    self._runLineTests(node)
+                else:
+                    self._runOffcurveTests(node)
+            print("Path end")
 
         for component in self.layer.components:
             self._runComponentTests(component)
 
-    # Tests for different segment types
+    # Tests for different node types
 
-    def _runLineTests(self, segment):
-        pass
+    def _runLineTests(self, node):
         if self.test_fractional_coords:
-            self._checkFractionalCoordinates(segment[-1])
-        # if self.test_smooth:
-        #     self._checkIncorrectSmoothConnection(segment)
-        # if self.test_empty_segments:
-        #     self._checkEmptyLinesAndCurves(segment)
-        # if self.test_collinear and self._should_test_collinear:
-        #     self._checkCollinearVectors(segment)
+            self._checkFractionalCoordinates(node)
+        if self.test_smooth:
+            self._checkIncorrectSmoothConnection(node)
+        if self.test_empty_segments:
+            self._checkEmptyLinesAndCurves(node)
+        if self.test_collinear and node.nextNode.type == LINE:
+            self._checkCollinearVectors(node)
         if self.test_semi_hv:
-            self._checkSemiHorizontalVectors(segment)
-            self._checkSemiVerticalVectors(segment)
+            self._checkSemiHorizontalLine(node.prevNode, node)
+            self._checkSemiVerticalLine(node.prevNode, node)
 
-    def _runCurveTests(self, segment):
+    def _runCurveTests(self, node):
         if self.test_extrema:
-            self._checkBboxSegment(segment)
+            self._checkBboxCurve(node)
         if self.test_inflections:
-            self._checkInflectionsSegment(segment)
+            self._checkInflectionsSegment(node)
         if self.test_fractional_coords:
-            for node in segment[1:]:
-                self._checkFractionalCoordinates(node)
-        # if not self.curveTypeDetected:
-        #     self._countCurveSegment()
-        # if self.test_smooth:
-        #     self._checkIncorrectSmoothConnection(segment)
-        # if self.test_empty_segments:
-        #     self._checkEmptyLinesAndCurves(segment)
+            self._checkFractionalCoordinates(node)
+        if not self.curveTypeDetected:
+            self._countCurveSegment()
+        if self.test_smooth:
+            self._checkIncorrectSmoothConnection(node)
+        if self.test_empty_segments:
+            self._checkEmptyLinesAndCurves(node)
         # if self.test_zero_handles:
-        #     self._checkZeroHandles(segment)
-        # if self.test_semi_hv:
-        #     self._checkSemiHorizontalHandles(segment)
-        #     self._checkSemiVerticalHandles(segment)
+        #     self._checkZeroHandles(node.prevNode, node)
+        #     self._checkZeroHandles(node, node.nextNode)
+        if self.test_semi_hv:
+            self._checkSemiHorizontalHandle(node.prevNode, node)
+            self._checkSemiVerticalHandle(node.prevNode, node)
 
-    def _runQCurveTests(self, segment):
-        if self.test_extrema:
-            self._checkExtremaQuad(segment)
-        if self.test_inflections:
-            self._checkInflectionsQuad(segment)
+    def _runOffcurveTests(self, node):
         if self.test_fractional_coords:
-            for node in segment:
-                self._checkFractionalCoordinates(node)
+            self._checkFractionalCoordinates(node)
+
+    def _runQCurveTests(self, node):
+        # if self.test_extrema:
+        #     self._checkExtremaQuad(node)
+        # if self.test_inflections:
+        #     self._checkInflectionsQuad(node)
+        if self.test_fractional_coords:
+            self._checkFractionalCoordinates(node)
         if not self.curveTypeDetected:
             self._countQCurveSegment()
         if self.test_smooth:
-            self._checkIncorrectSmoothConnection(segment)
+            self._checkIncorrectSmoothConnection(node)
         if self.test_empty_segments:
-            self._checkEmptyLinesAndCurves(segment)
-        if self.test_semi_hv:
-            self._checkSemiHorizontalHandles(segment)
-            self._checkSemiVerticalHandles(segment)
+            self._checkEmptyLinesAndCurves(node)
+        # if self.test_semi_hv:
+        #     self._checkSemiHorizontalHandles(node)
+        #     self._checkSemiVerticalHandles(node)
 
     def _runComponentTests(self, component):
         if self.test_fractional_transform:
@@ -414,20 +422,27 @@ class OutlineTest:
 
     # Implementations for all the different tests
 
-    def _checkBboxSegment(self, segment):
-        pt0, bcp1, bcp2, pt3 = segment
+    def _checkBboxCurve(self, node):
+        pt3 = node
+        bcp2 = node.prevNode
+        bcp1 = bcp2.prevNode
+        pt0 = bcp1.prevNode
         myRect = normRect((pt0.x, pt0.y, pt3.x, pt3.y))
-        if not pointInRect((bcp1.x, bcp1.y), myRect) or not pointInRect((bcp2.x, bcp2.y), myRect):
+        if not pointInRect(bcp1, myRect) or not pointInRect(bcp2, myRect):
             extrema, vectors = getExtremaForCubic(pt0, bcp1, bcp2, pt3, h=True, v=True)
             for i, p in enumerate(extrema):
                 if self.extremum_calculate_badness:
                     badness = self._getBadness(p, myRect)
                     if badness >= self.extremum_ignore_badness_below:
                         self.errors.append(
-                            OutlineError(p, "Extremum", badness, vectors[i])
+                            OutlineError(
+                                NSMakePoint(*p), "Extremum", badness, vectors[i]
+                            )
                         )
                 else:
-                    self.errors.append(OutlineError(p, "Extremum", vector=vectors[i]))
+                    self.errors.append(
+                        OutlineError(NSMakePoint(*p), "Extremum", vector=vectors[i])
+                    )
 
     def _checkExtremaQuad(self, bcps, pt):
         quad = add_implied_oncurve_points_quad([self._prev] + bcps + [pt])
@@ -439,75 +454,80 @@ class OutlineTest:
                 # if self.extremum_calculate_badness:
                 # 	badness = self._getBadness(p, myRect)
                 # 	if badness >= self.extremum_ignore_badness_below:
-                # 		self.errors.append(OutlineError(p, "Extremum", badness, vectors[i]))
+                # 		self.errors.append(OutlineError(NSMakePoint(*p), "Extremum", badness, vectors[i]))
                 # else:
-                self.errors.append(OutlineError(p, "Extremum", vector=vectors[i]))
+                self.errors.append(
+                    OutlineError(NSMakePoint(*p), "Extremum", vector=vectors[i])
+                )
 
     def _getBadness(self, pointToCheck, myRect):
         # calculate distance of point to rect
         badness = 0
-        if pointToCheck[0] < myRect[0]:
+        if pointToCheck.x < myRect[0]:
             # point is left from rect
-            if pointToCheck[1] < myRect[1]:
+            if pointToCheck.y < myRect[1]:
                 # point is lower left from rect
                 badness = int(
                     round(
                         sqrt(
-                            (myRect[0] - pointToCheck[0]) ** 2
-                            + (myRect[1] - pointToCheck[1]) ** 2
+                            (myRect[0] - pointToCheck.x) ** 2
+                            + (myRect[1] - pointToCheck.y) ** 2
                         )
                     )
                 )
-            elif pointToCheck[1] > myRect[3]:
+            elif pointToCheck.y > myRect[3]:
                 # point is upper left from rect
                 badness = int(
                     round(
                         sqrt(
-                            (myRect[0] - pointToCheck[0]) ** 2
-                            + (myRect[3] - pointToCheck[1]) ** 2
+                            (myRect[0] - pointToCheck.x) ** 2
+                            + (myRect[3] - pointToCheck.y) ** 2
                         )
                     )
                 )
             else:
-                badness = myRect[0] - pointToCheck[0]
-        elif pointToCheck[0] > myRect[2]:
+                badness = myRect[0] - pointToCheck.x
+        elif pointToCheck.x > myRect[2]:
             # point is right from rect
-            if pointToCheck[1] < myRect[1]:
+            if pointToCheck.y < myRect[1]:
                 # point is lower right from rect
                 badness = int(
                     round(
                         sqrt(
-                            (myRect[2] - pointToCheck[0]) ** 2
-                            + (myRect[1] - pointToCheck[1]) ** 2
+                            (myRect[2] - pointToCheck.x) ** 2
+                            + (myRect[1] - pointToCheck.y) ** 2
                         )
                     )
                 )
-            elif pointToCheck[1] > myRect[3]:
+            elif pointToCheck.y > myRect[3]:
                 # point is upper right from rect
                 badness = int(
                     round(
                         sqrt(
-                            (myRect[2] - pointToCheck[0]) ** 2
-                            + (myRect[3] - pointToCheck[1]) ** 2
+                            (myRect[2] - pointToCheck.x) ** 2
+                            + (myRect[3] - pointToCheck.y) ** 2
                         )
                     )
                 )
             else:
-                badness = pointToCheck[0] - myRect[2]
+                badness = pointToCheck.x - myRect[2]
         else:
             # point is centered from rect, check for upper/lower
-            if pointToCheck[1] < myRect[1]:
+            if pointToCheck.y < myRect[1]:
                 # point is lower center from rect
-                badness = myRect[1] - pointToCheck[1]
+                badness = myRect[1] - pointToCheck.y
             elif pointToCheck[1] > myRect[3]:
                 # point is upper center from rect
-                badness = pointToCheck[1] - myRect[3]
+                badness = pointToCheck.y - myRect[3]
             else:
                 badness = 0
         return badness
 
-    def _checkInflectionsSegment(self, segment):
-        pt0, bcp1, bcp2, pt3 = segment
+    def _checkInflectionsSegment(self, node):
+        pt3 = node
+        bcp2 = node.prevNode
+        bcp1 = bcp2.prevNode
+        pt0 = bcp1.prevNode
         ok, err = getInflectionsForCubic(
             (pt0.x, pt0.y),
             (bcp1.x, bcp1.y),
@@ -519,14 +539,20 @@ class OutlineTest:
         ok_inflections, ok_vectors = ok
         err_inflections, err_vectors = err
         for i, p in enumerate(err_inflections):
-            self.errors.append(OutlineError(p, "Inflection", vector=err_vectors[i]))
+            self.errors.append(
+                OutlineError(NSMakePoint(*p), "Inflection", vector=err_vectors[i])
+            )
         for i, p in enumerate(ok_inflections):
-            self.errors.append(OutlineWarning(p, "Inflection", vector=ok_vectors[i]))
+            self.errors.append(
+                OutlineWarning(NSMakePoint(*p), "Inflection", vector=ok_vectors[i])
+            )
 
     def _checkInflectionsQuad(self, bcps, pt):
         inflections, vectors = getInflectionsForQuadratic(self._prev, bcps, pt)
         for i, p in enumerate(inflections):
-            self.errors.append(OutlineError(p, "Inflection", vector=vectors[i]))
+            self.errors.append(
+                OutlineError(NSMakePoint(*p), "Inflection", vector=vectors[i])
+            )
 
     def _countCurveSegment(self):
         if self.apparentlyQuadratic:
@@ -542,8 +568,8 @@ class OutlineTest:
 
     def _checkFractionalCoordinates(self, pt):
         if self.fractional_ignore_point_zero:
-            pr = round_point((pt.x, pt.y), self.grid_length)
-            if abs(pr[0] - pt.x) < 0.001 and abs(pr[1] - pt.y) < 0.001:
+            pr = round_point(pt, self.grid_length)
+            if abs(pr.x - pt.x) < 0.001 and abs(pr.y - pt.y) < 0.001:
                 return False
         else:
             if type(pt.x) == int and type(pt.y == int):
@@ -551,7 +577,7 @@ class OutlineTest:
 
         self.errors.append(
             OutlineError(
-                (int(round(pt.x)), int(round(pt.y))),
+                pt,
                 "Fractional Coordinates",  # (%0.2f, %0.2f)" % (pt[0], pt[1]),
                 vector=None,
             )
@@ -585,178 +611,163 @@ class OutlineTest:
                     )
                     break
 
-    def _checkIncorrectSmoothConnection(self, pt, next_ref):
+    def _checkIncorrectSmoothConnection(self, node):
         """
-        Test for incorrect smooth connections.
+        Test for nearly smooth connections.
         """
-        if self._prev_ref is not None:
-            # angle of previous reference point to current point
-            phi1 = angle_between_points(self._prev_ref, pt)
-            phi2 = angle_between_points(pt, next_ref)
+        prev_node = node.prevNode
+        next_node = node.nextNode
 
-            # distance of pt to next reference point
-            dist1 = distance_between_points(self._prev_ref, pt)
-            dist2 = distance_between_points(pt, next_ref)
+        # angle of previous reference point to current point
+        phi1 = angle_between_points(prev_node, node)
+        phi2 = angle_between_points(node, next_node)
 
-            # print("Checking:")
-            # print("  ", self._prev_ref, pt, degrees(phi1), dist1)
-            # print("  ", pt, next_ref, degrees(phi2), dist2)
+        # distance of pt to next reference point
+        dist1 = distance_between_points(prev_node, node)
+        dist2 = distance_between_points(node, next_node)
 
-            if dist1 >= dist2:
-                # distance 1 is longer, check dist2 for correct angle
-                dist = dist2
-                phi = phi1
-                ref = next_ref
-            else:
-                # distance 2 is longer, check dist1 for correct angle
-                dist = dist1
-                phi = phi2 - pi
-                ref = self._prev_ref
+        # print("Checking:")
+        # print("  ", prev_node, node, degrees(phi1), dist1)
+        # print("  ", node, next_node, degrees(phi2), dist2)
 
+        if dist1 >= dist2:
+            # distance 1 is longer, check dist2 for correct angle
+            dist = dist2
+            phi = phi1
+            ref = next_node
+        else:
+            # distance 2 is longer, check dist1 for correct angle
+            dist = dist1
+            phi = phi2 - pi
+            ref = prev_node
+
+        # print(
+        # 	"  Chose: %s -> %s, angle %0.2f, dist %0.2f" % (
+        # 		ref, next_ref, degrees(phi), dist
+        # 	)
+        # )
+
+        # Ignore short segments
+        if dist > 2 * self.smooth_connection_max_distance:
+            # TODO: Add sanity check to save calculating the projected
+            # point for each segment?
+            # This fails for connections around 180 degrees which may be
+            # reported as 180 or -180
+            # if 0 < abs(phi1 - phi2) < 0.1: # 0.1 (radians) = 5.7 degrees
+            # Calculate where the second reference point should be
+            # TODO: Decide which angle is more important?
+            # E.g. line to curve: line is fixed, curve / tangent point is
+            # flexible?
+            # or always consider the longer segment more important?
+            projected_pt = NSMakePoint(
+                node.x + dist * cos(phi),
+                node.y + dist * sin(phi),
+            )
+            # Compare projected position with actual position
+            badness = distance_between_points(
+                round_point(projected_pt, self.grid_length), ref
+            )
             # print(
-            # 	"  Chose: %s -> %s, angle %0.2f, dist %0.2f" % (
-            # 		ref, next_ref, degrees(phi), dist
+            # 	"  Projected: %s, actual: %s, diff: %0.2f" % (
+            # 		projected_pt, ref, badness
             # 	)
             # )
-
-            # Ignore short segments
-            if dist > 2 * self.smooth_connection_max_distance:
-                # TODO: Add sanity check to save calculating the projected
-                # point for each segment?
-                # This fails for connections around 180 degrees which may be
-                # reported as 180 or -180
-                # if 0 < abs(phi1 - phi2) < 0.1: # 0.1 (radians) = 5.7 degrees
-                # Calculate where the second reference point should be
-                # TODO: Decide which angle is more important?
-                # E.g. line to curve: line is fixed, curve / tangent point is
-                # flexible?
-                # or always consider the longer segment more important?
-                projected_pt = (
-                    pt[0] + dist * cos(phi),
-                    pt[1] + dist * sin(phi),
-                )
-                # Compare projected position with actual position
-                badness = distance_between_points(
-                    round_point(projected_pt, self.grid_length), ref
-                )
-                # print(
-                # 	"  Projected: %s, actual: %s, diff: %0.2f" % (
-                # 		projected_pt, ref, badness
-                # 	)
-                # )
-                if self.grid_length == 0:
-                    d = 0.49
-                else:
-                    d = self.grid_length * 0.49
-                if d < badness:
-                    if (
-                        self.current_smooth
-                        or badness < self.smooth_connection_max_distance
-                    ):
-                        self.errors.append(
-                            OutlineError(
-                                pt,
-                                "Incorrect smooth connection",
-                                badness,
-                                vector=get_vector(self._prev_ref, pt),
-                            )
+            if self.grid_length == 0:
+                d = 0.49
+            else:
+                d = self.grid_length * 0.49
+            if d < badness:
+                if node.smooth or badness < self.smooth_connection_max_distance:
+                    self.errors.append(
+                        OutlineError(
+                            node,
+                            "Incorrect smooth connection",
+                            badness,
+                            vector=get_vector(prev_node, node),
                         )
+                    )
 
-    def _checkEmptyLinesAndCurves(self, pt):
-        if self._prev == pt:
+    def _checkEmptyLinesAndCurves(self, node):
+        if node.prevNode.x == node.x and node.prevNode.y == node.y:
             self.errors.append(
-                OutlineError(pt, "Empty segment", vector=self.current_vector)
+                OutlineError(
+                    node,
+                    "Zero-length distance",
+                    vector=get_vector(node.prevNode, node.nextNode),
+                )
             )
 
-    def _checkVectorsOnClosepath(self, pt):
-        if self._cstart == pt:
-            self.errors.append(
-                OutlineError(pt, "Vector on closepath", vector=self.current_vector)
-            )
-
-    def _checkCollinearVectors(self, pt, next_ref):
+    def _checkCollinearVectors(self, node):
         """
         Test for consecutive lines that have nearly the same angle.
         """
-        if self._prev_ref is not None:
-            if next_ref != pt:
-                # angle of previous reference point to current point
-                phi1 = angle_between_points(self._prev_ref, pt)
-                # angle of current point to next reference point
-                # could be used for angle check without distance check
-                # phi2 = angle_between_points(pt, next_ref)
-                # distance of pt to next reference point
-                dist = distance_between_points(pt, next_ref)
-                projected_pt = (
-                    pt[0] + dist * cos(phi1),
-                    pt[1] + dist * sin(phi1),
+        prev_node = node.prevNode
+        next_node = node.nextNode
+        # if next_ref != pt:
+        # angle of previous reference point to current point
+        phi1 = angle_between_points(prev_node, node)
+        # angle of current point to next reference point
+        # could be used for angle check without distance check
+        # phi2 = angle_between_points(pt, next_ref)
+        # distance of pt to next reference point
+        dist = distance_between_points(node, next_node)
+        projected_pt = NSMakePoint(
+            node.x + dist * cos(phi1),
+            node.y + dist * sin(phi1),
+        )
+        badness = distance_between_points(
+            round_point(projected_pt, self.grid_length), next_node
+        )
+        if badness < self.collinear_vectors_max_distance:
+            self.errors.append(
+                OutlineError(
+                    node,
+                    "Collinear vectors",
+                    badness,
+                    get_vector(prev_node, next_node),
                 )
-                badness = distance_between_points(
-                    round_point(projected_pt, self.grid_length), next_ref
-                )
-                if badness < self.collinear_vectors_max_distance:
-                    self.errors.append(
-                        OutlineError(
-                            pt,
-                            "Collinear vectors",
-                            badness,
-                            self.current_vector,
-                        )
-                    )
+            )
 
-    def _checkSemiHorizontalVectors(self, segment):
+    def _checkSemiHorizontalLine(self, n0, n1):
         """
         Test for semi-horizontal lines.
         """
-        print("_checkSemiHorizontalVectors", segment)
-        if len(segment) < 2:
-            # FIXME
-            return
-
-        p0 = (segment[0].x, segment[0].y)
-        p1 = (segment[1].x, segment[1].y)
-        if distance_between_points(p0, p1) > self.semi_hv_vectors_min_distance:
-            phi = angle_between_points(p0, p1)
-            # 				 atan2(1, 31)
+        if distance_between_points(n0, n1) > self.semi_hv_vectors_min_distance:
+            phi = angle_between_points(n0, n1)
+            rho = atan2(1, 31)
             if (
-                0 < abs(phi) < 0.032
-                or 0 < abs(phi - pi) < 0.032
-                or 0 < abs(abs(phi) - pi) < 0.032
+                0 < abs(phi) < rho
+                or 0 < abs(phi - pi) < rho
+                or 0 < abs(abs(phi) - pi) < rho
             ):
-                if abs(p1[1] - p0[1]) < 2:
+                if abs(n1.y - n0.y) < 2:
                     self.errors.append(
                         OutlineError(
-                            half_point(p0, p1),
+                            half_point(n0, n1),
                             "Semi-horizontal line",
                             degrees(phi),
-                            get_vector(p0, p1),
+                            get_vector(n0, n1),
                         )
                     )
 
-    def _checkSemiVerticalVectors(self, segment):
+    def _checkSemiVerticalLine(self, n0, n1):
         """
         Test for semi-vertical lines.
         """
         # TODO: Option to respect Italic angle?
-        print("_checkSemiVerticalVectors", segment)
-        if len(segment) < 2:
-            # FIXME
-            return
-
-        p0 = (segment[0].x, segment[0].y)
-        p1 = (segment[1].x, segment[1].y)
-        if distance_between_points(p0, p1) > self.semi_hv_vectors_min_distance:
-            phi = angle_between_points(p0, p1)
+        if distance_between_points(n0, n1) > self.semi_hv_vectors_min_distance:
+            phi = angle_between_points(n0, n1)
+            rho = atan2(31, 1)
             if (
-                0 < abs(phi - 0.5 * pi) < 0.032  # atan2(31, 1)
-                or 0 < abs(phi + 0.5 * pi) < 0.032  # atan2(31, -1)
+                0 < abs(phi - 0.5 * pi) < rho
+                or 0 < abs(phi + 0.5 * pi) < rho
             ):
                 self.errors.append(
                     OutlineError(
-                        half_point(p0, p1),
+                        half_point(n0, n1),
                         "Semi-vertical line",
                         degrees(phi),
-                        get_vector(p0, p1),
+                        get_vector(n0, n1),
                     )
                 )
 
@@ -765,12 +776,13 @@ class OutlineTest:
         Test for semi-horizontal handles.
         """
         phi = angle_between_points(p0, p1)
+        rho = atan2(1, 31)
         if (
-            0 < abs(phi) < 0.032  # atan2(1, 31)
-            or 0 < abs(phi - pi) < 0.032
-            or 0 < abs(abs(phi) - pi) < 0.032
+            0 < abs(phi) < rho
+            or 0 < abs(phi - pi) < rho
+            or 0 < abs(abs(phi) - pi) < rho
         ):
-            if abs(p1[1] - p0[1]) < 2:
+            if abs(p1.y - p0.y) < 2:
                 self.errors.append(
                     OutlineError(
                         half_point(p0, p1),
@@ -786,9 +798,10 @@ class OutlineTest:
         """
         # TODO: Option to respect Italic angle?
         phi = angle_between_points(p0, p1)
+        rho = atan2(31, 1)
         if (
-            0 < abs(phi - 0.5 * pi) < 0.032  # atan2(31, 1)
-            or 0 < abs(phi + 0.5 * pi) < 0.032  # atan2(31, -1)
+            0 < abs(phi - 0.5 * pi) < rho
+            or 0 < abs(phi + 0.5 * pi) < rho
         ):
             self.errors.append(
                 OutlineError(
@@ -803,86 +816,5 @@ class OutlineTest:
         badness = distance_between_points(p0, p1)
         if badness <= self.zero_handles_max_distance:
             self.errors.append(
-                OutlineError(p1, "Zero handle", badness, self.current_vector)
+                OutlineError(p1, "Zero handle", badness, get_vector(p0, p1))
             )
-
-    def _flushContour(self, segments):
-        first_segment = True
-        self.current_vector = None
-        pt = segments[0][1][0][0]
-        self._prev = None
-        self._prev_ref = None
-        self.current_smooth = False
-        self._prev_cstart = self._cstart
-        self._cstart = pt
-        self._runMoveTests(pt)
-        self._prev_ref = None
-        self._prev = pt
-        self._prev_type = None
-        self._is_contour_start = True
-        self._should_test_collinear = False
-        for segment_type, points in segments:
-            # print(segment_type, points)
-
-            if first_segment:
-                self._prev_type, prev_points = segments[-1]
-                self._prev = prev_points[-1][0]
-                if self._prev_type in [CURVE, QCURVE]:
-                    self._prev_ref = prev_points[-2][0]
-                    self.current_smooth = prev_points[-1][1]
-                else:
-                    self._prev_ref = prev_points[0][0]
-                    self.current_smooth = prev_points[0][1]
-                first_segment = False
-
-            if segment_type == CURVE:
-                bcp1, bcp2, pt = points[0][0], points[1][0], points[2][0]
-                self.current_vector = get_vector(bcp2, pt)
-                self._runCurveTests(bcp1, bcp2, pt)
-                self._prev_ref = bcp2
-                self._prev = pt
-                self._prev_type = CURVE
-                if self._is_contour_start:
-                    self._contour_start_ref = bcp1
-                    self._is_contour_start = False
-                self._should_test_collinear = False
-                self.current_smooth = points[2][1]
-            elif segment_type == LINE:
-                pt = points[0][0]
-                self.current_vector = get_vector(self._prev, pt)
-                self._runLineTests(pt)
-                self._prev_ref = self._prev
-                # ?
-                # self._prev_ref = pt
-                self._prev = pt
-                self._prev_type = LINE
-                if self._is_contour_start:
-                    self._contour_start_ref = pt
-                self._should_test_collinear = True
-                self.current_smooth = points[0][1]
-            elif segment_type == QCURVE:
-                bcp = points[0][0]
-                pt = points[-1][0]
-                bcps = [p[0] for p in points[:-1]]
-                self.current_vector = get_vector(bcps[-1], pt)
-                self._runQCurveTests(bcps, pt)
-                self._prev_ref = points[-2][0]
-                self._prev = pt
-                self._prev_type = QCURVE
-                if self._is_contour_start:
-                    self._contour_start_ref = bcp
-                    self._is_contour_start = False
-                self._should_test_collinear = False
-                self.current_smooth = points[1][1]
-            else:
-                pass
-
-        # self._runClosePathTests()
-
-
-if __name__ == "__main__":
-    g = CurrentGlyph()
-    p = OutlineTestPen(CurrentFont())
-    g.drawPoints(p)
-    for e in p.errors:
-        print(e)
