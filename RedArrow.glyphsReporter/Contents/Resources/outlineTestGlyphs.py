@@ -212,9 +212,12 @@ def half_point(p0, p1):
 
 def transform_bbox(bbox, matrix):
     t = Transform(*matrix)
-    ll_x, ll_y = t.transformPoint((bbox[0], bbox[1]))
-    tr_x, tr_y = t.transformPoint((bbox[2], bbox[3]))
-    return normRect((ll_x, ll_y, tr_x, tr_y))
+    ll_x, ll_y = t.transformPoint((bbox.origin.x, bbox.origin.y))
+    tr_x, tr_y = t.transformPoint(
+        (bbox.origin.x + bbox.size.width, bbox.origin.y + bbox.size.height)
+    )
+    ll_x, ll_y, tr_x, tr_y = normRect((ll_x, ll_y, tr_x, tr_y))
+    return NSMakePoint(ll_x, ll_y), NSMakePoint(tr_x, tr_y)
 
 
 class OutlineError(object):
@@ -424,9 +427,7 @@ class OutlineTest:
 
     def _runComponentTests(self, component):
         if self.test_fractional_transform:
-            self._checkFractionalTransformation(
-                component.component, component.transform
-            )
+            self._checkFractionalTransformation(component)
 
     # Implementations for all the different tests
 
@@ -595,33 +596,25 @@ class OutlineTest:
             )
         )
 
-    def _checkFractionalTransformation(self, baseGlyph, transformation):
-        bbox = get_bounds(self.glyphSet, baseGlyph)
-        tbox = transform_bbox(bbox, transformation)
-        if self.fractional_ignore_point_zero:
-            for p in transformation[-2:]:
-                if round(p) != p:
-                    self.errors.append(
-                        OutlineError(
-                            half_point((tbox[0], tbox[1]), (tbox[2], tbox[3])),
-                            "Fractional transformation",
-                            # (%0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f)" % transformation
-                            vector=None,
-                        )
+    def _checkFractionalTransformation(self, component):
+        # print("_checkFractionalTransformation", component, component.transform)
+        bbox = component.component.layers[self.layer.layerId].bounds
+        tbox = transform_bbox(bbox, component.transform)
+        # print(tbox)
+        for p in component.transform:
+            if abs(round(p) - p) > 0.001:
+                self.errors.append(
+                    OutlineError(
+                        half_point(*tbox),
+                        (
+                            "Fractional component transformation "
+                            f"on ‘{component.componentName}’"
+                        ),
+                        # (%0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f)" % component.transform
+                        vector=None,
                     )
-                    break
-        else:
-            for p in transformation[-2:]:
-                if type(p) == float:
-                    self.errors.append(
-                        OutlineError(
-                            half_point((tbox[0], tbox[1]), (tbox[2], tbox[3])),
-                            "Fractional transformation",
-                            # (%0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f)" % transformation
-                            vector=None,
-                        )
-                    )
-                    break
+                )
+                break
 
     def _checkIncorrectSmoothConnection(self, node):
         """
