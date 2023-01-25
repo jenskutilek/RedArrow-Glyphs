@@ -26,6 +26,7 @@ from AppKit import (
 )
 from math import atan2, cos, pi, sin
 from outlineTestGlyphs import OutlineTest
+from time import time
 
 
 plugin_id = "de.kutilek.RedArrow"
@@ -262,10 +263,13 @@ class RedArrow(ReporterPlugin):
         self.lastChangeDate = layer.parent.lastOperationInterval()
         self.errors = []
         if layer is not None and hasattr(layer, "parent"):
+            start = time()
             self.options["grid_length"] = layer.parent.parent.gridLength
             outline_test = OutlineTest(layer, self.options, self.run_tests)
             outline_test.checkLayer()
+            stop = time()
             self.errors = outline_test.errors
+            print(f"Updated layer check in {round((stop - start) * 1000)} ms.")
             # print("\n".join([str(e) for e in self.errors]))
         if DEBUG:
             self.logToConsole("Errors: %s" % self.errors)
