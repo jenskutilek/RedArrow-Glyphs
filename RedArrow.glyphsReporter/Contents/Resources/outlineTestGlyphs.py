@@ -327,6 +327,7 @@ class OutlineTest:
         )
 
         self.grid_length = self.options.get("grid_length", 1)
+        self.ignore_warnings = self.options.get("ignore_warnings", False)
 
         # which tests should be run
         if self.run_tests == []:
@@ -550,6 +551,10 @@ class OutlineTest:
             self.errors.append(
                 OutlineError(NSMakePoint(*p), "Inflection", vector=err_vectors[i])
             )
+
+        if self.ignore_warnings:
+            return
+
         for i, p in enumerate(ok_inflections):
             self.errors.append(
                 OutlineWarning(NSMakePoint(*p), "Inflection", vector=ok_vectors[i])

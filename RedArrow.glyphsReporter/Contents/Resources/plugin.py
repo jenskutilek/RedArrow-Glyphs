@@ -77,6 +77,7 @@ class RedArrow(ReporterPlugin):
     def start(self):
         self.addMenuItem()
         self.options = {
+            "ignore_warnings": False,
             "extremum_calculate_badness": False,
             "extremum_ignore_badness_below": 0,
             "smooth_connection_max_distance": 4,
@@ -95,8 +96,6 @@ class RedArrow(ReporterPlugin):
             "test_empty_segments",
             "test_collinear",
             "test_semi_hv",
-            # "test_closepath",
-            "test_zero_handles",
         ]
         self.errors = []
         self.mouse_position = NSMakePoint(0, 0)
@@ -220,6 +219,7 @@ class RedArrow(ReporterPlugin):
         if font is None:
             return None
 
+        self.options["grid_length"] = font.gridLength
         options, run_tests = self.selectGlyphsOptions()
         if run_tests is None:
             return
@@ -228,7 +228,6 @@ class RedArrow(ReporterPlugin):
 
         font.disableUpdateInterface()
         mid = font.selectedFontMaster.id
-        self.options["grid_length"] = font.gridLength
         glyphlist = font.glyphs.keys()
         for glyph_name in glyphlist:
             glyph = font.glyphs[glyph_name]

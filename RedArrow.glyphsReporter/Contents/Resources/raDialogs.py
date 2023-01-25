@@ -12,21 +12,22 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         "test_inflections": "Missing Inflection Points",
         "test_fractional_coords": "Fractional Coordinates",
         "test_fractional_transform": "Fractional Transformation",
-        "test_smooth": "Incorrect Smooth Connections",
-        "test_empty_segments": "Empty Segments",
+        "test_smooth": "Nearly Smooth Connections",
+        "test_empty_segments": "Zero-length Segments",
         "test_collinear": "Collinear Vectors",
-        "test_semi_hv": "Semi-horizontal/-vertical Vectors",
-        # "test_closepath": "",
-        "test_zero_handles": "Zero Handles",
+        "test_semi_hv": "Semi-horizontal/-vertical Segments",
     }
 
     option_names = {
+        "ignore_warnings": "Ignore Warnings",
         "extremum_calculate_badness": "Calculate Extremum Badness",
         "extremum_ignore_badness_below": "Ignore Extremum Badness Below",
         "smooth_connection_max_distance": "Smooth Connection Tolerance",
         "fractional_ignore_point_zero": "Ignore .0 Fractional Values",
         "collinear_vectors_max_distance": "Collinear Vectors Tolerance",
         "grid_length": "Grid Length",
+        "inflection_max": "Maximum Allowed Inflection t",
+        "inflection_min": "Minimum Allowed Inflection t",
     }
 
     def __init__(self, options={}, run_tests=[]):
@@ -52,7 +53,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         )
         self.w = _RAModalWindow((300, height), "Select Glyphs With Errors")
 
-        self.w.tests_title = vanilla.TextBox((x, y, -10, 23), "Run Tests:")
+        self.w.tests_title = vanilla.TextBox((x, y, -10, 23), "Select Glyphs With:")
         y += title_line_height
 
         for k in sorted(self.run_tests.keys()):
@@ -72,7 +73,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
 
         y += 8
         self.w.options_title = vanilla.TextBox(
-            (x, y, -10, 23), "Test Options (For Advanced Users):"
+            (x, y, -10, 23), "Options (For Advanced Users):"
         )
         y += title_line_height
 
