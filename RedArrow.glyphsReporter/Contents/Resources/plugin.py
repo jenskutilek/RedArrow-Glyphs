@@ -14,6 +14,7 @@ from AppKit import (
     NSFont,
     NSFontAttributeName,
     NSForegroundColorAttributeName,
+    NSInsetRect,
     NSMakePoint,
     NSMakeRect,
     NSMenuItem,
@@ -36,7 +37,7 @@ DEBUG = False
 
 error_color = (0.9019, 0.25, 0.0, 0.85)
 warning_color = (0.9019, 0.7215, 0.0, 0.85)
-text_color = (0.4, 0.4, 0.6, 0.7)
+text_color = NSColor.textColor()
 
 normal_vector = (1, 1)
 
@@ -335,26 +336,18 @@ class RedArrow(ReporterPlugin):
         angle = atan2(vector[0], -vector[1])
         text_size = 0.5 * size
 
-        # para_style = NSMutableParagraphStyle.alloc().init()
-        # para_style.setAlignment_(NSCenterTextAlignment)
-
         attrs = {
             NSFontAttributeName: NSFont.systemFontOfSize_(text_size),
-            NSForegroundColorAttributeName: NSColor.colorWithCalibratedRed_green_blue_alpha_(
-                text_color[0],
-                text_color[1],
-                text_color[2],
-                text_color[3] * percent,
+            NSForegroundColorAttributeName: text_color.colorWithAlphaComponent_(
+                percent
             ),
-            # NSParagraphStyleAttributeName:  para_style,
         }
         myString = NSString.string().stringByAppendingString_(text)
         bbox = myString.sizeWithAttributes_(attrs)
         bw = bbox.width
         bh = bbox.height
 
-        text_pt = NSPoint()
-        text_pt.y = 0
+        text_pt = NSMakePoint(0, 0)
 
         if -0.5 * pi < angle <= 0.5 * pi:
             text_pt.x = -1.3 * size - bw / 2 * cos(angle) - bh / 2 * sin(angle)
@@ -365,18 +358,18 @@ class RedArrow(ReporterPlugin):
 
         rr = NSRect(origin=(text_pt.x - bw / 2, text_pt.y - bh / 2), size=(bw, bh))
 
-        if DEBUG:
-            NSColor.colorWithCalibratedRed_green_blue_alpha_(0, 0, 0, 0.15).set()
-            myRect = NSBezierPath.bezierPathWithRect_(rr)
-            myRect.setLineWidth_(0.05 * size)
-            myRect.stroke()
+        myRect = NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(
+            NSInsetRect(rr, -3, -3), 4, 4
+        )
+
+        NSColor.textBackgroundColor().colorWithAlphaComponent_(0.8 * percent).setFill()
+        myRect.fill()
+
+        NSColor.textColor().colorWithAlphaComponent_(0.8 * percent).setStroke()
+        myRect.setLineWidth_(0.05 * size)
+        myRect.stroke()
 
         myString.drawInRect_withAttributes_(rr, attrs)
-
-        # myString.drawAtPoint_withAttributes_(
-        # 	text_pt,
-        # 	attrs
-        # )
 
     @objc.python_method
     def _drawUnspecified(self, position, kind, size, vector=normal_vector, level="e"):
