@@ -346,6 +346,7 @@ class RedArrow(ReporterPlugin):
         bbox = myString.sizeWithAttributes_(attrs)
         bw = bbox.width
         bh = bbox.height
+        scale = self.getScale()
 
         text_pt = NSMakePoint(0, 0)
 
@@ -356,15 +357,20 @@ class RedArrow(ReporterPlugin):
 
         text_pt = transform.transformPoint_(text_pt)
 
-        rr = NSRect(origin=(text_pt.x - bw / 2, text_pt.y - bh / 2), size=(bw, bh))
+        rr = NSRect(
+            origin=(text_pt.x - bw / 2, text_pt.y - bh / 2),
+            size=(bw, bh),
+        )
 
         # Draw background box for the text label
-        # myRect = NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(
-        #     NSInsetRect(NSOffsetRect(rr, 0, -1), -6, -3), 4, 4
-        # )
+        myRect = NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(
+            NSInsetRect(NSOffsetRect(rr, 0, -1 / scale), -6 / scale, -3 / scale),
+            4 / scale,
+            4 / scale,
+        )
 
-        # label_background.colorWithAlphaComponent_(0.8 * percent).setFill()
-        # myRect.fill()
+        label_background.colorWithAlphaComponent_(0.8 * percent).setFill()
+        myRect.fill()
 
         # text_color.colorWithAlphaComponent_(0.8 * percent).setStroke()
         # myRect.setLineWidth_(0.05 * size)
