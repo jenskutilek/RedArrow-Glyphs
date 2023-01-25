@@ -689,7 +689,7 @@ class OutlineTest:
                     self.errors.append(
                         OutlineError(
                             node,
-                            "Incorrect smooth connection",
+                            "Not quite smooth connection",
                             badness,
                             vector=get_vector(prev_node, node),
                         )
