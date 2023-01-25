@@ -82,7 +82,6 @@ class RedArrow(ReporterPlugin):
             "smooth_connection_max_distance": 4,
             "fractional_ignore_point_zero": True,
             "collinear_vectors_max_distance": 2,
-            # "test_closepath": False,
             "grid_length": 1,
             "inflection_min": 0.3,
             "inflection_max": 0.7,

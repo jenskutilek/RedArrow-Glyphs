@@ -319,6 +319,9 @@ class OutlineTest:
         self.semi_hv_vectors_min_distance = self._normalize_upm(
             self.options.get("semi_hv_vectors_min_distance", 30)
         )
+        self.semi_hv_vectors_max_distance = self._normalize_upm(
+            self.options.get("semi_hv_vectors_max_distance", 2)
+        )
         self.zero_handles_max_distance = self._normalize_upm(
             self.options.get("zero_handles_max_distance", 0)
         )
@@ -370,8 +373,8 @@ class OutlineTest:
         if self.test_collinear and node.nextNode.type == LINE:
             self._checkCollinearVectors(node)
         if self.test_semi_hv:
-            self._checkSemiHorizontalLine(node.prevNode, node)
-            self._checkSemiVerticalLine(node.prevNode, node)
+            self._checkSemiHorizontal(node.prevNode, node)
+            self._checkSemiVertical(node.prevNode, node)
 
     def _runCurveTests(self, node):
         if self.test_extrema:
@@ -390,8 +393,16 @@ class OutlineTest:
         #     self._checkZeroHandles(node.prevNode, node)
         #     self._checkZeroHandles(node, node.nextNode)
         if self.test_semi_hv:
-            self._checkSemiHorizontalHandle(node.prevNode, node)
-            self._checkSemiVerticalHandle(node.prevNode, node)
+            pt3 = node
+            bcp2 = pt3.prevNode
+            bcp1 = bcp2.prevNode
+            pt0 = bcp1.prevNode
+            # Start of curve
+            self._checkSemiHorizontal(pt0, bcp1, "handle")
+            self._checkSemiVertical(pt0, bcp1, "handle")
+            # End of curve
+            self._checkSemiHorizontal(bcp2, pt3, "handle")
+            self._checkSemiVertical(bcp2, pt3, "handle")
 
     def _runOffcurveTests(self, node):
         if self.test_fractional_coords:
@@ -411,8 +422,8 @@ class OutlineTest:
         if self.test_empty_segments:
             self._checkEmptyLinesAndCurves(node)
         # if self.test_semi_hv:
-        #     self._checkSemiHorizontalHandles(node)
-        #     self._checkSemiVerticalHandles(node)
+        #     self._checkSemiHorizontal(node, "handle")
+        #     self._checkSemiVertical(node, "handle")
 
     def _runComponentTests(self, component):
         if self.test_fractional_transform:
@@ -728,9 +739,9 @@ class OutlineTest:
                 )
             )
 
-    def _checkSemiHorizontalLine(self, n0, n1):
+    def _checkSemiHorizontal(self, n0, n1, segment="line"):
         """
-        Test for semi-horizontal lines.
+        Test for semi-horizontal lines and handles.
         """
         if distance_between_points(n0, n1) > self.semi_hv_vectors_min_distance:
             phi = angle_between_points(n0, n1)
@@ -740,77 +751,34 @@ class OutlineTest:
                 or 0 < abs(phi - pi) < rho
                 or 0 < abs(abs(phi) - pi) < rho
             ):
-                if abs(n1.y - n0.y) < 2:
+                if abs(n1.y - n0.y) <= self.semi_hv_vectors_max_distance:
                     self.errors.append(
                         OutlineError(
                             half_point(n0, n1),
-                            "Semi-horizontal line",
+                            f"Semi-horizontal {segment}",
                             degrees(phi),
                             get_vector(n0, n1),
                         )
                     )
 
-    def _checkSemiVerticalLine(self, n0, n1):
+    def _checkSemiVertical(self, n0, n1, segment="line"):
         """
-        Test for semi-vertical lines.
+        Test for semi-vertical lines and handles.
         """
         # TODO: Option to respect Italic angle?
         if distance_between_points(n0, n1) > self.semi_hv_vectors_min_distance:
             phi = angle_between_points(n0, n1)
             rho = atan2(31, 1)
-            if (
-                0 < abs(phi - 0.5 * pi) < rho
-                or 0 < abs(phi + 0.5 * pi) < rho
-            ):
-                self.errors.append(
-                    OutlineError(
-                        half_point(n0, n1),
-                        "Semi-vertical line",
-                        degrees(phi),
-                        get_vector(n0, n1),
+            if 0 < abs(phi - 0.5 * pi) < rho or 0 < abs(phi + 0.5 * pi) < rho:
+                if abs(n1.x - n0.x) <= self.semi_hv_vectors_max_distance:
+                    self.errors.append(
+                        OutlineError(
+                            half_point(n0, n1),
+                            f"Semi-vertical {segment}",
+                            degrees(phi),
+                            get_vector(n0, n1),
+                        )
                     )
-                )
-
-    def _checkSemiHorizontalHandle(self, p0, p1):
-        """
-        Test for semi-horizontal handles.
-        """
-        phi = angle_between_points(p0, p1)
-        rho = atan2(1, 31)
-        if (
-            0 < abs(phi) < rho
-            or 0 < abs(phi - pi) < rho
-            or 0 < abs(abs(phi) - pi) < rho
-        ):
-            if abs(p1.y - p0.y) < 2:
-                self.errors.append(
-                    OutlineError(
-                        half_point(p0, p1),
-                        "Semi-horizontal handle",
-                        degrees(phi),
-                        get_vector(p0, p1),
-                    )
-                )
-
-    def _checkSemiVerticalHandle(self, p0, p1):
-        """
-        Test for semi-vertical handles.
-        """
-        # TODO: Option to respect Italic angle?
-        phi = angle_between_points(p0, p1)
-        rho = atan2(31, 1)
-        if (
-            0 < abs(phi - 0.5 * pi) < rho
-            or 0 < abs(phi + 0.5 * pi) < rho
-        ):
-            self.errors.append(
-                OutlineError(
-                    half_point(p0, p1),
-                    "Semi-vertical handle",
-                    degrees(phi),
-                    get_vector(p0, p1),
-                )
-            )
 
     def _checkZeroHandles(self, p0, p1):
         badness = distance_between_points(p0, p1)
