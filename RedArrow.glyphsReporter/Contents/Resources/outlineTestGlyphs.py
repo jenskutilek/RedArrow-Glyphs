@@ -9,7 +9,7 @@ from fontTools.misc.bezierTools import (
     epsilon,
 )
 from fontTools.misc.transform import Transform
-from GlyphsApp import CURVE, LINE, QCURVE
+from GlyphsApp import CURVE, LINE, OFFCURVE, QCURVE
 from math import atan2, degrees, cos, pi, sin, sqrt
 
 
@@ -409,6 +409,17 @@ class OutlineTest:
             self._checkFractionalCoordinates(node)
 
     def _runQCurveTests(self, node):
+        # Find the previous oncurve node
+        start_node = node.prevNode
+        start_idx = node.index
+        offcurves = []
+        while start_node.type == OFFCURVE:
+            offcurves.append(start_node)
+            start_node = start_node.prevNode
+            if start_node.index == start_idx:
+                # There seems to be no other oncurve node
+                break
+
         # if self.test_extrema:
         #     self._checkExtremaQuad(node)
         # if self.test_inflections:
@@ -421,9 +432,15 @@ class OutlineTest:
             self._checkIncorrectSmoothConnection(node)
         if self.test_empty_segments:
             self._checkEmptyLinesAndCurves(node)
-        # if self.test_semi_hv:
-        #     self._checkSemiHorizontal(node, "handle")
-        #     self._checkSemiVertical(node, "handle")
+        if self.test_semi_hv:
+            pv = node.prevNode
+            nx = start_node.nextNode
+            # Start of curve
+            self._checkSemiHorizontal(start_node, nx, "handle")
+            self._checkSemiVertical(start_node, nx, "handle")
+            # End of curve
+            self._checkSemiHorizontal(pv, node, "handle")
+            self._checkSemiVertical(pv, node, "handle")
 
     def _runComponentTests(self, component):
         if self.test_fractional_transform:
