@@ -421,7 +421,8 @@ class OutlineTest:
             if start_node.index == start_idx:
                 # There seems to be no other oncurve node
                 break
-        segment = start_node + offcurves.reverse() + node
+        offcurves.reverse()
+        segment = [start_node] + offcurves + [node]
 
         if self.test_extrema:
             self._checkExtremaQuad(segment)
