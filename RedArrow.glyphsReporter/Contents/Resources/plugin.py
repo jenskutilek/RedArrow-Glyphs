@@ -26,7 +26,8 @@ from AppKit import (
 )
 from math import atan2, cos, pi, sin
 from outlineTestGlyphs import OutlineTest
-from time import time
+
+# from time import time
 
 
 plugin_id = "de.kutilek.RedArrow"
@@ -103,6 +104,7 @@ class RedArrow(ReporterPlugin):
         self.lastChangeDate = 0
         self.current_layer = None
         self.vanilla_alerted = False
+        self.outline_test = None
 
     @objc.python_method
     def addMenuItem(self):
@@ -260,16 +262,18 @@ class RedArrow(ReporterPlugin):
                 % (layer.parent.name, layer.parent.parent)
             )
         self.current_layer = layer
+        if self.outline_test is None:
+            self.outline_test = OutlineTest(layer, self.options, self.run_tests)
         self.lastChangeDate = layer.parent.lastOperationInterval()
         self.errors = []
         if layer is not None and hasattr(layer, "parent"):
-            start = time()
+            # start = time()
             self.options["grid_length"] = layer.parent.parent.gridLength
-            outline_test = OutlineTest(layer, self.options, self.run_tests)
-            outline_test.checkLayer()
-            stop = time()
-            self.errors = outline_test.errors
-            print(f"Updated layer check in {round((stop - start) * 1000)} ms.")
+            self.outline_test.layer = layer
+            self.outline_test.checkLayer()
+            # stop = time()
+            self.errors = self.outline_test.errors
+            # print(f"Updated layer check in {round((stop - start) * 1000)} ms.")
             # print("\n".join([str(e) for e in self.errors]))
         if DEBUG:
             self.logToConsole("Errors: %s" % self.errors)
