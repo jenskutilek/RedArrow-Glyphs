@@ -164,8 +164,8 @@ def getExtremaForQuadratic(pt1, pt2, pt3, h=True, v=False):
     return points, vectors
 
 
-def getInflectionsForQuadratic(pt1, bcps, pt2):
-    if len(bcps) < 2:
+def getInflectionsForQuadratic(segment):
+    if len(segment) < 2:
         return [], []
     else:
         # TODO: Implement the actual check
@@ -425,6 +425,7 @@ class OutlineTest:
 
         if self.test_extrema:
             self._checkExtremaQuad(segment)
+        # FIXME: Not implemented yet
         # if self.test_inflections:
         #     self._checkInflectionsQuad(node)
         if self.test_fractional_coords:
@@ -580,8 +581,9 @@ class OutlineTest:
                 OutlineWarning(NSMakePoint(*p), "Inflection", vector=ok_vectors[i])
             )
 
-    def _checkInflectionsQuad(self, bcps, pt):
-        inflections, vectors = getInflectionsForQuadratic(self._prev, bcps, pt)
+    def _checkInflectionsQuad(self, segment):
+        # FIXME: Not implemented
+        inflections, vectors = getInflectionsForQuadratic(segment)
         for i, p in enumerate(inflections):
             self.errors.append(
                 OutlineError(NSMakePoint(*p), "Inflection", vector=vectors[i])
