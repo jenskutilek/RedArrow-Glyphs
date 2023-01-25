@@ -46,12 +46,14 @@ def solveLinear(a, b):
 
 
 def add_implied_oncurve_points_quad(quad):
+    # Take a quadratic segment of NSPoint/GSNode and add implied oncurve points
     new_quad = [quad[0]]
     for i in range(1, len(quad) - 2):
         new_quad.append(quad[i])
         new_quad.append(half_point(quad[i], quad[i + 1]))
     new_quad.extend(quad[-2:])
-    return new_quad
+    # Convert to tuples
+    return [(p.x, p.y) for p in new_quad]
 
 
 def get_extrema_points_vectors(roots, pt1, pt2, pt3, pt4):
@@ -419,9 +421,10 @@ class OutlineTest:
             if start_node.index == start_idx:
                 # There seems to be no other oncurve node
                 break
+        segment = start_node + offcurves.reverse() + node
 
-        # if self.test_extrema:
-        #     self._checkExtremaQuad(node)
+        if self.test_extrema:
+            self._checkExtremaQuad(segment)
         # if self.test_inflections:
         #     self._checkInflectionsQuad(node)
         if self.test_fractional_coords:
@@ -470,8 +473,8 @@ class OutlineTest:
                         OutlineError(NSMakePoint(*p), "Extremum", vector=vectors[i])
                     )
 
-    def _checkExtremaQuad(self, bcps, pt):
-        quad = add_implied_oncurve_points_quad([self._prev] + bcps + [pt])
+    def _checkExtremaQuad(self, segment):
+        quad = add_implied_oncurve_points_quad(segment)
         for i in range(0, len(quad) - 1, 2):
             extrema, vectors = getExtremaForQuadratic(
                 quad[i], quad[i + 1], quad[i + 2], h=True, v=True
