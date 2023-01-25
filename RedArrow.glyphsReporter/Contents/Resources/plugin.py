@@ -18,8 +18,7 @@ from AppKit import (
     NSMakePoint,
     NSMakeRect,
     NSMenuItem,
-    # NSMutableParagraphStyle,
-    NSPoint,
+    NSOffsetRect,
     NSRect,
     NSShiftKeyMask,
     NSString,
@@ -38,6 +37,7 @@ DEBUG = False
 error_color = (0.9019, 0.25, 0.0, 0.85)
 warning_color = (0.9019, 0.7215, 0.0, 0.85)
 text_color = NSColor.textColor()
+label_background = NSColor.textBackgroundColor()
 
 normal_vector = (1, 1)
 
@@ -359,15 +359,15 @@ class RedArrow(ReporterPlugin):
         rr = NSRect(origin=(text_pt.x - bw / 2, text_pt.y - bh / 2), size=(bw, bh))
 
         myRect = NSBezierPath.bezierPathWithRoundedRect_xRadius_yRadius_(
-            NSInsetRect(rr, -3, -3), 4, 4
+            NSInsetRect(NSOffsetRect(rr, 0, -1), -6, -3), 4, 4
         )
 
-        NSColor.textBackgroundColor().colorWithAlphaComponent_(0.8 * percent).setFill()
+        label_background.colorWithAlphaComponent_(0.8 * percent).setFill()
         myRect.fill()
 
-        NSColor.textColor().colorWithAlphaComponent_(0.8 * percent).setStroke()
-        myRect.setLineWidth_(0.05 * size)
-        myRect.stroke()
+        # text_color.colorWithAlphaComponent_(0.8 * percent).setStroke()
+        # myRect.setLineWidth_(0.05 * size)
+        # myRect.stroke()
 
         myString.drawInRect_withAttributes_(rr, attrs)
 
