@@ -377,7 +377,7 @@ class OutlineTest:
         if self.test_extrema:
             self._checkBboxCurve(node)
         if self.test_inflections:
-            self._checkInflectionsSegment(node)
+            self._checkInflectionsCurve(node)
         if self.test_fractional_coords:
             self._checkFractionalCoordinates(node)
         if not self.curveTypeDetected:
@@ -531,7 +531,7 @@ class OutlineTest:
                 badness = 0
         return badness
 
-    def _checkInflectionsSegment(self, node):
+    def _checkInflectionsCurve(self, node):
         pt3 = node
         bcp2 = node.prevNode
         bcp1 = bcp2.prevNode
