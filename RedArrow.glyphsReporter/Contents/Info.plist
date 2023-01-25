@@ -13,17 +13,17 @@
 	<key>CFBundleName</key>
 	<string>RedArrow</string>
 	<key>CFBundleVersion</key>
-	<string>200</string>
+	<string>201</string>
 	<key>CFBundleShortVersionString</key>
+	<string>2.0.1</string>
 	<key>UpdateFeedURL</key>
 	<string>https://raw.githubusercontent.com/jenskutilek/RedArrow-Glyphs/master/RedArrow.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
 	<string>https://github.com/jenskutilek/RedArrow-Glyphs</string>
-	<string>2.0.0</string>
 	<key>productReleaseNotes</key>
 	<string>Performance improvements.</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright by Jens Kutilek, 2016-2022</string>
+	<string>Copyright by Jens Kutilek, 2016-2023</string>
 	<key>NSPrincipalClass</key>
 	<string>RedArrow</string>
 	<key>PyMainFileNames</key>
