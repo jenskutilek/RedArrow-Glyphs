@@ -433,6 +433,8 @@ class RedArrow(ReporterPlugin):
                     errors_by_position[None] = [e]
         for pos, errors in errors_by_position.items():
             message = ""
+            level = "w"
+            vector = normal_vector
             for e in errors:
                 if e.badness is None:
                     if DEBUG:
@@ -448,10 +450,17 @@ class RedArrow(ReporterPlugin):
                         message += "%s, " % e.kind
                 else:
                     message += "%s (Severity %0.1f), " % (e.kind, e.badness)
+                if e.level == "e":
+                    level = e.level
+                if vector == normal_vector:
+                    vector = e.vector
             if pos is None:
-                pos = NSMakePoint(self.current_layer.width + 20, -10)
-                self._drawUnspecified(pos, message.strip(", "), size, e.vector, e.level)
+                if self.current_layer is None:
+                    pos = NSMakePoint(0, 0)
+                else:
+                    pos = NSMakePoint(self.current_layer.width + 20, -10)
+                self._drawUnspecified(pos, message.strip(", "), size, vector, level)
             else:
                 self._drawArrow(
-                    e.position, message.strip(", "), size, e.vector, e.level
+                    NSMakePoint(*pos), message.strip(", "), size, vector, level
                 )
