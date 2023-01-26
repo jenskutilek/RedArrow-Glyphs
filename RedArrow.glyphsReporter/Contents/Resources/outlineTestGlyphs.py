@@ -175,16 +175,20 @@ def getInflectionsForQuadratic(segment):
 def round_point(pt, gridLength=1):
     # Return a rounded copy of point pt, depending on gridLength
     pr = NSMakePoint(pt.x, pt.y)
-    if gridLength == 1:
-        pr.x = int(round(pt.x))
-        pr.y = int(round(pt.y))
-        return pr
-    elif gridLength == 0:
-        return pr
+    pr.x = round_value(pt.x, gridLength)
+    pr.y = round_value(pt.y, gridLength)
+    return pr
+
+
+def round_value(v, gridLength=1):
+    # Return the rounded value for v, depending on gridLength
+    if gridLength == 0:
+        return v
+    elif gridLength == 1:
+        vr = round(v)
     else:
-        pr.x = round(pt.x / gridLength) * gridLength
-        pr.y = round(pt.y / gridLength) * gridLength
-        return pr
+        vr = round(v / gridLength) * gridLength
+    return vr
 
 
 def get_vector(p0, p1):
