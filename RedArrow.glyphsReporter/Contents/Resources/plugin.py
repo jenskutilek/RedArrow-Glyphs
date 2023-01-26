@@ -416,7 +416,7 @@ class RedArrow(ReporterPlugin):
             )
 
     @objc.python_method
-    def _drawArrows(self):
+    def _drawArrows(self, debug=False):
         size = 10 / self.getScale()
         errors_by_position = {}
         for e in self.errors:
@@ -436,7 +436,7 @@ class RedArrow(ReporterPlugin):
             level = "w"
             vector = normal_vector
             for e in errors:
-                if e.badness is None:
+                if e.badness is None or not debug:
                     if DEBUG:
                         if e.vector is None:
                             e.vector = normal_vector
