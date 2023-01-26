@@ -467,7 +467,10 @@ class OutlineTest:
                     if badness >= self.extremum_ignore_badness_below:
                         self.errors.append(
                             OutlineError(
-                                NSMakePoint(*p), "Extremum", badness, vectors[i]
+                                NSMakePoint(*p),
+                                "Extremum",
+                                badness,
+                                vectors[i],
                             )
                         )
                 else:
