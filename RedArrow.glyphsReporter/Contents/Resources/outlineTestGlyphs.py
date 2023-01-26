@@ -452,6 +452,8 @@ class OutlineTest:
             self._checkSemiVertical(pv, node, "handle")
 
     def _runComponentTests(self, component):
+        if self.test_fractional_coords:
+            self._checkFractionalComponentOffset(component)
         if self.test_fractional_transform:
             self._checkFractionalTransformation(component)
 
@@ -626,21 +628,36 @@ class OutlineTest:
             )
         )
 
-    def _checkFractionalTransformation(self, component):
-        # print("_checkFractionalTransformation", component, component.transform)
+    def _getComponentErrorPosition(self, component):
         bbox = component.component.layers[self.layer.layerId].bounds
         tbox = transform_bbox(bbox, component.transform)
-        # print(tbox)
-        for p in component.transform:
-            if abs(round(p) - p) > 0.001:
+        return half_point(*tbox)
+
+    def _checkFractionalComponentOffset(self, component):
+        for value in component.transform[-2:]:
+            if abs(round_value(value, self.grid_length) - value) > 0.001:
                 self.errors.append(
                     OutlineError(
-                        half_point(*tbox),
+                        self._getComponentErrorPosition(component),
+                        (
+                            "Fractional component offset "
+                            f"on ‘{component.componentName}’"
+                        ),
+                        vector=None,
+                    )
+                )
+                break
+
+    def _checkFractionalTransformation(self, component):
+        for value in component.transform[:-2]:
+            if abs(round(value) - value) > 0.001:
+                self.errors.append(
+                    OutlineWarning(
+                        self._getComponentErrorPosition(component),
                         (
                             "Fractional component transformation "
                             f"on ‘{component.componentName}’"
                         ),
-                        # (%0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f)" % component.transform
                         vector=None,
                     )
                 )
