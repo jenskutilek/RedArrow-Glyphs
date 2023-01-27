@@ -638,7 +638,7 @@ class OutlineTest:
                         self._getComponentErrorPosition(component),
                         (
                             "Fractional component offset "
-                            f"on ‘{component.componentName}’"
+                            "on ‘%s’" % component.componentName
                         ),
                         vector=None,
                     )
@@ -653,7 +653,7 @@ class OutlineTest:
                         self._getComponentErrorPosition(component),
                         (
                             "Fractional component transformation "
-                            f"on ‘{component.componentName}’"
+                            "on ‘%s’" % component.componentName
                         ),
                         vector=None,
                     )
@@ -793,7 +793,7 @@ class OutlineTest:
                     self.errors.append(
                         OutlineError(
                             half_point(n0, n1),
-                            f"Semi-horizontal {segment}",
+                            "Semi-horizontal %s" % segment,
                             degrees(phi),
                             get_vector(n0, n1),
                         )
@@ -812,7 +812,7 @@ class OutlineTest:
                     self.errors.append(
                         OutlineError(
                             half_point(n0, n1),
-                            f"Semi-vertical {segment}",
+                            "Semi-vertical %s" % segment,
                             degrees(phi),
                             get_vector(n0, n1),
                         )
