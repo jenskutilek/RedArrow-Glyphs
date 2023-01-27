@@ -254,7 +254,9 @@ class OutlineTest:
         self.options = {} if options is None else options
         self.run_tests = run_tests
         self.reset()
-        self.layer = layer
+        self._layer = layer
+        self.upm = layer.parent.parent.upm
+        self._cache_options()
 
     def reset(self):
         self.errors = []
