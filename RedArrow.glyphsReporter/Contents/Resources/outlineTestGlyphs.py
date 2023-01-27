@@ -19,12 +19,6 @@ from math import atan2, degrees, cos, pi, sin, sqrt
 # Helper functions
 
 
-def get_bounds(font, glyphname):
-    return (0, 0, 0, 0)
-    # FIXME: We need to find the layer.bounds() in Glyphs
-    # return font.glyphs[glyphname].bounds()
-
-
 # from fontTools.misc.arrayTools
 def pointInRect(p, rect):
     """Test if a point is inside a bounding rectangle."""
