@@ -53,7 +53,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         )
         self.w = _RAModalWindow((300, height), title)
 
-        self.w.tests_title = vanilla.TextBox((x, y, -10, 23), "Select Glyphs With:")
+        self.w.tests_title = vanilla.TextBox((x, y, -10, 23), "Select Errors To Flag:")
         y += title_line_height
 
         for k in sorted(self.run_tests.keys()):
