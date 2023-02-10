@@ -72,9 +72,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         vanilla.HorizontalLine((x, y, -10, 1))
 
         y += 8
-        self.w.options_title = vanilla.TextBox(
-            (x, y, -10, 23), "Options (For Advanced Users):"
-        )
+        self.w.options_title = vanilla.TextBox((x, y, -10, 23), "Options (For Advanced Users):")
         y += title_line_height
 
         for k in sorted(self.options.keys()):
@@ -118,13 +116,6 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         if self.cancelled:
             return None, None
         else:
-            options = {
-                option_name: int(getattr(self.w, option_name).get())
-                for option_name in self.options.keys()
-            }
-            run_tests = [
-                test_name
-                for test_name in self.run_tests
-                if getattr(self.w, test_name).get()
-            ]
+            options = {option_name: int(getattr(self.w, option_name).get()) for option_name in self.options.keys()}
+            run_tests = [test_name for test_name in self.run_tests if getattr(self.w, test_name).get()]
             return options, run_tests
