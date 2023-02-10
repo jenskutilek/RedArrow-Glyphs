@@ -42,6 +42,17 @@ label_background = NSColor.textBackgroundColor()
 normal_vector = (1, 1)
 
 
+default_tests = [
+    "test_extrema",
+    "test_inflections",
+    "test_fractional_coords",
+    "test_fractional_transform",
+    "test_smooth",
+    "test_empty_segments",
+    "test_collinear",
+    "test_semi_hv",
+]
+
 default_options = {
     "ignore_warnings": False,
     "extremum_calculate_badness": False,
@@ -54,20 +65,29 @@ default_options = {
     "inflection_max": 0.7,
 }
 
-default_tests = [
-    "test_extrema",
-    "test_inflections",
-    "test_fractional_coords",
-    "test_fractional_transform",
-    "test_smooth",
-    "test_empty_segments",
-    "test_collinear",
-    "test_semi_hv",
-]
+option_types = {
+    "ignore_warnings": bool,
+    "extremum_calculate_badness": bool,
+    "extremum_ignore_badness_below": int,
+    "smooth_connection_max_distance": int,
+    "fractional_ignore_point_zero": bool,
+    "collinear_vectors_max_distance": int,
+    "grid_length": int,
+    "inflection_min": float,
+    "inflection_max": float,
+}
 
 
 def full_libkey(key):
     return "%s.%s" % (plugin_id, key)
+
+
+def typechecked_options(options):
+    out = {}
+    for k, v in default_options.items():
+        cast = option_types.get(k, int)
+        out[k] = cast(options.get(k, v))
+    return out
 
 
 class RedArrow(ReporterPlugin):
@@ -149,8 +169,10 @@ class RedArrow(ReporterPlugin):
 
     @objc.python_method
     def load_defaults(self):
-        for k, v in default_options.items():
-            self.options[k] = Glyphs.defaults.get(full_libkey(k), v)
+        print("Loading defaults:")
+        options = {k: Glyphs.defaults.get(full_libkey(k), v) for k, v in default_options.items()}
+        self.options = typechecked_options(options)
+        # print(self.options)
         self.run_tests = Glyphs.defaults.get(full_libkey("run-tests"), default_tests)
 
     @objc.python_method
@@ -246,10 +268,13 @@ class RedArrow(ReporterPlugin):
         action, options, run_tests = self.selectGlyphsOptions()
         if action == "save":
             self.save_defaults()
+            self.load_defaults()
         if run_tests is None:
             return
         if options is None:
             return
+
+        options = typechecked_options(options)
 
         font.disableUpdateInterface()
         mid = font.selectedFontMaster.id

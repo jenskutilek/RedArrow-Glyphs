@@ -128,6 +128,6 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         if self.action == "cancel":
             return self.action, None, None
         else:
-            options = {option_name: int(getattr(self.w, option_name).get()) for option_name in self.options.keys()}
+            options = {option_name: getattr(self.w, option_name).get() for option_name in self.options.keys()}
             run_tests = [test_name for test_name in self.run_tests if getattr(self.w, test_name).get()]
             return self.action, options, run_tests
