@@ -1,8 +1,9 @@
 # encoding: utf-8
-from __future__ import division
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from vanilla import Button, CheckBox, EditText, HorizontalLine, TextBox
-from dialogs_mac_vanilla import _RAModalWindow, _RAbaseWindowController
+from redArrow.defaults import default_tests
+from redArrow.dialogs_mac_vanilla import _RAModalWindow, _RAbaseWindowController
 
 
 class SelectGlyphsWindowController(_RAbaseWindowController):
@@ -32,7 +33,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
 
     def __init__(self, options={}, run_tests=[], title="Select Glyphs With Errors"):
 
-        self.run_tests = {o: True for o in run_tests}
+        self.run_tests = {o: o in run_tests for o in default_tests}
         self.options = options
 
         x = 10

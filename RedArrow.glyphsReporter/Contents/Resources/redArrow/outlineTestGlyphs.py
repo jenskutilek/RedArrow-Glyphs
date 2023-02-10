@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 from AppKit import NSMakePoint
 from fontTools.misc.arrayTools import normRect
 from fontTools.misc.bezierTools import (

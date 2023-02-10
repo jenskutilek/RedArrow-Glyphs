@@ -1,8 +1,7 @@
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import objc
 
-from geometry_functions import distance_between_points
-from GlyphsApp import Glyphs, MOUSEMOVED, WINDOW_MENU
-from GlyphsApp.plugins import ReporterPlugin
 from AppKit import (
     NSAffineTransform,
     NSApplication,
@@ -24,8 +23,13 @@ from AppKit import (
     NSString,
     NSNotificationCenter,
 )
+from GlyphsApp import Glyphs, MOUSEMOVED, WINDOW_MENU
+from GlyphsApp.plugins import ReporterPlugin
 from math import atan2, cos, pi, sin
-from outlineTestGlyphs import OutlineError, OutlineTest
+
+from redArrow.defaults import default_options, default_tests, typechecked_options
+from redArrow.geometry_functions import distance_between_points
+from redArrow.outlineTestGlyphs import OutlineError, OutlineTest
 
 # from time import time
 
@@ -42,52 +46,8 @@ label_background = NSColor.textBackgroundColor()
 normal_vector = (1, 1)
 
 
-default_tests = [
-    "test_extrema",
-    "test_inflections",
-    "test_fractional_coords",
-    "test_fractional_transform",
-    "test_smooth",
-    "test_empty_segments",
-    "test_collinear",
-    "test_semi_hv",
-]
-
-default_options = {
-    "ignore_warnings": False,
-    "extremum_calculate_badness": False,
-    "extremum_ignore_badness_below": 0,
-    "smooth_connection_max_distance": 4,
-    "fractional_ignore_point_zero": True,
-    "collinear_vectors_max_distance": 2,
-    "grid_length": 1,
-    "inflection_min": 0.3,
-    "inflection_max": 0.7,
-}
-
-option_types = {
-    "ignore_warnings": bool,
-    "extremum_calculate_badness": bool,
-    "extremum_ignore_badness_below": int,
-    "smooth_connection_max_distance": int,
-    "fractional_ignore_point_zero": bool,
-    "collinear_vectors_max_distance": int,
-    "grid_length": int,
-    "inflection_min": float,
-    "inflection_max": float,
-}
-
-
 def full_libkey(key):
     return "%s.%s" % (plugin_id, key)
-
-
-def typechecked_options(options):
-    out = {}
-    for k, v in default_options.items():
-        cast = option_types.get(k, int)
-        out[k] = cast(options.get(k, v))
-    return out
 
 
 class RedArrow(ReporterPlugin):
@@ -169,7 +129,7 @@ class RedArrow(ReporterPlugin):
 
     @objc.python_method
     def load_defaults(self):
-        print("Loading defaults:")
+        # print("Loading defaults:")
         options = {k: Glyphs.defaults.get(full_libkey(k), v) for k, v in default_options.items()}
         self.options = typechecked_options(options)
         # print(self.options)
@@ -251,7 +211,7 @@ class RedArrow(ReporterPlugin):
 
     @objc.python_method
     def selectGlyphsOptions(self, title="Select Glyphs With Errors"):
-        from raDialogs import SelectGlyphsWindowController
+        from redArrow.dialogs import SelectGlyphsWindowController
 
         ui = SelectGlyphsWindowController(self.options, self.run_tests, title)
         return ui.get()
@@ -298,11 +258,10 @@ class RedArrow(ReporterPlugin):
         font = Glyphs.font
         self.options["grid_length"] = font.gridLength if font else 1
         action, options, run_tests = self.selectGlyphsOptions(title="Red Arrow Preferences")
-        print(options)
-        print(run_tests)
+        self.options = typechecked_options(options)
+        self.run_tests = run_tests
         if action == "save":
             self.save_defaults()
-
 
     @objc.python_method
     def _updateOutlineCheck(self, layer):
