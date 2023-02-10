@@ -5,10 +5,10 @@ from AppKit import (
     NSWindowZoomButton,
     NSWindowMiniaturizeButton,
 )
-import vanilla.dialogs
+from vanilla import Button, Window
 
 
-class _RAModalWindow(vanilla.Window):
+class _RAModalWindow(Window):
 
     nsWindowLevel = NSModalPanelWindowLevel
 
@@ -35,12 +35,12 @@ class _RAbaseWindowController(object):
     def setUpBaseWindowBehavior(self):
         self._getValue = None
 
-        self.w.okButton = vanilla.Button(
+        self.w.okButton = Button(
             (-70, -30, -15, 20), "OK", callback=self.okCallback, sizeStyle="small"
         )
         self.w.setDefaultButton(self.w.okButton)
 
-        self.w.closeButton = vanilla.Button(
+        self.w.closeButton = Button(
             (-150, -30, -80, 20),
             "Cancel",
             callback=self.closeCallback,
