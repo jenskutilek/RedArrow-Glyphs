@@ -41,7 +41,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         entry_line_height = 22
         title_line_height = 24
         title_skip = 8
-        buttons_height = 44
+        buttons_height = 44 + 24
 
         height = (
             y
@@ -109,13 +109,25 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
                 )
             y += entry_line_height
 
+        y += title_skip
+        self.w.saveGlobalButton = Button(
+            (x, y, 120, 20),
+            "Save Settings",
+            callback=self.saveCallback,
+            sizeStyle="small",
+        )
+
         self.setUpBaseWindowBehavior()
         self.w.open()
 
+    def saveCallback(self, sender):
+        self.action = "save"
+        self.w.close()
+
     def get(self):
-        if self.cancelled:
-            return None, None
+        if self.action == "cancel":
+            return self.action, None, None
         else:
             options = {option_name: int(getattr(self.w, option_name).get()) for option_name in self.options.keys()}
             run_tests = [test_name for test_name in self.run_tests if getattr(self.w, test_name).get()]
-            return options, run_tests
+            return self.action, options, run_tests

@@ -243,7 +243,9 @@ class RedArrow(ReporterPlugin):
             return None
 
         self.options["grid_length"] = font.gridLength
-        options, run_tests = self.selectGlyphsOptions()
+        action, options, run_tests = self.selectGlyphsOptions()
+        if action == "save":
+            self.save_defaults()
         if run_tests is None:
             return
         if options is None:
@@ -270,7 +272,12 @@ class RedArrow(ReporterPlugin):
     def setRedArrowDefaults_(self, sender):
         font = Glyphs.font
         self.options["grid_length"] = font.gridLength if font else 1
-        options, run_tests = self.selectGlyphsOptions(title="Red Arrow Preferences")
+        action, options, run_tests = self.selectGlyphsOptions(title="Red Arrow Preferences")
+        print(options)
+        print(run_tests)
+        if action == "save":
+            self.save_defaults()
+
 
     @objc.python_method
     def _updateOutlineCheck(self, layer):
