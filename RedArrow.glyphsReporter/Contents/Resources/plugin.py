@@ -47,9 +47,7 @@ class RedArrow(ReporterPlugin):
     def settings(self):
         self.menuName = "Red Arrows"
         self.keyboardShortcut = "a"
-        self.keyboardShortcutModifier = (
-            NSCommandKeyMask | NSShiftKeyMask | NSAlternateKeyMask
-        )
+        self.keyboardShortcutModifier = NSCommandKeyMask | NSShiftKeyMask | NSAlternateKeyMask
         self.hide_labels_menu = [
             {
                 "name": Glyphs.localize(
@@ -156,9 +154,7 @@ class RedArrow(ReporterPlugin):
         # self.logToConsole("foreground: Errors: %s" % self.errors )
 
         try:
-            self.mouse_position = self.controller.graphicView().getActiveLocation_(
-                Glyphs.currentEvent()
-            )
+            self.mouse_position = self.controller.graphicView().getActiveLocation_(Glyphs.currentEvent())
         except Exception as e:
             self.logToConsole("foreground: mouse_position: %s" % str(e))
             self.mouse_position = NSMakePoint(0, 0)
@@ -170,9 +166,7 @@ class RedArrow(ReporterPlugin):
             if not (
                 tool.isKindOfClass_(NSClassFromString("GlyphsToolText"))
                 or tool.isKindOfClass_(NSClassFromString("GlyphsToolHand"))
-                or tool.isKindOfClass_(
-                    NSClassFromString("GlyphsToolTrueTypeInstructor")
-                )
+                or tool.isKindOfClass_(NSClassFromString("GlyphsToolTrueTypeInstructor"))
             ):
                 if self.errors:
                     self._drawArrows()
@@ -232,23 +226,15 @@ class RedArrow(ReporterPlugin):
                     else:
                         glyph.selected = False
                 except Exception as e:
-                    self.logToConsole(
-                        "selectGlyphsWithErrors: Layer '%s': %s" % (glyph_name, str(e))
-                    )
+                    self.logToConsole("selectGlyphsWithErrors: Layer '%s': %s" % (glyph_name, str(e)))
         font.enableUpdateInterface()
 
     @objc.python_method
     def _updateOutlineCheck(self, layer):
-        if (
-            self.current_layer is layer
-            and self.lastChangeDate >= layer.parent.lastOperationInterval()
-        ):
+        if self.current_layer is layer and self.lastChangeDate >= layer.parent.lastOperationInterval():
             return
         if DEBUG and hasattr(layer, "parent"):
-            self.logToConsole(
-                "_updateOutlineCheck: '%s' from %s"
-                % (layer.parent.name, layer.parent.parent)
-            )
+            self.logToConsole("_updateOutlineCheck: '%s' from %s" % (layer.parent.name, layer.parent.parent))
         self.current_layer = layer
         if self.outline_test is None:
             self.outline_test = OutlineTest(layer, self.options, self.run_tests)
@@ -301,9 +287,7 @@ class RedArrow(ReporterPlugin):
 
         percent = 1
         if not self.show_labels:
-            percent = (
-                -distance_between_points(self.mouse_position, position) / size * 2 + 2
-            )
+            percent = -distance_between_points(self.mouse_position, position) / size * 2 + 2
         if self.show_labels or percent > 0.2:
             self._drawTextLabel(
                 transform=t,
@@ -325,9 +309,7 @@ class RedArrow(ReporterPlugin):
 
         attrs = {
             NSFontAttributeName: NSFont.systemFontOfSize_(text_size),
-            NSForegroundColorAttributeName: text_color.colorWithAlphaComponent_(
-                percent
-            ),
+            NSForegroundColorAttributeName: text_color.colorWithAlphaComponent_(percent),
         }
         myString = NSString.string().stringByAppendingString_(text)
         bbox = myString.sizeWithAttributes_(attrs)
@@ -441,6 +423,4 @@ class RedArrow(ReporterPlugin):
                 pos = NSMakePoint(x, -10)
                 self._drawUnspecified(pos, message.strip(", "), size, e.vector, e.level)
             else:
-                self._drawArrow(
-                    pos, message.strip(", "), size, e.vector, e.level
-                )
+                self._drawArrow(pos, message.strip(", "), size, e.vector, e.level)
