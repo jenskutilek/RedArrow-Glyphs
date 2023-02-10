@@ -25,7 +25,7 @@ from AppKit import (
     NSNotificationCenter,
 )
 from math import atan2, cos, pi, sin
-from outlineTestGlyphs import OutlineTest
+from outlineTestGlyphs import OutlineError, OutlineTest
 
 # from time import time
 
@@ -433,6 +433,7 @@ class RedArrow(ReporterPlugin):
                     errors_by_position[None] = [e]
         for pos, errors in errors_by_position.items():
             message = ""
+            e = OutlineError()
             for e in errors:
                 if e.badness is None or not debug:
                     if DEBUG:
@@ -449,9 +450,10 @@ class RedArrow(ReporterPlugin):
                 else:
                     message += "%s (Severity %0.1f), " % (e.kind, e.badness)
             if pos is None:
-                pos = NSMakePoint(self.current_layer.width + 20, -10)
+                x = 20 if self.current_layer is None else self.current_layer.width + 20
+                pos = NSMakePoint(x, -10)
                 self._drawUnspecified(pos, message.strip(", "), size, e.vector, e.level)
             else:
                 self._drawArrow(
-                    e.position, message.strip(", "), size, e.vector, e.level
+                    pos, message.strip(", "), size, e.vector, e.level
                 )
