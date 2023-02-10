@@ -42,6 +42,34 @@ label_background = NSColor.textBackgroundColor()
 normal_vector = (1, 1)
 
 
+default_options = {
+    "ignore_warnings": False,
+    "extremum_calculate_badness": False,
+    "extremum_ignore_badness_below": 0,
+    "smooth_connection_max_distance": 4,
+    "fractional_ignore_point_zero": True,
+    "collinear_vectors_max_distance": 2,
+    "grid_length": 1,
+    "inflection_min": 0.3,
+    "inflection_max": 0.7,
+}
+
+default_tests = [
+    "test_extrema",
+    "test_inflections",
+    "test_fractional_coords",
+    "test_fractional_transform",
+    "test_smooth",
+    "test_empty_segments",
+    "test_collinear",
+    "test_semi_hv",
+]
+
+
+def full_libkey(key):
+    return "%s.%s" % (plugin_id, key)
+
+
 class RedArrow(ReporterPlugin):
     @objc.python_method
     def settings(self):
@@ -77,33 +105,15 @@ class RedArrow(ReporterPlugin):
     @objc.python_method
     def start(self):
         self.addMenuItem()
-        self.options = {
-            "ignore_warnings": False,
-            "extremum_calculate_badness": False,
-            "extremum_ignore_badness_below": 0,
-            "smooth_connection_max_distance": 4,
-            "fractional_ignore_point_zero": True,
-            "collinear_vectors_max_distance": 2,
-            "grid_length": 1,
-            "inflection_min": 0.3,
-            "inflection_max": 0.7,
-        }
-        self.run_tests = [
-            "test_extrema",
-            "test_inflections",
-            "test_fractional_coords",
-            "test_fractional_transform",
-            "test_smooth",
-            "test_empty_segments",
-            "test_collinear",
-            "test_semi_hv",
-        ]
+        self.options = default_options
+        self.run_tests = default_tests
         self.errors = []
         self.mouse_position = NSMakePoint(0, 0)
         self.lastChangeDate = 0
         self.current_layer = None
         self.vanilla_alerted = False
         self.outline_test = None
+        self.load_defaults()
 
     @objc.python_method
     def addMenuItem(self):
@@ -122,6 +132,18 @@ class RedArrow(ReporterPlugin):
         )
         newMenuItem.setTarget_(self)
         mainMenu.itemAtIndex_(2).submenu().insertItem_atIndex_(newMenuItem, 12)
+
+    @objc.python_method
+    def load_defaults(self):
+        for k, v in default_options.items():
+            self.options[k] = Glyphs.defaults.get(full_libkey(k), v)
+        self.run_tests = Glyphs.defaults.get(full_libkey("run-tests"), default_tests)
+
+    @objc.python_method
+    def save_defaults(self):
+        for k, v in default_options.items():
+            Glyphs.defaults[full_libkey(k)] = self.options.get(k, v)
+        Glyphs.defaults[full_libkey("run-tests")] = self.run_tests
 
     def mouseDidMove_(self, notification):
         try:
