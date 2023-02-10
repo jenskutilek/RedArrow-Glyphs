@@ -1,7 +1,7 @@
 # encoding: utf-8
 from __future__ import division
 
-import vanilla
+from vanilla import Button, CheckBox, EditText, HorizontalLine, TextBox
 from dialogs_mac_vanilla import _RAModalWindow, _RAbaseWindowController
 
 
@@ -53,14 +53,14 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         )
         self.w = _RAModalWindow((300, height), title)
 
-        self.w.tests_title = vanilla.TextBox((x, y, -10, 23), "Select Errors To Flag:")
+        self.w.tests_title = TextBox((x, y, -10, 23), "Select Errors To Flag:")
         y += title_line_height
 
         for k in sorted(self.run_tests.keys()):
             setattr(
                 self.w,
                 k,
-                vanilla.CheckBox(
+                CheckBox(
                     (x + 3, y, -10, 20),
                     self.test_names.get(k, k),
                     value=self.run_tests[k],
@@ -69,10 +69,10 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
             )
             y += entry_line_height
 
-        vanilla.HorizontalLine((x, y, -10, 1))
+        HorizontalLine((x, y, -10, 1))
 
         y += 8
-        self.w.options_title = vanilla.TextBox((x, y, -10, 23), "Options (For Advanced Users):")
+        self.w.options_title = TextBox((x, y, -10, 23), "Options (For Advanced Users):")
         y += title_line_height
 
         for k in sorted(self.options.keys()):
@@ -81,7 +81,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
                 setattr(
                     self.w,
                     "%s_label" % k,
-                    vanilla.TextBox(
+                    TextBox(
                         (x + 18, y + 3, -10, 20),
                         self.option_names.get(k, k),
                         sizeStyle="small",
@@ -90,7 +90,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
                 setattr(
                     self.w,
                     k,
-                    vanilla.EditText(
+                    EditText(
                         (col, y + 1, -14, 18),
                         text=v,
                         sizeStyle="small",
@@ -100,7 +100,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
                 setattr(
                     self.w,
                     k,
-                    vanilla.CheckBox(
+                    CheckBox(
                         (x + 3, y, -10, 20),
                         self.option_names.get(k, k),
                         value=v,
