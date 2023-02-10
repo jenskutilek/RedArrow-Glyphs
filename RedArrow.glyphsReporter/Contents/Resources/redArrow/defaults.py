@@ -35,6 +35,7 @@ option_types = {
     "inflection_max": float,
 }
 
+# FIXME: float(0,7) -> Traceback
 
 def typechecked_options(options):
     out = {}
