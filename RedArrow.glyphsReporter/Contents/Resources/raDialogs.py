@@ -30,7 +30,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         "inflection_min": "Minimum Allowed Inflection t",
     }
 
-    def __init__(self, options={}, run_tests=[]):
+    def __init__(self, options={}, run_tests=[], title="Select Glyphs With Errors"):
 
         self.run_tests = {o: True for o in run_tests}
         self.options = options
@@ -51,7 +51,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
             + title_skip
             + buttons_height
         )
-        self.w = _RAModalWindow((300, height), "Select Glyphs With Errors")
+        self.w = _RAModalWindow((300, height), title)
 
         self.w.tests_title = vanilla.TextBox((x, y, -10, 23), "Select Glyphs With:")
         y += title_line_height
