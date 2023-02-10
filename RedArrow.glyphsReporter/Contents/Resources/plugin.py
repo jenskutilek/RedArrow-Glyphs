@@ -1,7 +1,7 @@
 import objc
 
 from geometry_functions import distance_between_points
-from GlyphsApp import Glyphs, MOUSEMOVED
+from GlyphsApp import Glyphs, MOUSEMOVED, WINDOW_MENU
 from GlyphsApp.plugins import ReporterPlugin
 from AppKit import (
     NSAffineTransform,
@@ -105,6 +105,7 @@ class RedArrow(ReporterPlugin):
     @objc.python_method
     def start(self):
         self.addMenuItem()
+        self.addWindowMenuItem()
         self.options = default_options
         self.run_tests = default_tests
         self.errors = []
@@ -132,6 +133,19 @@ class RedArrow(ReporterPlugin):
         )
         newMenuItem.setTarget_(self)
         mainMenu.itemAtIndex_(2).submenu().insertItem_atIndex_(newMenuItem, 12)
+
+    @objc.python_method
+    def addWindowMenuItem(self):
+        newMenuItem = NSMenuItem(
+            Glyphs.localize(
+                {
+                    "en": "Red Arrow Preferences...",
+                    "de": "Red-Arrow-Einstellungen ...",
+                }
+            ),
+            self.setRedArrowDefaults_
+        )
+        Glyphs.menu[WINDOW_MENU].append(newMenuItem)
 
     @objc.python_method
     def load_defaults(self):
