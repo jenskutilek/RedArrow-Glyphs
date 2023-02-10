@@ -213,9 +213,11 @@ class RedArrow(ReporterPlugin):
     def stopMouseMoved(self):
         NSNotificationCenter.defaultCenter().removeObserver_(self)
 
-    def selectGlyphsOptions(self):
+    @objc.python_method
+    def selectGlyphsOptions(self, title="Select Glyphs With Errors"):
         from raDialogs import SelectGlyphsWindowController
-        ui = SelectGlyphsWindowController(self.options, self.run_tests)
+
+        ui = SelectGlyphsWindowController(self.options, self.run_tests, title)
         return ui.get()
 
     def selectGlyphsWithErrors(self):
@@ -250,6 +252,11 @@ class RedArrow(ReporterPlugin):
                 except Exception as e:
                     self.logToConsole("selectGlyphsWithErrors: Layer '%s': %s" % (glyph_name, str(e)))
         font.enableUpdateInterface()
+
+    def setRedArrowDefaults_(self, sender):
+        font = Glyphs.font
+        self.options["grid_length"] = font.gridLength if font else 1
+        options, run_tests = self.selectGlyphsOptions(title="Red Arrow Preferences")
 
     @objc.python_method
     def _updateOutlineCheck(self, layer):
