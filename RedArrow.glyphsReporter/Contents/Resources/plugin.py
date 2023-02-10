@@ -198,22 +198,9 @@ class RedArrow(ReporterPlugin):
         NSNotificationCenter.defaultCenter().removeObserver_(self)
 
     def selectGlyphsOptions(self):
-        try:
-            from raDialogs import SelectGlyphsWindowController
-        except ImportError:
-            if not self.vanilla_alerted:
-                print(
-                    "Please install vanilla to enable UI dialogs for "
-                    "RedArrow. You can install vanilla through Glyphs > "
-                    "Preferences > Addons > Modules."
-                )
-                self.vanilla_alerted = True
-
-        if self.vanilla_alerted:
-            return self.options, self.run_tests
-        else:
-            ui = SelectGlyphsWindowController(self.options, self.run_tests)
-            return ui.get()
+        from raDialogs import SelectGlyphsWindowController
+        ui = SelectGlyphsWindowController(self.options, self.run_tests)
+        return ui.get()
 
     def selectGlyphsWithErrors(self):
         """
