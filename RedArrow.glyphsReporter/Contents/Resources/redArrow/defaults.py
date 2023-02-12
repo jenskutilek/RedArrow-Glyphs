@@ -1,5 +1,11 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+
+def same(value):
+    # A function that returns the value unchanged.
+    return value
+
+
 default_tests = [
     "test_extrema",
     "test_inflections",
@@ -30,12 +36,11 @@ option_types = {
     "smooth_connection_max_distance": int,
     "fractional_ignore_point_zero": bool,
     "collinear_vectors_max_distance": int,
-    "grid_length": int,
-    "inflection_min": float,
-    "inflection_max": float,
+    "grid_length": same,
+    "inflection_min": same,
+    "inflection_max": same,
 }
 
-# FIXME: float(0,7) -> Traceback
 
 def typechecked_options(options):
     out = {}
