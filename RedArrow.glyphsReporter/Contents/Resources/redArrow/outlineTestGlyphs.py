@@ -250,13 +250,11 @@ class OutlineTest:
     Reimplementation of FontLab's FontAudit.
     """
 
-    def __init__(self, layer, options=None, run_tests=[]):
+    def __init__(self, layer, options=None, run_tests=None):
         self.options = {} if options is None else options
-        self.run_tests = run_tests
+        self.run_tests = [] if run_tests is None else run_tests
         self.reset()
-        self._layer = layer
-        self.upm = layer.parent.parent.upm
-        self._cache_options()
+        self.layer = layer
 
     def reset(self):
         self.errors = []
@@ -291,7 +289,7 @@ class OutlineTest:
     @layer.setter
     def layer(self, value):
         self._layer = value
-        self.upm = self.layer.parent.parent.upm
+        self.upm = 1000 if self.layer is None else self.layer.parent.parent.upm
         self._cache_options()
 
     def _normalize_upm(self, value):
