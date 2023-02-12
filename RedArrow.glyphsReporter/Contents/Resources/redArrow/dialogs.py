@@ -113,8 +113,8 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
 
         y += title_skip
         self.w.saveGlobal = CheckBox(
-            (x + 3, y, -10, 20),
-            "Save Those Settings Permanently",
+            (-148, -54, -15, 20),
+            "Save Permanently",
             callback=self.saveCallback,
             value=False,
             sizeStyle="small",
