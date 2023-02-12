@@ -13,15 +13,15 @@
 	<key>CFBundleName</key>
 	<string>RedArrow</string>
 	<key>CFBundleVersion</key>
-	<string>205</string>
+	<string>210</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.0.5</string>
+	<string>2.1.0</string>
 	<key>UpdateFeedURL</key>
 	<string>https://raw.githubusercontent.com/jenskutilek/RedArrow-Glyphs/master/RedArrow.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
 	<string>https://github.com/jenskutilek/RedArrow-Glyphs</string>
 	<key>productReleaseNotes</key>
-	<string>Compatibility with older Python versions</string>
+	<string>Add Preferences dialog; compatibility with older Python versions</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright by Jens Kutilek, 2016-2023</string>
 	<key>NSPrincipalClass</key>
