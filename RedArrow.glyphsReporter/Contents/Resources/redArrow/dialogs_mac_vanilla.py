@@ -36,7 +36,6 @@ class _RAModalWindow(Window):
 
 class _RAbaseWindowController(object):
     def setUpBaseWindowBehavior(self):
-        self.action = "ok"
         self._getValue = None
 
         self.w.okButton = Button(
@@ -56,11 +55,10 @@ class _RAbaseWindowController(object):
         self.cancelled = False
 
     def okCallback(self, sender):
-        self.action = "ok"
         self.w.close()
 
     def closeCallback(self, sender):
-        self.action = "cancel"
+        self.cancelled = True
         self.w.close()
 
     def get(self):

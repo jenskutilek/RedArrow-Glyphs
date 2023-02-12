@@ -1,7 +1,7 @@
 # encoding: utf-8
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from vanilla import Button, CheckBox, EditText, HorizontalLine, TextBox
+from vanilla import CheckBox, EditText, HorizontalLine, TextBox
 from redArrow.defaults import default_tests
 from redArrow.dialogs_mac_vanilla import _RAModalWindow, _RAbaseWindowController
 
@@ -35,6 +35,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
 
         self.run_tests = {o: o in run_tests for o in default_tests}
         self.options = options
+        self.save_global = False
 
         x = 10
         y = 8
@@ -111,10 +112,11 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
             y += entry_line_height
 
         y += title_skip
-        self.w.saveGlobalButton = Button(
-            (x, y, 120, 20),
-            "Save Settings",
+        self.w.saveGlobal = CheckBox(
+            (x + 3, y, -10, 20),
+            "Save Those Settings Permanently",
             callback=self.saveCallback,
+            value=False,
             sizeStyle="small",
         )
 
@@ -122,13 +124,12 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         self.w.open()
 
     def saveCallback(self, sender):
-        self.action = "save"
-        self.w.close()
+        self.save_global = sender.get()
 
     def get(self):
-        if self.action == "cancel":
-            return self.action, None, None
+        if self.cancelled:
+            return False, None, None
         else:
             options = {option_name: getattr(self.w, option_name).get() for option_name in self.options.keys()}
             run_tests = [test_name for test_name in self.run_tests if getattr(self.w, test_name).get()]
-            return self.action, options, run_tests
+            return self.save_global, options, run_tests
