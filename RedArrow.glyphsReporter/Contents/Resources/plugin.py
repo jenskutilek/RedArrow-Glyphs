@@ -93,8 +93,6 @@ class RedArrow(ReporterPlugin):
         self.mouse_position = NSMakePoint(0, 0)
         self.lastChangeDate = 0
         self.current_layer = None
-        self.vanilla_alerted = False
-        self.outline_test = None
         self.load_defaults()
 
     @objc.python_method
@@ -134,12 +132,15 @@ class RedArrow(ReporterPlugin):
         options = {k: Glyphs.defaults.get(full_libkey(k), v) for k, v in default_options.items()}
         self.options = typechecked_options(options)
         self.run_tests = Glyphs.defaults.get(full_libkey("run-tests"), default_tests)
+        self.outline_test = OutlineTest(None, self.options, self.run_tests)
+        self.current_layer = None
+        Glyphs.redraw()
 
     @objc.python_method
-    def save_defaults(self):
+    def save_defaults(self, options, run_tests):
         for k, v in default_options.items():
-            Glyphs.defaults[full_libkey(k)] = self.options.get(k, v)
-        Glyphs.defaults[full_libkey("run-tests")] = self.run_tests
+            Glyphs.defaults[full_libkey(k)] = options.get(k, v)
+        Glyphs.defaults[full_libkey("run-tests")] = run_tests
 
     def mouseDidMove_(self, notification):
         try:
@@ -198,7 +199,7 @@ class RedArrow(ReporterPlugin):
             self.show_labels = True
             self.generalContextMenus = self.hide_labels_menu
             self.stopMouseMoved()
-        Glyphs.defaults["%s.showLabels" % plugin_id] = self.show_labels
+        Glyphs.defaults[full_libkey("showLabels")] = self.show_labels
         Glyphs.redraw()
 
     def startMouseMoved(self):
@@ -225,14 +226,14 @@ class RedArrow(ReporterPlugin):
             return None
 
         self.options["grid_length"] = font.gridLength
-        action, options, run_tests = self.selectGlyphsOptions()
-        if action == "save":
-            self.save_defaults()
-            self.load_defaults()
+        save_global, options, run_tests = self.selectGlyphsOptions()
         if run_tests is None:
             return
         if options is None:
             return
+        if save_global:
+            self.save_defaults(options, run_tests)
+            self.load_defaults()
 
         options = typechecked_options(options)
 
@@ -257,11 +258,12 @@ class RedArrow(ReporterPlugin):
     def setRedArrowDefaults_(self, sender):
         font = Glyphs.font
         self.options["grid_length"] = font.gridLength if font else 1
-        action, options, run_tests = self.selectGlyphsOptions(title="Red Arrow Preferences")
+        save_global, options, run_tests = self.selectGlyphsOptions(title="Red Arrow Preferences")
         self.options = typechecked_options(options)
         self.run_tests = run_tests
-        if action == "save":
-            self.save_defaults()
+        if save_global:
+            self.save_defaults(options, run_tests)
+            self.load_defaults()
 
     @objc.python_method
     def _updateOutlineCheck(self, layer):
@@ -270,8 +272,6 @@ class RedArrow(ReporterPlugin):
         if DEBUG and hasattr(layer, "parent"):
             self.logToConsole("_updateOutlineCheck: '%s' from %s" % (layer.parent.name, layer.parent.parent))
         self.current_layer = layer
-        if self.outline_test is None:
-            self.outline_test = OutlineTest(layer, self.options, self.run_tests)
         self.lastChangeDate = layer.parent.lastOperationInterval()
         self.errors = []
         if layer is not None and hasattr(layer, "parent"):
