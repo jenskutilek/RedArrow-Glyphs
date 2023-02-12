@@ -259,11 +259,19 @@ class RedArrow(ReporterPlugin):
         font = Glyphs.font
         self.options["grid_length"] = font.gridLength if font else 1
         save_global, options, run_tests = self.selectGlyphsOptions(title="Red Arrow Preferences")
+        if options is None or run_tests is None:
+            return
+
         self.options = typechecked_options(options)
         self.run_tests = run_tests
         if save_global:
             self.save_defaults(options, run_tests)
             self.load_defaults()
+        else:
+            # Apply changes for current session only
+            self.outline_test = OutlineTest(None, self.options, self.run_tests)
+            self.current_layer = None
+            Glyphs.redraw()
 
     @objc.python_method
     def _updateOutlineCheck(self, layer):
