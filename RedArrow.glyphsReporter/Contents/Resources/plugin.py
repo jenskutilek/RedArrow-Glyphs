@@ -133,7 +133,6 @@ class RedArrow(ReporterPlugin):
         # print("Loading defaults:")
         options = {k: Glyphs.defaults.get(full_libkey(k), v) for k, v in default_options.items()}
         self.options = typechecked_options(options)
-        # print(self.options)
         self.run_tests = Glyphs.defaults.get(full_libkey("run-tests"), default_tests)
 
     @objc.python_method
