@@ -1,8 +1,9 @@
+# encoding: utf-8
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from AppKit import NSMakePoint
-from fontTools.misc.arrayTools import normRect
-from fontTools.misc.bezierTools import (
+from miniFontTools.misc.arrayTools import normRect
+from miniFontTools.misc.bezierTools import (
     calcQuadraticParameters,
     calcCubicParameters,
     solveQuadratic,
@@ -10,18 +11,12 @@ from fontTools.misc.bezierTools import (
     splitQuadraticAtT,
     epsilon,
 )
-from fontTools.misc.transform import Transform
+from miniFontTools.misc.transform import Transform
 from GlyphsApp import CURVE, LINE, OFFCURVE, QCURVE
 from math import atan2, degrees, cos, pi, sin, sqrt
 
 
 # Helper functions
-
-
-def get_bounds(font, glyphname):
-    return (0, 0, 0, 0)
-    # FIXME: We need to find the layer.bounds() in Glyphs
-    # return font.glyphs[glyphname].bounds()
 
 
 # from fontTools.misc.arrayTools
@@ -177,16 +172,20 @@ def getInflectionsForQuadratic(segment):
 def round_point(pt, gridLength=1):
     # Return a rounded copy of point pt, depending on gridLength
     pr = NSMakePoint(pt.x, pt.y)
-    if gridLength == 1:
-        pr.x = int(round(pt.x))
-        pr.y = int(round(pt.y))
-        return pr
-    elif gridLength == 0:
-        return pr
+    pr.x = round_value(pt.x, gridLength)
+    pr.y = round_value(pt.y, gridLength)
+    return pr
+
+
+def round_value(v, gridLength=1):
+    # Return the rounded value for v, depending on gridLength
+    if gridLength == 0:
+        return v
+    elif gridLength == 1:
+        vr = round(v)
     else:
-        pr.x = round(pt.x / gridLength) * gridLength
-        pr.y = round(pt.y / gridLength) * gridLength
-        return pr
+        vr = round(v / gridLength) * gridLength
+    return vr
 
 
 def get_vector(p0, p1):
@@ -255,7 +254,9 @@ class OutlineTest:
         self.options = {} if options is None else options
         self.run_tests = run_tests
         self.reset()
-        self.layer = layer
+        self._layer = layer
+        self.upm = layer.parent.parent.upm
+        self._cache_options()
 
     def reset(self):
         self.errors = []
@@ -450,6 +451,8 @@ class OutlineTest:
             self._checkSemiVertical(pv, node, "handle")
 
     def _runComponentTests(self, component):
+        if self.test_fractional_coords:
+            self._checkFractionalComponentOffset(component)
         if self.test_fractional_transform:
             self._checkFractionalTransformation(component)
 
@@ -469,7 +472,10 @@ class OutlineTest:
                     if badness >= self.extremum_ignore_badness_below:
                         self.errors.append(
                             OutlineError(
-                                NSMakePoint(*p), "Extremum", badness, vectors[i]
+                                NSMakePoint(*p),
+                                "Extremum",
+                                badness,
+                                vectors[i],
                             )
                         )
                 else:
@@ -621,21 +627,36 @@ class OutlineTest:
             )
         )
 
-    def _checkFractionalTransformation(self, component):
-        # print("_checkFractionalTransformation", component, component.transform)
+    def _getComponentErrorPosition(self, component):
         bbox = component.component.layers[self.layer.layerId].bounds
         tbox = transform_bbox(bbox, component.transform)
-        # print(tbox)
-        for p in component.transform:
-            if abs(round(p) - p) > 0.001:
+        return half_point(*tbox)
+
+    def _checkFractionalComponentOffset(self, component):
+        for value in component.transform[-2:]:
+            if abs(round_value(value, self.grid_length) - value) > 0.001:
                 self.errors.append(
                     OutlineError(
-                        half_point(*tbox),
+                        self._getComponentErrorPosition(component),
+                        (
+                            "Fractional component offset "
+                            "on ‘%s’" % component.componentName
+                        ),
+                        vector=None,
+                    )
+                )
+                break
+
+    def _checkFractionalTransformation(self, component):
+        for value in component.transform[:-2]:
+            if abs(round(value) - value) > 0.001:
+                self.errors.append(
+                    OutlineWarning(
+                        self._getComponentErrorPosition(component),
                         (
                             "Fractional component transformation "
-                            f"on ‘{component.componentName}’"
+                            "on ‘%s’" % component.componentName
                         ),
-                        # (%0.2f, %0.2f, %0.2f, %0.2f, %0.2f, %0.2f)" % component.transform
                         vector=None,
                     )
                 )
@@ -774,7 +795,7 @@ class OutlineTest:
                     self.errors.append(
                         OutlineError(
                             half_point(n0, n1),
-                            f"Semi-horizontal {segment}",
+                            "Semi-horizontal %s" % segment,
                             degrees(phi),
                             get_vector(n0, n1),
                         )
@@ -793,7 +814,7 @@ class OutlineTest:
                     self.errors.append(
                         OutlineError(
                             half_point(n0, n1),
-                            f"Semi-vertical {segment}",
+                            "Semi-vertical %s" % segment,
                             degrees(phi),
                             get_vector(n0, n1),
                         )

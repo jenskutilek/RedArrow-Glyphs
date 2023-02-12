@@ -1,3 +1,4 @@
+# encoding: utf-8
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import objc
@@ -123,7 +124,7 @@ class RedArrow(ReporterPlugin):
                     "de": "Red-Arrow-Einstellungen ...",
                 }
             ),
-            self.setRedArrowDefaults_
+            self.setRedArrowDefaults_,
         )
         Glyphs.menu[WINDOW_MENU].append(newMenuItem)
 
@@ -420,7 +421,7 @@ class RedArrow(ReporterPlugin):
 
     @objc.python_method
     def _drawArrows(self, debug=False):
-        size = 10.0 / self.getScale()
+        size = 10 / self.getScale()
         errors_by_position = {}
         for e in self.errors:
             if e.position is not None:
