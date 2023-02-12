@@ -79,7 +79,18 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
 
         for k in sorted(self.options.keys()):
             v = self.options[k]
-            if type(v) in (int, float):
+            if type(v) == bool:
+                setattr(
+                    self.w,
+                    k,
+                    CheckBox(
+                        (x + 3, y, -10, 20),
+                        self.option_names.get(k, k),
+                        value=v,
+                        sizeStyle="small",
+                    ),
+                )
+            else:
                 setattr(
                     self.w,
                     "%s_label" % k,
@@ -95,17 +106,6 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
                     EditText(
                         (col, y + 1, -14, 18),
                         text=v,
-                        sizeStyle="small",
-                    ),
-                )
-            elif type(v) == bool:
-                setattr(
-                    self.w,
-                    k,
-                    CheckBox(
-                        (x + 3, y, -10, 20),
-                        self.option_names.get(k, k),
-                        value=v,
                         sizeStyle="small",
                     ),
                 )
