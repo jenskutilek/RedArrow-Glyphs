@@ -2,8 +2,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from AppKit import NSMakePoint
-from fontTools.misc.arrayTools import normRect
-from fontTools.misc.bezierTools import (
+from miniFontTools.misc.arrayTools import normRect
+from miniFontTools.misc.bezierTools import (
     calcQuadraticParameters,
     calcCubicParameters,
     solveQuadratic,
@@ -11,7 +11,7 @@ from fontTools.misc.bezierTools import (
     splitQuadraticAtT,
     epsilon,
 )
-from fontTools.misc.transform import Transform
+from miniFontTools.misc.transform import Transform
 from GlyphsApp import CURVE, LINE, OFFCURVE, QCURVE
 from math import atan2, degrees, cos, pi, sin, sqrt
 
