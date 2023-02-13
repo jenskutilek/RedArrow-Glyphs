@@ -1,9 +1,17 @@
 # encoding: utf-8
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from AppKit import NSNumber, NSNumberFormatter
 from vanilla import CheckBox, EditText, HorizontalLine, TextBox
 from redArrow.defaults import default_tests
 from redArrow.dialogs_mac_vanilla import _RAModalWindow, _RAbaseWindowController
+
+
+float_formatter = NSNumberFormatter.alloc().init()
+float_formatter.setAllowsFloats_(True)
+float_formatter.setFormat_("#.###;0;-#.###")
+float_formatter.setGeneratesDecimalNumbers_(True)
+float_formatter.setMinimum_(NSNumber.numberWithFloat_(0.0))
 
 
 class SelectGlyphsWindowController(_RAbaseWindowController):
@@ -27,8 +35,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         "fractional_ignore_point_zero": "Ignore .0 Fractional Values",
         "collinear_vectors_max_distance": "Collinear Vectors Tolerance",
         "grid_length": "Grid Length",
-        "inflection_max": "Maximum Allowed Inflection t",
-        "inflection_min": "Minimum Allowed Inflection t",
+        "inflection_min": "Minimum Allowed Inflection t (0–0.5)",
     }
 
     def __init__(self, options={}, run_tests=[], title="Select Glyphs With Errors"):
@@ -107,6 +114,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
                         (col, y + 1, -14, 18),
                         text=v,
                         sizeStyle="small",
+                        formatter=float_formatter,
                     ),
                 )
             y += entry_line_height
@@ -131,5 +139,8 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
             return False, None, None
         else:
             options = {option_name: getattr(self.w, option_name).get() for option_name in self.options.keys()}
+            # print("Set options from dialog:")
+            # for k, v in options.items():
+            #     print("   ", k, v, type(v))
             run_tests = [test_name for test_name in self.run_tests if getattr(self.w, test_name).get()]
             return self.save_global, options, run_tests

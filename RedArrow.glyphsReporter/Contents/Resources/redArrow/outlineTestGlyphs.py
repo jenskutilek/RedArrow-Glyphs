@@ -330,6 +330,7 @@ class OutlineTest:
         self.zero_handles_max_distance = self._normalize_upm(
             self.options.get("zero_handles_max_distance", 0)
         )
+        self.inflection_min = self.options.get("inflection_min", 0.3)
 
         self.grid_length = self.options.get("grid_length", 1)
         self.ignore_warnings = self.options.get("ignore_warnings", False)
@@ -570,8 +571,8 @@ class OutlineTest:
             (bcp1.x, bcp1.y),
             (bcp2.x, bcp2.y),
             (pt3.x, pt3.y),
-            self.options["inflection_min"],
-            self.options["inflection_max"],
+            self.inflection_min,
+            1 - self.inflection_min,
         )
         ok_inflections, ok_vectors = ok
         err_inflections, err_vectors = err

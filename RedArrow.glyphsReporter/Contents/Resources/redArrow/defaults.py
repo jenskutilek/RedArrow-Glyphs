@@ -1,9 +1,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import objc
 
-def same(value):
-    # A function that returns the value unchanged.
-    return value
+from AppKit import NSDecimalNumber
 
 
 default_tests = [
@@ -26,25 +25,37 @@ default_options = {
     "collinear_vectors_max_distance": 2,
     "grid_length": 1,
     "inflection_min": 0.3,
-    "inflection_max": 0.7,
 }
 
 option_types = {
-    "ignore_warnings": bool,
-    "extremum_calculate_badness": bool,
-    "extremum_ignore_badness_below": int,
-    "smooth_connection_max_distance": int,
-    "fractional_ignore_point_zero": bool,
-    "collinear_vectors_max_distance": int,
-    "grid_length": same,
-    "inflection_min": same,
-    "inflection_max": same,
+    "ignore_warnings": "bool",
+    "extremum_calculate_badness": "bool",
+    "extremum_ignore_badness_below": "float",
+    "smooth_connection_max_distance": "float",
+    "fractional_ignore_point_zero": "bool",
+    "collinear_vectors_max_distance": "float",
+    "grid_length": "float",
+    "inflection_min": "float",
 }
 
 
 def typechecked_options(options):
     out = {}
     for k, v in default_options.items():
-        cast = option_types.get(k, int)
-        out[k] = cast(options.get(k, v))
+        t = option_types.get(k, "float")
+        if t == "bool":
+            out[k] = bool(options.get(k, v))
+        elif t == "float":
+            v = options.get(k, v)
+            if type(v) == NSDecimalNumber:
+                out[k] = v.floatValue()
+            elif type(v) in (objc._pythonify.OC_PythonFloat, objc._pythonify.OC_PythonLong):
+                out[k] = float(v)
+            elif type(v) in (float, int):
+                out[k] = v
+            else:
+                print("Unknown type for %s: '%s', using default value: %s" % (k, type(v), default_options[k]))
+        else:
+            print("Unknown type for %s: '%s', using default value: %s" % (k, type(v), default_options[k]))
+
     return out
