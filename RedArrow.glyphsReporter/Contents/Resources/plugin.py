@@ -428,7 +428,7 @@ class RedArrow(ReporterPlugin):
 
     @objc.python_method
     def _drawArrows(self, debug=False):
-        size = 10 / self.getScale()
+        size = Glyphs.defaults.get(full_libkey("arrowSize"), 10) / self.getScale()
         errors_by_position = {}
         for e in self.errors:
             if e.position is not None:
