@@ -501,62 +501,63 @@ class OutlineTest:
     def _getBadness(self, pointToCheck, myRect):
         # calculate distance of point to rect
         badness = 0
-        if pointToCheck.x < myRect[0]:
+        x, y = pointToCheck
+        if x < myRect[0]:
             # point is left from rect
-            if pointToCheck.y < myRect[1]:
+            if y < myRect[1]:
                 # point is lower left from rect
                 badness = int(
                     round(
                         sqrt(
-                            (myRect[0] - pointToCheck.x) ** 2
-                            + (myRect[1] - pointToCheck.y) ** 2
+                            (myRect[0] - x) ** 2
+                            + (myRect[1] - y) ** 2
                         )
                     )
                 )
-            elif pointToCheck.y > myRect[3]:
+            elif y > myRect[3]:
                 # point is upper left from rect
                 badness = int(
                     round(
                         sqrt(
-                            (myRect[0] - pointToCheck.x) ** 2
-                            + (myRect[3] - pointToCheck.y) ** 2
+                            (myRect[0] - x) ** 2
+                            + (myRect[3] - y) ** 2
                         )
                     )
                 )
             else:
-                badness = myRect[0] - pointToCheck.x
-        elif pointToCheck.x > myRect[2]:
+                badness = myRect[0] - x
+        elif x > myRect[2]:
             # point is right from rect
-            if pointToCheck.y < myRect[1]:
+            if y < myRect[1]:
                 # point is lower right from rect
                 badness = int(
                     round(
                         sqrt(
-                            (myRect[2] - pointToCheck.x) ** 2
-                            + (myRect[1] - pointToCheck.y) ** 2
+                            (myRect[2] - x) ** 2
+                            + (myRect[1] - y) ** 2
                         )
                     )
                 )
-            elif pointToCheck.y > myRect[3]:
+            elif y > myRect[3]:
                 # point is upper right from rect
                 badness = int(
                     round(
                         sqrt(
-                            (myRect[2] - pointToCheck.x) ** 2
-                            + (myRect[3] - pointToCheck.y) ** 2
+                            (myRect[2] - x) ** 2
+                            + (myRect[3] - y) ** 2
                         )
                     )
                 )
             else:
-                badness = pointToCheck.x - myRect[2]
+                badness = x - myRect[2]
         else:
             # point is centered from rect, check for upper/lower
-            if pointToCheck.y < myRect[1]:
+            if y < myRect[1]:
                 # point is lower center from rect
-                badness = myRect[1] - pointToCheck.y
+                badness = myRect[1] - y
             elif pointToCheck[1] > myRect[3]:
                 # point is upper center from rect
-                badness = pointToCheck.y - myRect[3]
+                badness = y - myRect[3]
             else:
                 badness = 0
         return badness
