@@ -47,11 +47,11 @@ def typechecked_options(options):
             out[k] = bool(options.get(k, v))
         elif t == "float":
             v = options.get(k, v)
-            if type(v) == NSDecimalNumber:
+            if isinstance(v, NSDecimalNumber):
                 out[k] = v.floatValue()
-            elif type(v) in (objc._pythonify.OC_PythonFloat, objc._pythonify.OC_PythonLong):
+            elif isinstance(v, objc._pythonify.OC_PythonFloat) or isinstance(v, objc._pythonify.OC_PythonLong):
                 out[k] = float(v)
-            elif type(v) in (float, int):
+            elif isinstance(v, float) or isinstance(v, int):
                 out[k] = v
             else:
                 print("Unknown type for %s: '%s', using default value: %s" % (k, type(v), default_options[k]))
