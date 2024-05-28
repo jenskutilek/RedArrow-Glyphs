@@ -371,11 +371,17 @@ class OutlineTest:
             self._checkIncorrectSmoothConnection(node)
         if self.test_empty_segments:
             self._checkEmptyLinesAndCurves(node)
-        if self.test_collinear and node.nextNode.type == LINE:
+        if (
+            self.test_collinear
+            and node.nextNode is not None
+            and node.nextNode.type == LINE
+        ):
             self._checkCollinearVectors(node)
         if self.test_semi_hv:
-            self._checkSemiHorizontal(node.prevNode, node)
-            self._checkSemiVertical(node.prevNode, node)
+            prev_node = node.prevNode
+            if prev_node is not None:
+                self._checkSemiHorizontal(prev_node, node)
+                self._checkSemiVertical(prev_node, node)
 
     def _runCurveTests(self, node):
         if self.test_extrema:
@@ -398,12 +404,14 @@ class OutlineTest:
             bcp2 = pt3.prevNode
             bcp1 = bcp2.prevNode
             pt0 = bcp1.prevNode
-            # Start of curve
-            self._checkSemiHorizontal(pt0, bcp1, "handle")
-            self._checkSemiVertical(pt0, bcp1, "handle")
-            # End of curve
-            self._checkSemiHorizontal(bcp2, pt3, "handle")
-            self._checkSemiVertical(bcp2, pt3, "handle")
+            if not (bcp1 is None or pt0 is None):
+                # Start of curve
+                self._checkSemiHorizontal(pt0, bcp1, "handle")
+                self._checkSemiVertical(pt0, bcp1, "handle")
+            if bcp2 is not None:
+                # End of curve
+                self._checkSemiHorizontal(bcp2, pt3, "handle")
+                self._checkSemiVertical(bcp2, pt3, "handle")
 
     def _runOffcurveTests(self, node):
         if self.test_fractional_coords:
@@ -439,12 +447,15 @@ class OutlineTest:
         if self.test_semi_hv:
             pv = node.prevNode
             nx = start_node.nextNode
-            # Start of curve
-            self._checkSemiHorizontal(start_node, nx, "handle")
-            self._checkSemiVertical(start_node, nx, "handle")
-            # End of curve
-            self._checkSemiHorizontal(pv, node, "handle")
-            self._checkSemiVertical(pv, node, "handle")
+            if nx is not None:
+                # Start of curve
+                self._checkSemiHorizontal(start_node, nx, "handle")
+                self._checkSemiVertical(start_node, nx, "handle")
+
+            if pv is not None:
+                # End of curve
+                self._checkSemiHorizontal(pv, node, "handle")
+                self._checkSemiVertical(pv, node, "handle")
 
     def _runComponentTests(self, component):
         if self.test_fractional_coords:
@@ -564,6 +575,10 @@ class OutlineTest:
         bcp2 = node.prevNode
         bcp1 = bcp2.prevNode
         pt0 = bcp1.prevNode
+
+        if bcp2 is None or bcp1 is None or pt0 is None:
+            return
+
         ok, err = getInflectionsForCubic(
             (pt0.x, pt0.y),
             (bcp1.x, bcp1.y),
@@ -666,6 +681,9 @@ class OutlineTest:
         prev_node = node.prevNode
         next_node = node.nextNode
 
+        if prev_node is None or next_node is None:
+            return
+
         # angle of previous reference point to current point
         phi1 = angle_between_points(prev_node, node)
         phi2 = angle_between_points(node, next_node)
@@ -751,6 +769,10 @@ class OutlineTest:
         """
         prev_node = node.prevNode
         next_node = node.nextNode
+
+        if prev_node is None or next_node is None:
+            return
+
         # if next_ref != pt:
         # angle of previous reference point to current point
         phi1 = angle_between_points(prev_node, node)
