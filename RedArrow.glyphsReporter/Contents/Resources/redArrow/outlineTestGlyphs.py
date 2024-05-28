@@ -514,48 +514,20 @@ class OutlineTest:
             # point is left from rect
             if y < myRect[1]:
                 # point is lower left from rect
-                badness = int(
-                    round(
-                        sqrt(
-                            (myRect[0] - x) ** 2
-                            + (myRect[1] - y) ** 2
-                        )
-                    )
-                )
+                badness = int(round(sqrt((myRect[0] - x) ** 2 + (myRect[1] - y) ** 2)))
             elif y > myRect[3]:
                 # point is upper left from rect
-                badness = int(
-                    round(
-                        sqrt(
-                            (myRect[0] - x) ** 2
-                            + (myRect[3] - y) ** 2
-                        )
-                    )
-                )
+                badness = int(round(sqrt((myRect[0] - x) ** 2 + (myRect[3] - y) ** 2)))
             else:
                 badness = myRect[0] - x
         elif x > myRect[2]:
             # point is right from rect
             if y < myRect[1]:
                 # point is lower right from rect
-                badness = int(
-                    round(
-                        sqrt(
-                            (myRect[2] - x) ** 2
-                            + (myRect[1] - y) ** 2
-                        )
-                    )
-                )
+                badness = int(round(sqrt((myRect[2] - x) ** 2 + (myRect[1] - y) ** 2)))
             elif y > myRect[3]:
                 # point is upper right from rect
-                badness = int(
-                    round(
-                        sqrt(
-                            (myRect[2] - x) ** 2
-                            + (myRect[3] - y) ** 2
-                        )
-                    )
-                )
+                badness = int(round(sqrt((myRect[2] - x) ** 2 + (myRect[3] - y) ** 2)))
             else:
                 badness = x - myRect[2]
         else:
