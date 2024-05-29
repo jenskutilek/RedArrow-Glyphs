@@ -726,12 +726,18 @@ class OutlineTest:
                     )
 
     def _checkEmptyLinesAndCurves(self, node):
-        if node.prevNode.x == node.x and node.prevNode.y == node.y:
+        prev_node = node.prevNode
+        next_node = node.nextNode
+
+        if prev_node is None or next_node is None:
+            return
+
+        if prev_node.x == node.x and prev_node.y == node.y:
             self.errors.append(
                 OutlineError(
                     node,
                     "Zero-length distance",
-                    vector=get_vector(node.prevNode, node.nextNode),
+                    vector=get_vector(next_node, next_node),
                 )
             )
 
