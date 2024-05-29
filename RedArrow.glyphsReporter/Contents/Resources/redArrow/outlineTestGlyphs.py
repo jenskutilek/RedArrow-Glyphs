@@ -1,3 +1,6 @@
+# encoding: utf-8
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 from AppKit import NSMakePoint
 from miniFontTools.misc.arrayTools import normRect
 from miniFontTools.misc.bezierTools import (
