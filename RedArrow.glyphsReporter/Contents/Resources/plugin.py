@@ -117,15 +117,17 @@ class RedArrow(ReporterPlugin):
 
     @objc.python_method
     def addWindowMenuItem(self):
-        newMenuItem = NSMenuItem(
+        newMenuItem = NSMenuItem.alloc().init()
+        newMenuItem.setTitle_(
             Glyphs.localize(
                 {
                     "en": "Red Arrow Preferences...",
                     "de": "Red-Arrow-Einstellungen ...",
                 }
-            ),
-            self.setRedArrowDefaults_,
+            )
         )
+        newMenuItem.setAction_(self.setRedArrowDefaults_)
+        newMenuItem.setTarget_(self)
         Glyphs.menu[WINDOW_MENU].append(newMenuItem)
 
     @objc.python_method
