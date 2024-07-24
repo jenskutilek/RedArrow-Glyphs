@@ -399,9 +399,9 @@ class OutlineTest:
             self._checkIncorrectSmoothConnection(node)
         if self.test_empty_segments:
             self._checkEmptyLinesAndCurves(node)
-        # if self.test_zero_handles:
-        #     self._checkZeroHandles(node.prevNode, node)
-        #     self._checkZeroHandles(node, node.nextNode)
+        if self.test_zero_handles:
+            self._checkZeroHandles(node.prevNode, node)
+            self._checkZeroHandles(node, node.nextNode)
         if self.test_semi_hv:
             pt3 = node
             bcp2 = pt3.prevNode
