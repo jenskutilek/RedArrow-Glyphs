@@ -8,6 +8,7 @@ from AppKit import (
     NSWindowZoomButton,
     NSWindowMiniaturizeButton,
 )
+from objc import super
 from vanilla import Button, Window
 
 
