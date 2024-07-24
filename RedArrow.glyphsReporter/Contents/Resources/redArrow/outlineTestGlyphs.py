@@ -268,7 +268,7 @@ class OutlineTest:
             "test_empty_segments",
             "test_collinear",
             "test_semi_hv",
-            "test_closepath",
+            # "test_closepath",
             "test_zero_handles",
             "test_bbox_handles",
             "test_short_segments",
@@ -291,6 +291,11 @@ class OutlineTest:
     def layer(self, value):
         self._layer = value
         self.upm = 1000 if self.layer is None else self.layer.parent.parent.upm
+        if self._layer is not None:
+            bounds = value.bounds
+            self.bb_bottom = bounds.origin.y
+            self.bb_left = bounds.origin.x
+            self.bb_top = self.bb_bottom + bounds.size.height
         self._cache_options()
 
     def _normalize_upm(self, value):
@@ -369,12 +374,13 @@ class OutlineTest:
     # Tests for different node types
 
     def _runLineTests(self, node):
+        prev_node = node.prevNode
         if self.test_fractional_coords:
             self._checkFractionalCoordinates(node)
         if self.test_smooth:
             self._checkIncorrectSmoothConnection(node)
         if self.test_empty_segments:
-            self._checkEmptyLinesAndCurves(node)
+            self._checkEmptyLinesAndCurves(prev_node, node)
         if (
             self.test_collinear
             and node.nextNode is not None
@@ -382,18 +388,21 @@ class OutlineTest:
         ):
             self._checkCollinearVectors(node)
         if self.test_semi_hv:
-            prev_node = node.prevNode
             if prev_node is not None:
                 self._checkSemiHorizontal(prev_node, node)
                 self._checkSemiVertical(prev_node, node)
         if self.test_short_segments:
-            self._checkShortLinesAndCurves(node)
+            self._checkShortLinesAndCurves(prev_node, node)
 
     def _runCurveTests(self, node):
+        pt3 = node
+        bcp2 = pt3.prevNode
+        bcp1 = bcp2.prevNode
+        pt0 = bcp1.prevNode
         if self.test_extrema:
-            self._checkBboxCurve(node)
+            self._checkBboxCurve(pt0, bcp1, bcp2, pt3)
         if self.test_inflections:
-            self._checkInflectionsCurve(node)
+            self._checkInflectionsCurve(pt0, bcp1, bcp2, pt3)
         if self.test_fractional_coords:
             self._checkFractionalCoordinates(node)
         if not self.curveTypeDetected:
@@ -401,15 +410,13 @@ class OutlineTest:
         if self.test_smooth:
             self._checkIncorrectSmoothConnection(node)
         if self.test_empty_segments:
-            self._checkEmptyLinesAndCurves(node)
+            self._checkEmptyLinesAndCurves(pt0, pt3)
         if self.test_zero_handles:
-            self._checkZeroHandles(node.prevNode, node)
-            self._checkZeroHandles(node, node.nextNode)
+            if bcp2 is not None:
+                self._checkZeroHandles(bcp2, pt3)
+            if not (bcp1 is None or pt0 is None):
+                self._checkZeroHandles(bcp1, pt0)
         if self.test_semi_hv:
-            pt3 = node
-            bcp2 = pt3.prevNode
-            bcp1 = bcp2.prevNode
-            pt0 = bcp1.prevNode
             if not (bcp1 is None or pt0 is None):
                 # Start of curve
                 self._checkSemiHorizontal(pt0, bcp1, "handle")
@@ -419,11 +426,14 @@ class OutlineTest:
                 self._checkSemiHorizontal(bcp2, pt3, "handle")
                 self._checkSemiVertical(bcp2, pt3, "handle")
         if self.test_short_segments:
-            self._checkShortLinesAndCurves(node)
+            if not (pt3 is None or pt0 is None):
+                self._checkShortLinesAndCurves(pt0, pt3)
 
     def _runOffcurveTests(self, node):
         if self.test_fractional_coords:
             self._checkFractionalCoordinates(node)
+        if self.test_bbox_handles:
+            self._checkLayerBBoxHandle(node)
 
     def _runQCurveTests(self, node):
         # Find the previous oncurve node
@@ -450,11 +460,11 @@ class OutlineTest:
             self._countQCurveSegment()
         if self.test_smooth:
             self._checkIncorrectSmoothConnection(node)
+        pv = node.prevNode
+        nx = start_node.nextNode
         if self.test_empty_segments:
-            self._checkEmptyLinesAndCurves(node)
+            self._checkEmptyLinesAndCurves(pv, node)
         if self.test_semi_hv:
-            pv = node.prevNode
-            nx = start_node.nextNode
             if nx is not None:
                 # Start of curve
                 self._checkSemiHorizontal(start_node, nx, "handle")
@@ -475,30 +485,50 @@ class OutlineTest:
 
     # Implementations for all the different tests
 
-    def _checkBboxCurve(self, node):
-        pt3 = node
-        bcp2 = node.prevNode
-        bcp1 = bcp2.prevNode
-        pt0 = bcp1.prevNode
+    def _checkBboxCurve(self, pt0, bcp1, bcp2, pt3):
         myRect = normRect((pt0.x, pt0.y, pt3.x, pt3.y))
         if not pointInRect(bcp1, myRect) or not pointInRect(bcp2, myRect):
             extrema, vectors = getExtremaForCubic(pt0, bcp1, bcp2, pt3, h=True, v=True)
             for i, p in enumerate(extrema):
+                vector = vectors[i]
+                if abs(vector[1]) < 0.1:
+                    error_class = OutlineError
+                    desc = "Extremum relevant for hinting"
+                else:
+                    error_class = OutlineWarning
+                    desc = "Extremum"
                 if self.extremum_calculate_badness:
                     badness = self._getBadness(p, myRect)
                     if badness >= self.extremum_ignore_badness_below:
                         self.errors.append(
-                            OutlineError(
-                                NSMakePoint(*p),
-                                "Extremum",
-                                badness,
-                                vectors[i],
-                            )
+                            error_class(NSMakePoint(*p), desc, badness, vector=vector)
                         )
                 else:
                     self.errors.append(
-                        OutlineError(NSMakePoint(*p), "Extremum", vector=vectors[i])
+                        error_class(NSMakePoint(*p), desc, vector=vector)
                     )
+
+    def _checkLayerBBoxHandle(self, node):
+        if self.layer is None:
+            return
+
+        if node.x < self.bb_left:
+            self.errors.append(
+                OutlineError(node, "Handle outside bounding box", vector=(0, -1))
+            )
+            return
+
+        if node.y > self.bb_top:
+            self.errors.append(
+                OutlineError(node, "Handle outside bounding box", vector=(-1, 0))
+            )
+            return
+
+        if node.y < self.bb_bottom:
+            self.errors.append(
+                OutlineError(node, "Handle outside bounding box", vector=(1, 0))
+            )
+            return
 
     def _checkExtremaQuad(self, segment):
         quad = add_implied_oncurve_points_quad(segment)
@@ -552,12 +582,7 @@ class OutlineTest:
                 badness = 0
         return badness
 
-    def _checkInflectionsCurve(self, node):
-        pt3 = node
-        bcp2 = node.prevNode
-        bcp1 = bcp2.prevNode
-        pt0 = bcp1.prevNode
-
+    def _checkInflectionsCurve(self, pt0, bcp1, bcp2, pt3):
         if bcp2 is None or bcp1 is None or pt0 is None:
             return
 
@@ -735,35 +760,29 @@ class OutlineTest:
                         )
                     )
 
-    def _checkEmptyLinesAndCurves(self, node):
-        prev_node = node.prevNode
-        next_node = node.nextNode
-
-        if prev_node is None or next_node is None:
+    def _checkEmptyLinesAndCurves(self, pt0, pt1):
+        if pt0 is None or pt1 is None:
             return
 
-        if prev_node.x == node.x and prev_node.y == node.y:
+        if pt0.x == pt1.x and pt0.y == pt1.y:
             self.errors.append(
                 OutlineError(
-                    node,
+                    pt1,
                     "Zero-length distance",
-                    vector=get_vector(next_node, next_node),
+                    vector=get_vector(pt0, pt1),
                 )
             )
 
-    def _checkShortLinesAndCurves(self, node):
-        prev_node = node.prevNode
-        next_node = node.nextNode
-
-        if prev_node is None or next_node is None:
+    def _checkShortLinesAndCurves(self, pt0, pt1):
+        if pt0 is None or pt1 is None:
             return
 
-        if abs(prev_node.x - node.x) <= 1 and abs(prev_node.y - node.y) <= 1:
+        if abs(pt0.x - pt1.x) <= 1 and abs(pt0.y - pt1.y) <= 1:
             self.errors.append(
-                OutlineError(
-                    node,
+                OutlineWarning(
+                    pt0,
                     "Short segment",
-                    vector=get_vector(next_node, next_node),
+                    vector=get_vector(pt0, pt1),
                 )
             )
 

@@ -33,6 +33,10 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         "test_empty_segments": "Zero-length Segments",
         "test_collinear": "Collinear Vectors",
         "test_semi_hv": "Semi-horizontal/-vertical Segments",
+        # "test_closepath": "Closepaths",
+        "test_zero_handles": "Zero-length Handles",
+        "test_bbox_handles": "Handles Outside Bounding Box",
+        "test_short_segments": "Short Segments",
     }
 
     option_names = {
@@ -158,9 +162,16 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         if self.cancelled:
             return False, None, None
         else:
-            options = {option_name: getattr(self.w, option_name).get() for option_name in self.options.keys()}
+            options = {
+                option_name: getattr(self.w, option_name).get()
+                for option_name in self.options.keys()
+            }
             # print("Set options from dialog:")
             # for k, v in options.items():
             #     print("   ", k, v, type(v))
-            run_tests = [test_name for test_name in self.run_tests if getattr(self.w, test_name).get()]
+            run_tests = [
+                test_name
+                for test_name in self.run_tests
+                if getattr(self.w, test_name).get()
+            ]
             return self.save_global, options, run_tests
