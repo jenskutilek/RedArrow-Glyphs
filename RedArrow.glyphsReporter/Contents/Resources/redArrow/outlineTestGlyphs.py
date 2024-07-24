@@ -271,6 +271,7 @@ class OutlineTest:
             "test_closepath",
             "test_zero_handles",
             "test_bbox_handles",
+            "test_short_segments",
         ]
 
         # Curve type detection
@@ -385,6 +386,8 @@ class OutlineTest:
             if prev_node is not None:
                 self._checkSemiHorizontal(prev_node, node)
                 self._checkSemiVertical(prev_node, node)
+        if self.test_short_segments:
+            self._checkShortLinesAndCurves(node)
 
     def _runCurveTests(self, node):
         if self.test_extrema:
@@ -415,6 +418,8 @@ class OutlineTest:
                 # End of curve
                 self._checkSemiHorizontal(bcp2, pt3, "handle")
                 self._checkSemiVertical(bcp2, pt3, "handle")
+        if self.test_short_segments:
+            self._checkShortLinesAndCurves(node)
 
     def _runOffcurveTests(self, node):
         if self.test_fractional_coords:
@@ -459,6 +464,8 @@ class OutlineTest:
                 # End of curve
                 self._checkSemiHorizontal(pv, node, "handle")
                 self._checkSemiVertical(pv, node, "handle")
+        if self.test_short_segments:
+            self._checkShortLinesAndCurves(node)
 
     def _runComponentTests(self, component):
         if self.test_fractional_coords:
@@ -740,6 +747,22 @@ class OutlineTest:
                 OutlineError(
                     node,
                     "Zero-length distance",
+                    vector=get_vector(next_node, next_node),
+                )
+            )
+
+    def _checkShortLinesAndCurves(self, node):
+        prev_node = node.prevNode
+        next_node = node.nextNode
+
+        if prev_node is None or next_node is None:
+            return
+
+        if abs(prev_node.x - node.x) <= 1 and abs(prev_node.y - node.y) <= 1:
+            self.errors.append(
+                OutlineError(
+                    node,
+                    "Short segment",
                     vector=get_vector(next_node, next_node),
                 )
             )
