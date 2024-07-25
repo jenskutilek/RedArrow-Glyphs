@@ -478,7 +478,7 @@ class OutlineTest:
                 self._checkSemiHorizontal(pv, node, "handle")
                 self._checkSemiVertical(pv, node, "handle")
         if self.test_short_segments:
-            self._checkShortLinesAndCurves(node)
+            self._checkShortLinesAndCurves(pv, node)
 
     def _runComponentTests(self, component):
         if self.test_fractional_coords:
