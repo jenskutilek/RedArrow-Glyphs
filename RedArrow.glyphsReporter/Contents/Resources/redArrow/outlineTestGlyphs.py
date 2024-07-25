@@ -272,6 +272,7 @@ class OutlineTest:
             "test_zero_handles",
             "test_bbox_handles",
             "test_short_segments",
+            "test_spikes",
         ]
 
         # Curve type detection
@@ -337,6 +338,7 @@ class OutlineTest:
             self.options.get("zero_handles_max_distance", 0)
         )
         self.inflection_min = self.options.get("inflection_min", 0.3)
+        self.spike_angle = self.options.get("spike_angle", 0.49)
 
         self.grid_length = self.options.get("grid_length", 1)
         self.ignore_warnings = self.options.get("ignore_warnings", False)
@@ -381,12 +383,11 @@ class OutlineTest:
             self._checkIncorrectSmoothConnection(node)
         if self.test_empty_segments:
             self._checkEmptyLinesAndCurves(prev_node, node)
-        if (
-            self.test_collinear
-            and node.nextNode is not None
-            and node.nextNode.type == LINE
-        ):
-            self._checkCollinearVectors(node)
+        if node.nextNode is not None and node.nextNode.type == LINE:
+            if self.test_collinear:
+                self._checkCollinearVectors(node)
+        if self.test_spikes:
+            self._checkSpike(node)
         if self.test_semi_hv:
             if prev_node is not None:
                 self._checkSemiHorizontal(prev_node, node)
@@ -409,6 +410,8 @@ class OutlineTest:
             self._countCurveSegment()
         if self.test_smooth:
             self._checkIncorrectSmoothConnection(node)
+        if self.test_spikes:
+            self._checkSpike(node)
         if self.test_empty_segments:
             self._checkEmptyLinesAndCurves(pt0, pt3)
         if self.test_zero_handles:
@@ -819,6 +822,23 @@ class OutlineTest:
                     badness,
                     get_vector(prev_node, next_node),
                 )
+            )
+
+    def _checkSpike(self, node):
+        """
+        Test for consecutive segments that have a very narrow angle.
+        """
+        prev_node = node.prevNode
+        next_node = node.nextNode
+
+        if prev_node is None or next_node is None:
+            return
+
+        phi1 = angle_between_points(prev_node, node)
+        phi2 = angle_between_points(next_node, node)
+        if abs(phi2 - phi1) < self.spike_angle:
+            self.errors.append(
+                OutlineWarning(node, "Spike", vector=get_vector(prev_node, next_node))
             )
 
     def _checkSemiHorizontal(self, n0, n1, segment="line"):
