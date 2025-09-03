@@ -16,6 +16,7 @@ default_tests = [
     "test_zero_handles",
     "test_bbox_handles",
     "test_short_segments",
+    "test_spikes",
 ]
 
 default_options = {
@@ -27,6 +28,7 @@ default_options = {
     "collinear_vectors_max_distance": 2,
     "grid_length": 1,
     "inflection_min": 0.3,
+    "spike_angle": 0.49,
 }
 
 option_types = {
@@ -38,6 +40,7 @@ option_types = {
     "collinear_vectors_max_distance": "float",
     "grid_length": "float",
     "inflection_min": "float",
+    "spike_angle": "float",
 }
 
 

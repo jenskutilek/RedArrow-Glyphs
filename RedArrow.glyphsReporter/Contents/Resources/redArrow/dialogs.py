@@ -36,6 +36,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         "test_zero_handles": "Zero-length Handles",
         "test_bbox_handles": "Handles Outside Bounding Box",
         "test_short_segments": "Short Segments",
+        "test_spikes": "Spikes",
     }
 
     option_names = {
@@ -47,6 +48,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         "collinear_vectors_max_distance": ("Collinear Vectors Tolerance", "f"),
         "grid_length": ("Grid Length", "f"),
         "inflection_min": ("Minimum Allowed Inflection t (0–0.5)", "i"),
+        "spike_angle": ("Maximum Spike Angle (radians)", "f"),
     }
 
     def __init__(self, options={}, run_tests=[], title="Select Glyphs With Errors"):
