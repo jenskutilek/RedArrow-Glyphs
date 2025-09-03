@@ -117,7 +117,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
                 elif tp == "i":
                     formatter = inflection_formatter
                 else:
-                    print(f"Unknown value type for option key '{k}': '{tp}'")
+                    print("Unknown value type for option key '%s': '%s'" % (k, tp))
                     continue
 
                 setattr(
