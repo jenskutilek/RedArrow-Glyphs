@@ -3,9 +3,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from AppKit import NSNumber, NSNumberFormatter
 from vanilla import CheckBox, EditText, HorizontalLine, TextBox
-from redArrow.defaults import default_tests, typechecked_options
-from redArrow.dialogs_mac_vanilla import _RAModalWindow, _RAbaseWindowController
 
+from redArrow.defaults import default_tests, typechecked_options
+from redArrow.dialogs_mac_vanilla import _RAbaseWindowController, _RAModalWindow
 
 float_formatter = NSNumberFormatter.alloc().init()
 float_formatter.setAllowsFloats_(True)
@@ -23,7 +23,6 @@ inflection_formatter.setMaximum_(NSNumber.numberWithFloat_(0.49))
 
 
 class SelectGlyphsWindowController(_RAbaseWindowController):
-
     test_names = {
         "test_extrema": "Missing Extremum Points",
         "test_inflections": "Missing Inflection Points",
@@ -51,7 +50,6 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
     }
 
     def __init__(self, options={}, run_tests=[], title="Select Glyphs With Errors"):
-
         self.run_tests = {o: o in run_tests for o in default_tests}
         self.options = typechecked_options(options)
         self.save_global = False
