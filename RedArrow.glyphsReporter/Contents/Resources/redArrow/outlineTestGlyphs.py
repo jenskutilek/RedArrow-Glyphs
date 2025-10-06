@@ -284,6 +284,11 @@ class OutlineTest:
         self.glyphHasComponents = False
         self.glyphHasOutlines = False
 
+        # Cached bounding box
+        self.bb_bottom = 0
+        self.bb_left = 0
+        self.bb_top = 0
+
     @property
     def layer(self):
         return self._layer
@@ -293,10 +298,15 @@ class OutlineTest:
         self._layer = value
         self.upm = 1000 if self.layer is None else self.layer.parent.parent.upm
         if self._layer is not None:
-            bounds = value.bounds
-            self.bb_bottom = bounds.origin.y
-            self.bb_left = bounds.origin.x
-            self.bb_top = self.bb_bottom + bounds.size.height
+            try:
+                bounds = value.bounds
+                self.bb_bottom = bounds.origin.y
+                self.bb_left = bounds.origin.x
+                self.bb_top = self.bb_bottom + bounds.size.height
+            except AttributeError:
+                self.bb_bottom = 0
+                self.bb_left = 0
+                self.bb_top = 0
         self._cache_options()
 
     def _normalize_upm(self, value):
