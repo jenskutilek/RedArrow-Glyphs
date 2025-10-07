@@ -3,9 +3,9 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 from AppKit import NSNumber, NSNumberFormatter
 from vanilla import CheckBox, EditText, HorizontalLine, TextBox
-from redArrow.defaults import default_tests, typechecked_options
-from redArrow.dialogs_mac_vanilla import _RAModalWindow, _RAbaseWindowController
 
+from redArrow.defaults import default_tests, typechecked_options
+from redArrow.dialogs_mac_vanilla import _RAbaseWindowController, _RAModalWindow
 
 float_formatter = NSNumberFormatter.alloc().init()
 float_formatter.setAllowsFloats_(True)
@@ -119,7 +119,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
                 elif tp == "i":
                     formatter = inflection_formatter
                 else:
-                    print(f"Unknown value type for option key '{k}': '{tp}'")
+                    print("Unknown value type for option key '%s': '%s'" % (k, tp))
                     continue
 
                 setattr(

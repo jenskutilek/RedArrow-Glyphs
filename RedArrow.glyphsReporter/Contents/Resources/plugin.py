@@ -1,12 +1,13 @@
 # encoding: utf-8
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import objc
+from math import atan2, cos, pi, sin
 
+import objc
 from AppKit import (
     NSAffineTransform,
-    NSApplication,
     NSAlternateKeyMask,
+    NSApplication,
     NSBezierPath,
     NSClassFromString,
     NSColor,
@@ -18,16 +19,14 @@ from AppKit import (
     NSMakePoint,
     NSMakeRect,
     NSMenuItem,
+    NSNotificationCenter,
     NSOffsetRect,
     NSRect,
     NSShiftKeyMask,
     NSString,
-    NSNotificationCenter,
 )
-from GlyphsApp import Glyphs, MOUSEMOVED, WINDOW_MENU
+from GlyphsApp import MOUSEMOVED, WINDOW_MENU, Glyphs
 from GlyphsApp.plugins import ReporterPlugin
-from math import atan2, cos, pi, sin
-
 from redArrow.defaults import default_options, default_tests, typechecked_options
 from redArrow.geometry_functions import distance_between_points
 from redArrow.outlineTestGlyphs import OutlineTest

@@ -1,20 +1,20 @@
 # encoding: utf-8
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from math import atan2, cos, degrees, pi, sin, sqrt
+
 from AppKit import NSMakePoint
+from GlyphsApp import CURVE, LINE, OFFCURVE, QCURVE
 from miniFontTools.misc.arrayTools import normRect
 from miniFontTools.misc.bezierTools import (
-    calcQuadraticParameters,
     calcCubicParameters,
+    calcQuadraticParameters,
+    epsilon,
     solveQuadratic,
     splitCubicAtT,
     splitQuadraticAtT,
-    epsilon,
 )
 from miniFontTools.misc.transform import Transform
-from GlyphsApp import CURVE, LINE, OFFCURVE, QCURVE
-from math import atan2, degrees, cos, pi, sin, sqrt
-
 
 # Helper functions
 
