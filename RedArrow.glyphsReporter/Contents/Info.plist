@@ -13,17 +13,17 @@
 	<key>CFBundleName</key>
 	<string>RedArrow</string>
 	<key>CFBundleVersion</key>
-	<string>205</string>
+	<string>224</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.0.5</string>
+	<string>2.2.4</string>
 	<key>UpdateFeedURL</key>
 	<string>https://raw.githubusercontent.com/jenskutilek/RedArrow-Glyphs/master/RedArrow.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
 	<string>https://github.com/jenskutilek/RedArrow-Glyphs</string>
 	<key>productReleaseNotes</key>
-	<string>Compatibility with older Python versions</string>
+	<string>Add check for handles outside bounding box; allow setting arrow size: Glyphs.defaults["de.kutilek.RedArrow.arrowSize"] = 10</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright by Jens Kutilek, 2016-2023</string>
+	<string>Copyright by Jens Kutilek, 2016-2025</string>
 	<key>NSPrincipalClass</key>
 	<string>RedArrow</string>
 	<key>PyMainFileNames</key>

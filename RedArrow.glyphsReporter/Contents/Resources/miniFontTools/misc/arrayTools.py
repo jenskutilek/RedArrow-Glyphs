@@ -4,9 +4,11 @@
 #
 
 
-from __future__ import print_function, division, absolute_import
-from miniFontTools.misc.py23 import *
+from __future__ import absolute_import, division, print_function
+
 import math
+
+from miniFontTools.misc.py23 import *
 
 
 def calcBounds(array):
@@ -47,7 +49,7 @@ def pointInRect(p, rect):
 
 
 def pointsInRect(array, rect):
-    """Find out which points or array are inside rect. 
+    """Find out which points or array are inside rect.
     Returns an array with a boolean for each point.
     """
     if len(array) < 1:
@@ -69,7 +71,7 @@ def asInt16(array):
 
 def normRect(rect):
     """Normalize the rectangle so that the following holds:
-        xMin <= xMax and yMin <= yMax
+    xMin <= xMax and yMin <= yMax
     """
     (xMin, yMin, xMax, yMax) = rect
     return min(xMin, xMax), min(yMin, yMax), max(xMin, xMax), max(yMin, yMax)
@@ -100,8 +102,12 @@ def sectRect(rect1, rect2):
     """
     (xMin1, yMin1, xMax1, yMax1) = rect1
     (xMin2, yMin2, xMax2, yMax2) = rect2
-    xMin, yMin, xMax, yMax = (max(xMin1, xMin2), max(yMin1, yMin2),
-                              min(xMax1, xMax2), min(yMax1, yMax2))
+    xMin, yMin, xMax, yMax = (
+        max(xMin1, xMin2),
+        max(yMin1, yMin2),
+        min(xMax1, xMax2),
+        min(yMax1, yMax2),
+    )
     if xMin >= xMax or yMin >= yMax:
         return False, (0, 0, 0, 0)
     return True, (xMin, yMin, xMax, yMax)
@@ -114,8 +120,12 @@ def unionRect(rect1, rect2):
     """
     (xMin1, yMin1, xMax1, yMax1) = rect1
     (xMin2, yMin2, xMax2, yMax2) = rect2
-    xMin, yMin, xMax, yMax = (min(xMin1, xMin2), min(yMin1, yMin2),
-                              max(xMax1, xMax2), max(yMax1, yMax2))
+    xMin, yMin, xMax, yMax = (
+        min(xMin1, xMin2),
+        min(yMin1, yMin2),
+        max(xMax1, xMax2),
+        max(yMax1, yMax2),
+    )
     return (xMin, yMin, xMax, yMax)
 
 
@@ -195,4 +205,5 @@ def _test():
 
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

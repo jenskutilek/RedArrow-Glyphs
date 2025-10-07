@@ -3,7 +3,7 @@ RedArrow-Glyphs
 
 Now Glyphs users can also have red arrows!
 
-This plugin points at possible outline errors, like FontAudit in FontLab Studio. This version only works in Glyphs 2.3 and newer.
+This plugin points at possible outline errors, like FontAudit in FontLab Studio. This version works in Glyphs 2.3 and newer.
 
 <img src="screenshot.png" width="800" height="790" alt="">
 
@@ -36,6 +36,14 @@ Restart Glyphs.
 
 Open a glyph in Edit View.
 Use View > Show Red Arrows to toggle the arrows.
+
+#### Customizing The Arrow Size
+
+You can set the size of the arrows, e.g. to 10 pixels by running this command in the *Macro Panel:*
+
+```py
+Glyphs.defaults["de.kutilek.RedArrow.arrowSize"] = 10
+```
 
 #### To Show/Hide Error Description Labels
 

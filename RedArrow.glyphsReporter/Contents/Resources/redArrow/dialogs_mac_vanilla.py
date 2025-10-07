@@ -5,14 +5,14 @@ from AppKit import (
     NSApp,
     NSModalPanelWindowLevel,
     NSWindowCloseButton,
-    NSWindowZoomButton,
     NSWindowMiniaturizeButton,
+    NSWindowZoomButton,
 )
+from objc import super
 from vanilla import Button, Window
 
 
 class _RAModalWindow(Window):
-
     nsWindowLevel = NSModalPanelWindowLevel
 
     def __init__(self, *args, **kwargs):
