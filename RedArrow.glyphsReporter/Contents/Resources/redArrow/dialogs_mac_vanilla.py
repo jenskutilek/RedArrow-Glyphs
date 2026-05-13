@@ -12,6 +12,9 @@ from vanilla import Button, Window
 class _RAModalWindow(Window):
     nsWindowLevel = NSModalPanelWindowLevel
 
+    okButton: Button
+    closeButton: Button
+
     def __init__(self, *args, **kwargs) -> None:
         super(_RAModalWindow, self).__init__(*args, **kwargs)
         for button in (
@@ -31,9 +34,15 @@ class _RAModalWindow(Window):
         NSApp().stopModal()
 
 
-class _RAbaseWindowController(object):
+class _RAbaseWindowController:
+    w: _RAModalWindow | None
+
     def setUpBaseWindowBehavior(self) -> None:
         self._getValue = None
+        self.cancelled = False
+
+        if self.w is None:
+            return
 
         self.w.okButton = Button(
             (-70, -30, -15, 20), "OK", callback=self.okCallback, sizeStyle="small"
@@ -49,13 +58,17 @@ class _RAbaseWindowController(object):
         self.w.closeButton.bind(".", ["command"])
         self.w.closeButton.bind(chr(27), [])
 
-        self.cancelled = False
+    def okCallback(self, _) -> None:
+        if self.w is None:
+            return
 
-    def okCallback(self, sender) -> None:
         self.w.close()
 
-    def closeCallback(self, sender) -> None:
+    def closeCallback(self, _) -> None:
         self.cancelled = True
+        if self.w is None:
+            return
+
         self.w.close()
 
     def get(self) -> None:

@@ -1,9 +1,14 @@
+from typing import TYPE_CHECKING
+
 from AppKit import NSNumber, NSNumberFormatter
 from vanilla import CheckBox, EditText, HorizontalLine, TextBox
 
 from redArrow.defaults import default_tests, typechecked_options
 from redArrow.dialogs_mac_vanilla import _RAbaseWindowController, _RAModalWindow
 from redArrow.typing import RedArrowOptionsDict
+
+if TYPE_CHECKING:
+    from typing import Any
 
 float_formatter = NSNumberFormatter.alloc().init()
 float_formatter.setAllowsFloats_(True)
@@ -44,14 +49,14 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         "smooth_connection_max_distance": ("Smooth Connection Tolerance", "f"),
         "fractional_ignore_point_zero": ("Ignore .0 Fractional Values", "b"),
         "collinear_vectors_max_distance": ("Collinear Vectors Tolerance", "f"),
-        "grid_length": ("Grid Length", "f"),
-        "inflection_min": ("Minimum Allowed Inflection t (0–0.5)", "i"),
+        "grid_length": ("Grid Length", "i"),
+        "inflection_min": ("Minimum Allowed Inflection t (0–0.5)", "f"),
         "spike_angle": ("Maximum Spike Angle (radians)", "f"),
     }
 
     def __init__(
         self,
-        options: RedArrowOptionsDict = {},
+        options: "dict[str, Any]" = {},
         run_tests: list[str] = [],
         title: str = "Select Glyphs With Errors",
     ) -> None:

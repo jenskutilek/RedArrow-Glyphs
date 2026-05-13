@@ -210,7 +210,7 @@ def getInflectionsForQuadratic(
         return [], []
 
 
-def round_point(pt: "GSNode", gridLength: int | float = 1) -> "NSPoint":
+def round_point(pt: "GSNode", gridLength: int = 1) -> "NSPoint":
     # Return a rounded copy of point pt, depending on gridLength
     pr = NSMakePoint(pt.x, pt.y)
     pr.x = round_value(pt.x, gridLength)
@@ -218,12 +218,12 @@ def round_point(pt: "GSNode", gridLength: int | float = 1) -> "NSPoint":
     return pr
 
 
-def round_value(v: float, gridLength: int | float = 1) -> float | int:
+def round_value(v: float, gridLength: int = 1) -> float | int:
     # Return the rounded value for v, depending on gridLength
     if gridLength == 0:
         return v
     elif gridLength == 1:
-        vr: int | float = round(v)
+        vr: int = round(v)
     else:
         vr = round(v / gridLength) * gridLength
     return vr
@@ -301,7 +301,7 @@ class OutlineTest:
 
     def __init__(
         self,
-        layer: "GSLayer",
+        layer: "GSLayer | None",
         options: RedArrowOptionsDict | None = None,
         run_tests: list[str] | None = None,
     ) -> None:
@@ -309,6 +309,20 @@ class OutlineTest:
         self.run_tests = [] if run_tests is None else run_tests
         self.reset()
         self.layer = layer
+
+        # Cached test run settings
+        self.test_fractional_coords = True
+        self.test_smooth = True
+        self.test_empty_segments = True
+        self.test_collinear = True
+        self.test_spikes = True
+        self.test_semi_hv = True
+        self.test_short_segments = True
+        self.test_extrema = True
+        self.test_inflections = True
+        self.test_zero_handles = True
+        self.test_bbox_handles = True
+        self.test_fractional_transform = True
 
     def reset(self) -> None:
         self.errors: list[OutlineError | OutlineWarning] = []
@@ -344,16 +358,16 @@ class OutlineTest:
         self.bb_top = 0
 
     @property
-    def layer(self) -> "GSLayer":
+    def layer(self) -> "GSLayer | None":
         return self._layer
 
     @layer.setter
-    def layer(self, value: "GSLayer") -> None:
+    def layer(self, value: "GSLayer | None") -> None:
         self._layer = value
         self.upm = 1000 if self.layer is None else self.layer.parent.parent.upm
         if self._layer is not None:
             try:
-                bounds = value.bounds
+                bounds = self._layer.bounds
                 self.bb_bottom = bounds.origin.y
                 self.bb_left = bounds.origin.x
                 self.bb_top = self.bb_bottom + bounds.size.height
@@ -422,6 +436,9 @@ class OutlineTest:
 
     def checkLayer(self) -> None:
         self.errors = []
+        if self.layer is None:
+            return
+
         for path in self.layer.paths:
             for node in path.nodes:
                 node_type = node.type

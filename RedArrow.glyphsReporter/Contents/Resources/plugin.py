@@ -30,6 +30,9 @@ from redArrow.outlineTestGlyphs import OutlineTest
 
 if TYPE_CHECKING:
     from AppKit import NSPoint
+    from GlyphsApp import GSLayer
+    from redArrow.outlineTestGlyphs import OutlineError, OutlineWarning
+    from redArrow.typing import PointTuple, RedArrowOptionsDict
 
 
 plugin_id = "de.kutilek.RedArrow"
@@ -54,7 +57,7 @@ def full_libkey(key):
 
 class RedArrow(ReporterPlugin):
     @objc.python_method
-    def settings(self):
+    def settings(self) -> None:
         self.menuName = "Red Arrows"
         self.keyboardShortcut = "a"
         self.keyboardShortcutModifier = (
@@ -87,7 +90,7 @@ class RedArrow(ReporterPlugin):
         self.toggleLabels_(None)
 
     @objc.python_method
-    def start(self):
+    def start(self) -> None:
         self.addMenuItem()
         self.addWindowMenuItem()
         self.options = default_options
@@ -99,7 +102,7 @@ class RedArrow(ReporterPlugin):
         self.load_defaults()
 
     @objc.python_method
-    def addMenuItem(self):
+    def addMenuItem(self) -> None:
         mainMenu = NSApplication.sharedApplication().mainMenu()
         s = objc.selector(self.selectGlyphsWithErrors, signature=b"v@:@")
         newMenuItem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
@@ -117,7 +120,7 @@ class RedArrow(ReporterPlugin):
         mainMenu.itemAtIndex_(2).submenu().insertItem_atIndex_(newMenuItem, 12)
 
     @objc.python_method
-    def addWindowMenuItem(self):
+    def addWindowMenuItem(self) -> None:
         newMenuItem = NSMenuItem.alloc().init()
         newMenuItem.setTitle_(
             Glyphs.localize(
@@ -132,8 +135,7 @@ class RedArrow(ReporterPlugin):
         Glyphs.menu[WINDOW_MENU].append(newMenuItem)
 
     @objc.python_method
-    def load_defaults(self):
-        # print("Loading defaults:")
+    def load_defaults(self) -> None:
         options = {
             k: Glyphs.defaults.get(full_libkey(k), v)
             for k, v in default_options.items()
@@ -145,12 +147,12 @@ class RedArrow(ReporterPlugin):
         Glyphs.redraw()
 
     @objc.python_method
-    def save_defaults(self, options, run_tests):
+    def save_defaults(self, options, run_tests) -> None:
         for k, v in default_options.items():
             Glyphs.defaults[full_libkey(k)] = options.get(k, v)
         Glyphs.defaults[full_libkey("run-tests")] = run_tests
 
-    def mouseDidMove_(self, notification):
+    def mouseDidMove_(self, notification) -> None:
         try:
             notification.object().window().windowController().activeEditViewController().graphicView().setNeedsDisplay_(
                 True
@@ -160,14 +162,14 @@ class RedArrow(ReporterPlugin):
 
             print(traceback.format_exc())
 
-    def willActivate(self):
+    def willActivate(self) -> None:
         try:
             if not self.show_labels:
                 self.startMouseMoved()
         except Exception as e:
             self.logToConsole("willDeactivate: %s" % str(e))
 
-    def willDeactivate(self):
+    def willDeactivate(self) -> None:
         try:
             if not self.show_labels:
                 self.stopMouseMoved()
@@ -175,8 +177,12 @@ class RedArrow(ReporterPlugin):
             self.logToConsole("willDeactivate: %s" % str(e))
 
     @objc.python_method
-    def foreground(self, layer):
+    def foreground(self, layer: "GSLayer | None") -> None:
         # self.logToConsole("_updateOutlineCheck: %s" % layer)
+        if layer is None:
+            print("RedArrow: Plugin.foreground() called with None")
+            return
+
         self._updateOutlineCheck(layer)
         # self.logToConsole("foreground: Errors: %s" % self.errors )
 
@@ -202,7 +208,7 @@ class RedArrow(ReporterPlugin):
                 if self.errors:
                     self._drawArrows()
 
-    def toggleLabels_(self, sender):
+    def toggleLabels_(self, _) -> None:
         if self.show_labels:
             self.show_labels = False
             self.generalContextMenus = self.show_labels_menu
@@ -214,22 +220,24 @@ class RedArrow(ReporterPlugin):
         Glyphs.defaults[full_libkey("showLabels")] = self.show_labels
         Glyphs.redraw()
 
-    def startMouseMoved(self):
+    def startMouseMoved(self) -> None:
         NSNotificationCenter.defaultCenter().addObserver_selector_name_object_(
             self, self.mouseDidMove_, MOUSEMOVED, objc.nil
         )
 
-    def stopMouseMoved(self):
+    def stopMouseMoved(self) -> None:
         NSNotificationCenter.defaultCenter().removeObserver_(self)
 
     @objc.python_method
-    def selectGlyphsOptions(self, title="Select Glyphs With Errors"):
+    def selectGlyphsOptions(
+        self, title: str = "Select Glyphs With Errors"
+    ) -> "tuple[bool, RedArrowOptionsDict | None, list[str] | None]":
         from redArrow.dialogs import SelectGlyphsWindowController
 
         ui = SelectGlyphsWindowController(self.options, self.run_tests, title)
         return ui.get()
 
-    def selectGlyphsWithErrors(self):
+    def selectGlyphsWithErrors(self) -> None:
         """
         Selects all glyphs with errors in the active layer
         """
@@ -269,7 +277,7 @@ class RedArrow(ReporterPlugin):
                     )
         font.enableUpdateInterface()
 
-    def setRedArrowDefaults_(self, sender):
+    def setRedArrowDefaults_(self, _) -> None:
         font = Glyphs.font
         self.options["grid_length"] = font.gridLength if font else 1
         save_global, options, run_tests = self.selectGlyphsOptions(
@@ -290,7 +298,7 @@ class RedArrow(ReporterPlugin):
             Glyphs.redraw()
 
     @objc.python_method
-    def _updateOutlineCheck(self, layer):
+    def _updateOutlineCheck(self, layer: "GSLayer") -> None:
         if (
             self.current_layer is layer
             and self.lastChangeDate >= layer.parent.lastOperationInterval()
@@ -317,7 +325,14 @@ class RedArrow(ReporterPlugin):
             self.logToConsole("Errors: %s" % self.errors)
 
     @objc.python_method
-    def _drawArrow(self, position, kind, size, vector=normal_vector, level="e"):
+    def _drawArrow(
+        self,
+        position: NSPoint,
+        kind: str,
+        size: int,
+        vector: "PointTuple | None" = normal_vector,
+        level: str = "e",
+    ) -> None:
         if vector is None:
             vector = normal_vector
         angle = atan2(vector[0], -vector[1])
@@ -364,7 +379,7 @@ class RedArrow(ReporterPlugin):
             )
 
     @objc.python_method
-    def _drawTextLabel(self, transform, text, size, vector, percent=1.0):
+    def _drawTextLabel(self, transform, text, size, vector, percent=1.0) -> None:
         if text is None:
             return
 
@@ -416,7 +431,14 @@ class RedArrow(ReporterPlugin):
         myString.drawInRect_withAttributes_(rr, attrs)
 
     @objc.python_method
-    def _drawUnspecified(self, position, kind, size, vector=normal_vector, level="e"):
+    def _drawUnspecified(
+        self,
+        position: "NSPoint",
+        kind: str,
+        size: int,
+        vector: "PointTuple | None" = normal_vector,
+        level: str = "e",
+    ) -> None:
         if vector is None:
             vector = normal_vector
         angle = atan2(vector[1], vector[0])
@@ -453,9 +475,9 @@ class RedArrow(ReporterPlugin):
             )
 
     @objc.python_method
-    def _drawArrows(self, debug=False):
+    def _drawArrows(self, debug: bool = False) -> None:
         size = Glyphs.defaults.get(full_libkey("arrowSize"), 10) / self.getScale()
-        errors_by_position = {}
+        errors_by_position: "dict[tuple[int, int] | None, list[OutlineError | OutlineWarning]]" = {}
         for e in self.errors:
             if e.position is not None:
                 pos_key = (int(e.position.x), int(e.position.y))
@@ -477,14 +499,12 @@ class RedArrow(ReporterPlugin):
                     if DEBUG:
                         if e.vector is None:
                             e.vector = normal_vector
-                        message += "%s (%0.2f|%0.2f = %0.2f π), " % (
-                            e.kind,
-                            e.vector[0],
-                            e.vector[1],
-                            atan2(*e.vector) / pi,
+                        message += (
+                            f"{e.kind} ({e.vector[0]:02f}|{e.vector[1]:02f}) "
+                            f"= {atan2(*e.vector) / pi} n), "
                         )
                     else:
-                        message += "%s, " % e.kind
+                        message += f"{e.kind}, "
                 else:
                     message += "%s (Severity %0.1f), " % (e.kind, e.badness)
                 if e.level == "e":
@@ -493,8 +513,8 @@ class RedArrow(ReporterPlugin):
                     vector = e.vector
             if pos is None:
                 x = 20 if self.current_layer is None else self.current_layer.width + 20
-                pos = NSMakePoint(x, -10)
-                self._drawUnspecified(pos, message.strip(", "), size, vector, level)
+                p = NSMakePoint(x, -10)
+                self._drawUnspecified(p, message.strip(", "), size, vector, level)
             else:
                 self._drawArrow(
                     NSMakePoint(*pos), message.strip(", "), size, vector, level

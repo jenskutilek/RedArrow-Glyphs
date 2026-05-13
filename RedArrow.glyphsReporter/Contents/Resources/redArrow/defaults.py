@@ -1,7 +1,12 @@
+from typing import TYPE_CHECKING
+
 import objc
 from AppKit import NSDecimalNumber
 
 from redArrow.typing import RedArrowOptionsDict
+
+if TYPE_CHECKING:
+    from typing import Any
 
 default_tests: list[str] = [
     "test_extrema",
@@ -24,9 +29,12 @@ default_options: RedArrowOptionsDict = {
     "extremum_calculate_badness": False,
     "extremum_ignore_badness_below": 0,
     "smooth_connection_max_distance": 4,
+    "semi_hv_vectors_min_distance": 30,
+    "semi_hv_vectors_max_distance": 2,
     "fractional_ignore_point_zero": True,
     "collinear_vectors_max_distance": 2,
     "grid_length": 1,
+    "zero_handles_max_distance": 0,
     "inflection_min": 0.3,
     "spike_angle": 0.49,
 }
@@ -38,14 +46,14 @@ option_types: dict[str, str] = {
     "smooth_connection_max_distance": "float",
     "fractional_ignore_point_zero": "bool",
     "collinear_vectors_max_distance": "float",
-    "grid_length": "float",
+    "grid_length": "int",
     "inflection_min": "float",
     "spike_angle": "float",
 }
 
 
 def typechecked_options(
-    options: RedArrowOptionsDict,
+    options: "dict[str, Any]",
 ) -> RedArrowOptionsDict:
     out: RedArrowOptionsDict = {}
     for k, v in default_options.items():
