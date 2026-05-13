@@ -232,16 +232,16 @@ def splitCubicAtT(
 def _splitQuadraticAtT(
     a: PointTuple, b: PointTuple, c: PointTuple, *ts
 ) -> list[tuple[PointTuple, PointTuple, PointTuple]]:
-    ts = list(ts)
+    tsl = list(ts)
     segments = []
-    ts.insert(0, 0.0)
-    ts.append(1.0)
+    tsl.insert(0, 0.0)
+    tsl.append(1.0)
     ax, ay = a
     bx, by = b
     cx, cy = c
-    for i in range(len(ts) - 1):
-        t1 = ts[i]
-        t2 = ts[i + 1]
+    for i in range(len(tsl) - 1):
+        t1 = tsl[i]
+        t2 = tsl[i + 1]
         delta = t2 - t1
         # calc new a, b and c
         a1x = ax * delta**2
@@ -259,17 +259,17 @@ def _splitQuadraticAtT(
 def _splitCubicAtT(
     a: PointTuple, b: PointTuple, c: PointTuple, d: PointTuple, *ts
 ) -> list[tuple[PointTuple, PointTuple, PointTuple, PointTuple]]:
-    ts = list(ts)
-    ts.insert(0, 0.0)
-    ts.append(1.0)
+    tsl = list(ts)
+    tsl.insert(0, 0.0)
+    tsl.append(1.0)
     segments = []
     ax, ay = a
     bx, by = b
     cx, cy = c
     dx, dy = d
-    for i in range(len(ts) - 1):
-        t1 = ts[i]
-        t2 = ts[i + 1]
+    for i in range(len(tsl) - 1):
+        t1 = tsl[i]
+        t2 = tsl[i + 1]
         delta = t2 - t1
         # calc new a, b, c and d
         a1x = ax * delta**3
