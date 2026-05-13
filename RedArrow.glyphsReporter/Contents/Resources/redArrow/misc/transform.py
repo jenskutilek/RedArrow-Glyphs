@@ -45,7 +45,10 @@ Examples:
     >>>
 """
 
-from typing import Any, Sequence
+from typing import TYPE_CHECKING, Any, Sequence
+
+if TYPE_CHECKING:
+    from redArrow.typing import PointTuple
 
 __all__ = ["Transform", "Identity", "Offset", "Scale"]
 
@@ -55,7 +58,7 @@ _ONE_EPSILON = 1 - _EPSILON
 _MINUS_ONE_EPSILON = -1 + _EPSILON
 
 
-def _normSinCos(v: float) -> int:
+def _normSinCos(v: float) -> float | int:
     if abs(v) < _EPSILON:
         v = 0
     elif v > _ONE_EPSILON:
@@ -104,7 +107,7 @@ class Transform(object):
         """
         self.__affine = xx, xy, yx, yy, dx, dy
 
-    def transformPoint(self, p: tuple[float, float]) -> tuple[float, float]:
+    def transformPoint(self, p: "PointTuple") -> "PointTuple":
         """Transform a point.
 
         Example:
@@ -117,9 +120,7 @@ class Transform(object):
         xx, xy, yx, yy, dx, dy = self.__affine
         return (xx * x + yx * y + dx, xy * x + yy * y + dy)
 
-    def transformPoints(
-        self, points: Sequence[tuple[float, float]]
-    ) -> list[tuple[float, float]]:
+    def transformPoints(self, points: Sequence["PointTuple"]) -> list["PointTuple"]:
         """Transform a list of points.
 
         Example:

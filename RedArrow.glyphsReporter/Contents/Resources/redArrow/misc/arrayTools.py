@@ -5,8 +5,7 @@
 import math
 from typing import Callable, Sequence
 
-type PointTuple = tuple[float, float]
-type RectTuple = tuple[float, float, float, float]
+from redArrow.typing import PointTuple, RectTuple
 
 
 def calcBounds(array: Sequence[PointTuple]) -> RectTuple:

@@ -1,7 +1,5 @@
-# encoding: utf-8
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-from math import atan2, cos, pi, sin
+from math import atan2, cos, pi, sin, sqrt
+from typing import TYPE_CHECKING
 
 import objc
 from AppKit import (
@@ -28,10 +26,10 @@ from AppKit import (
 from GlyphsApp import MOUSEMOVED, WINDOW_MENU, Glyphs
 from GlyphsApp.plugins import ReporterPlugin
 from redArrow.defaults import default_options, default_tests, typechecked_options
-from redArrow.geometry_functions import distance_between_points
 from redArrow.outlineTestGlyphs import OutlineTest
 
-# from time import time
+if TYPE_CHECKING:
+    from AppKit import NSPoint
 
 
 plugin_id = "de.kutilek.RedArrow"
@@ -44,6 +42,10 @@ text_color = NSColor.textColor()
 label_background = NSColor.textBackgroundColor()
 
 normal_vector = (1, 1)
+
+
+def distance_between_points(p0: "NSPoint", p1: "NSPoint") -> float:
+    return sqrt((p1.y - p0.y) ** 2 + (p1.x - p0.x) ** 2)
 
 
 def full_libkey(key):

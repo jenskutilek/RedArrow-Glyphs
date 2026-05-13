@@ -1,6 +1,8 @@
 import objc
 from AppKit import NSDecimalNumber
 
+from redArrow.typing import RedArrowOptionsDict
+
 default_tests: list[str] = [
     "test_extrema",
     "test_inflections",
@@ -17,7 +19,7 @@ default_tests: list[str] = [
     "test_spikes",
 ]
 
-default_options: dict[str, str | float | bool] = {
+default_options: RedArrowOptionsDict = {
     "ignore_warnings": False,
     "extremum_calculate_badness": False,
     "extremum_ignore_badness_below": 0,
@@ -43,9 +45,9 @@ option_types: dict[str, str] = {
 
 
 def typechecked_options(
-    options: dict[str, str | float | bool],
-) -> dict[str, str | float | bool]:
-    out: dict[str, str | float | bool] = {}
+    options: RedArrowOptionsDict,
+) -> RedArrowOptionsDict:
+    out: RedArrowOptionsDict = {}
     for k, v in default_options.items():
         t = option_types.get(k, "float")
         if t == "bool":

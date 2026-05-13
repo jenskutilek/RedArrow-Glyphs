@@ -1,11 +1,9 @@
-# encoding: utf-8
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from AppKit import NSNumber, NSNumberFormatter
 from vanilla import CheckBox, EditText, HorizontalLine, TextBox
 
 from redArrow.defaults import default_tests, typechecked_options
 from redArrow.dialogs_mac_vanilla import _RAbaseWindowController, _RAModalWindow
+from redArrow.typing import RedArrowOptionsDict
 
 float_formatter = NSNumberFormatter.alloc().init()
 float_formatter.setAllowsFloats_(True)
@@ -51,7 +49,12 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         "spike_angle": ("Maximum Spike Angle (radians)", "f"),
     }
 
-    def __init__(self, options={}, run_tests=[], title="Select Glyphs With Errors"):
+    def __init__(
+        self,
+        options: RedArrowOptionsDict = {},
+        run_tests: list[str] = [],
+        title: str = "Select Glyphs With Errors",
+    ) -> None:
         self.run_tests = {o: o in run_tests for o in default_tests}
         self.options = typechecked_options(options)
         self.save_global = False
@@ -155,23 +158,23 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         self.setUpBaseWindowBehavior()
         self.w.open()
 
-    def saveCallback(self, sender):
+    def saveCallback(self, sender) -> None:
         self.save_global = sender.get()
 
-    def get(self):
+    def get(self) -> tuple[bool, RedArrowOptionsDict | None, list[str] | None]:
         if self.cancelled:
             return False, None, None
-        else:
-            options = {
-                option_name: getattr(self.w, option_name).get()
-                for option_name in self.options.keys()
-            }
-            # print("Set options from dialog:")
-            # for k, v in options.items():
-            #     print("   ", k, v, type(v))
-            run_tests = [
-                test_name
-                for test_name in self.run_tests
-                if getattr(self.w, test_name).get()
-            ]
-            return self.save_global, options, run_tests
+
+        options = {
+            option_name: getattr(self.w, option_name).get()
+            for option_name in self.options.keys()
+        }
+        # print("Set options from dialog:")
+        # for k, v in options.items():
+        #     print("   ", k, v, type(v))
+        run_tests = [
+            test_name
+            for test_name in self.run_tests
+            if getattr(self.w, test_name).get()
+        ]
+        return self.save_global, options, run_tests

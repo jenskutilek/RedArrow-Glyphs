@@ -2,6 +2,12 @@
 segments.
 """
 
+from math import acos, cos, pi, sqrt
+from typing import Sequence
+
+from redArrow.misc.arrayTools import calcBounds
+from redArrow.typing import PointTuple, RectTuple
+
 __all__ = [
     "calcQuadraticBounds",
     "calcCubicBounds",
@@ -14,12 +20,11 @@ __all__ = [
     "solveCubic",
 ]
 
-from miniFontTools.misc.arrayTools import calcBounds
 
 epsilon = 1e-12
 
 
-def calcQuadraticBounds(pt1, pt2, pt3):
+def calcQuadraticBounds(pt1: PointTuple, pt2: PointTuple, pt3: PointTuple) -> RectTuple:
     """Return the bounding rectangle for a qudratic bezier segment.
     pt1 and pt3 are the "anchor" points, pt2 is the "handle".
 
@@ -44,7 +49,9 @@ def calcQuadraticBounds(pt1, pt2, pt3):
     return calcBounds(points)
 
 
-def calcCubicBounds(pt1, pt2, pt3, pt4):
+def calcCubicBounds(
+    pt1: PointTuple, pt2: PointTuple, pt3: PointTuple, pt4: PointTuple
+) -> RectTuple:
     """Return the bounding rectangle for a cubic bezier segment.
     pt1 and pt4 are the "anchor" points, pt2 and pt3 are the "handles".
 
@@ -75,7 +82,9 @@ def calcCubicBounds(pt1, pt2, pt3, pt4):
     return calcBounds(points)
 
 
-def splitLine(pt1, pt2, where, isHorizontal):
+def splitLine(
+    pt1: PointTuple, pt2: PointTuple, where: float, isHorizontal: bool
+) -> list[tuple[PointTuple, PointTuple]]:
     """Split the line between pt1 and pt2 at position 'where', which
     is an x coordinate if isHorizontal is False, a y coordinate if
     isHorizontal is True. Return a list of two line segments if the
@@ -114,7 +123,9 @@ def splitLine(pt1, pt2, where, isHorizontal):
         return [(pt1, pt2)]
 
 
-def splitQuadratic(pt1, pt2, pt3, where, isHorizontal):
+def splitQuadratic(
+    pt1: PointTuple, pt2: PointTuple, pt3: PointTuple, where: float, isHorizontal: bool
+) -> list[tuple[PointTuple, PointTuple, PointTuple]]:
     """Split the quadratic curve between pt1, pt2 and pt3 at position 'where',
     which is an x coordinate if isHorizontal is False, a y coordinate if
     isHorizontal is True. Return a list of curve segments.
@@ -147,7 +158,14 @@ def splitQuadratic(pt1, pt2, pt3, where, isHorizontal):
     return _splitQuadraticAtT(a, b, c, *solutions)
 
 
-def splitCubic(pt1, pt2, pt3, pt4, where, isHorizontal):
+def splitCubic(
+    pt1: PointTuple,
+    pt2: PointTuple,
+    pt3: PointTuple,
+    pt4: PointTuple,
+    where: float,
+    isHorizontal: bool,
+) -> list[tuple[PointTuple, PointTuple, PointTuple, PointTuple]]:
     """Split the cubic curve between pt1, pt2, pt3 and pt4 at position 'where',
     which is an x coordinate if isHorizontal is False, a y coordinate if
     isHorizontal is True. Return a list of curve segments.
@@ -175,7 +193,9 @@ def splitCubic(pt1, pt2, pt3, pt4, where, isHorizontal):
     return _splitCubicAtT(a, b, c, d, *solutions)
 
 
-def splitQuadraticAtT(pt1, pt2, pt3, *ts):
+def splitQuadraticAtT(
+    pt1: PointTuple, pt2: PointTuple, pt3: PointTuple, *ts
+) -> list[tuple[PointTuple, PointTuple, PointTuple]]:
     """Split the quadratic curve between pt1, pt2 and pt3 at one or more
     values of t. Return a list of curve segments.
 
@@ -191,7 +211,9 @@ def splitQuadraticAtT(pt1, pt2, pt3, *ts):
     return _splitQuadraticAtT(a, b, c, *ts)
 
 
-def splitCubicAtT(pt1, pt2, pt3, pt4, *ts):
+def splitCubicAtT(
+    pt1: PointTuple, pt2: PointTuple, pt3: PointTuple, pt4: PointTuple, *ts
+) -> list[tuple[PointTuple, PointTuple, PointTuple, PointTuple]]:
     """Split the cubic curve between pt1, pt2, pt3 and pt4 at one or more
     values of t. Return a list of curve segments.
 
@@ -207,7 +229,9 @@ def splitCubicAtT(pt1, pt2, pt3, pt4, *ts):
     return _splitCubicAtT(a, b, c, d, *ts)
 
 
-def _splitQuadraticAtT(a, b, c, *ts):
+def _splitQuadraticAtT(
+    a: PointTuple, b: PointTuple, c: PointTuple, *ts
+) -> list[tuple[PointTuple, PointTuple, PointTuple]]:
     ts = list(ts)
     segments = []
     ts.insert(0, 0.0)
@@ -232,7 +256,9 @@ def _splitQuadraticAtT(a, b, c, *ts):
     return segments
 
 
-def _splitCubicAtT(a, b, c, d, *ts):
+def _splitCubicAtT(
+    a: PointTuple, b: PointTuple, c: PointTuple, d: PointTuple, *ts
+) -> list[tuple[PointTuple, PointTuple, PointTuple, PointTuple]]:
     ts = list(ts)
     ts.insert(0, 0.0)
     ts.append(1.0)
@@ -265,10 +291,8 @@ def _splitCubicAtT(a, b, c, d, *ts):
 # Equation solvers.
 #
 
-from math import acos, cos, pi, sqrt
 
-
-def solveQuadratic(a, b, c, sqrt=sqrt):
+def solveQuadratic(a: float, b: float, c: float, sqrt=sqrt) -> list[float]:
     """Solve a quadratic equation where a, b and c are real.
         a*x*x + b*x + c = 0
     This function returns a list of roots. Note that the returned list
@@ -293,7 +317,7 @@ def solveQuadratic(a, b, c, sqrt=sqrt):
     return roots
 
 
-def solveCubic(a, b, c, d):
+def solveCubic(a: float, b: float, c: float, d: float) -> list[float]:
     """Solve a cubic equation where a, b, c and d are real.
         a*x*x*x + b*x*x + c*x + d = 0
     This function returns a list of roots. Note that the returned list
@@ -327,7 +351,7 @@ def solveCubic(a, b, c, d):
         return [x0, x1, x2]
     else:
         if Q == 0 and R == 0:
-            x = 0
+            x: float | int = 0
         else:
             x = pow(sqrt(R2_Q3) + abs(R), 1 / 3.0)
             x = x + Q / x
@@ -342,7 +366,9 @@ def solveCubic(a, b, c, d):
 #
 
 
-def calcQuadraticParameters(pt1, pt2, pt3):
+def calcQuadraticParameters(
+    pt1: PointTuple, pt2: PointTuple, pt3: PointTuple
+) -> tuple[PointTuple, PointTuple, PointTuple]:
     x2, y2 = pt2
     x3, y3 = pt3
     cx, cy = pt1
@@ -353,7 +379,9 @@ def calcQuadraticParameters(pt1, pt2, pt3):
     return (ax, ay), (bx, by), (cx, cy)
 
 
-def calcCubicParameters(pt1, pt2, pt3, pt4):
+def calcCubicParameters(
+    pt1: PointTuple, pt2: PointTuple, pt3: PointTuple, pt4: PointTuple
+) -> tuple[PointTuple, PointTuple, PointTuple, PointTuple]:
     x2, y2 = pt2
     x3, y3 = pt3
     x4, y4 = pt4
@@ -367,7 +395,9 @@ def calcCubicParameters(pt1, pt2, pt3, pt4):
     return (ax, ay), (bx, by), (cx, cy), (dx, dy)
 
 
-def calcQuadraticPoints(a, b, c):
+def calcQuadraticPoints(
+    a: PointTuple, b: PointTuple, c: PointTuple
+) -> tuple[PointTuple, PointTuple, PointTuple]:
     ax, ay = a
     bx, by = b
     cx, cy = c
@@ -380,7 +410,9 @@ def calcQuadraticPoints(a, b, c):
     return (x1, y1), (x2, y2), (x3, y3)
 
 
-def calcCubicPoints(a, b, c, d):
+def calcCubicPoints(
+    a: PointTuple, b: PointTuple, c: PointTuple, d: PointTuple
+) -> tuple[PointTuple, PointTuple, PointTuple, PointTuple]:
     ax, ay = a
     bx, by = b
     cx, cy = c
@@ -396,7 +428,7 @@ def calcCubicPoints(a, b, c, d):
     return (x1, y1), (x2, y2), (x3, y3), (x4, y4)
 
 
-def _segmentrepr(obj):
+def _segmentrepr(obj: Sequence):
     """
     >>> _segmentrepr([1, [2, 3], [], [[2, [3, 4], [0.1, 2.2]]]])
     '(1, (2, 3), (), ((2, (3, 4), (0.1, 2.2))))'
@@ -409,15 +441,9 @@ def _segmentrepr(obj):
         return "(%s)" % ", ".join([_segmentrepr(x) for x in it])
 
 
-def printSegments(segments):
+def printSegments(segments: Sequence) -> None:
     """Helper for the doctests, displaying each segment in a list of
     segments on a single line as a tuple.
     """
     for segment in segments:
         print(_segmentrepr(segment))
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()
