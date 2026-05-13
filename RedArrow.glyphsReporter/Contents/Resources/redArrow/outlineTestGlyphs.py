@@ -1,5 +1,5 @@
 from math import atan2, cos, degrees, pi, sin, sqrt
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
 
 from AppKit import NSMakePoint
 from GlyphsApp import CURVE, LINE, OFFCURVE, QCURVE
@@ -20,24 +20,30 @@ if TYPE_CHECKING:
     from AppKit import NSPoint, NSRect
     from GlyphsApp import GSComponent, GSLayer, GSNode
 
-    from redArrow.typing import (
-        CubicCurveTuple,
-        PointTuple,
-        QuadraticCurveTuple,
-        RectTuple,
-    )
+    from redArrow.typing import PointTuple, QuadraticCurveTuple, RectTuple, Vector2D
+
 
 # Helper functions
 
 
 # from fontTools.misc.arrayTools
-def node_in_rect(n: "GSNode", rect: "RectTuple") -> bool:
-    """Test if a point is inside a bounding rectangle."""
+def is_node_inside_rect(n: "GSNode", rect: "RectTuple") -> bool:
+    """
+    Test if a point lies inside a rectangle.
+
+    Args:
+        n (GSNode): The node
+        rect (RectTuple): The rectangle
+
+    Returns:
+        bool: Whether the node is inside the triangle
+    """
+
     xMin, yMin, xMax, yMax = rect
     return (xMin <= n.x <= xMax) and (yMin <= n.y <= yMax)
 
 
-def solveLinear(a: float, b: float) -> list[float]:
+def solve_linear(a: float, b: float) -> list[float]:
     if abs(a) < epsilon:
         if abs(b) < epsilon:
             roots = []
@@ -53,49 +59,86 @@ def solveLinear(a: float, b: float) -> list[float]:
     return roots
 
 
-def add_implied_oncurve_points_quad(quad: "list[GSNode]") -> "list[PointTuple]":
-    # Take a quadratic segment of GSNode and add implied oncurve points
+def quad_with_explicit_oncurve_points(quad: "Sequence[GSNode]") -> "list[PointTuple]":
+    """
+    Take a quadratic segment of GSNodes and add implied oncurve points
+
+    Args:
+        quad (Sequence[GSNode]): The quadratic segment with implicit oncurve points
+
+    Returns:
+        list[PointTuple]: The quadratic segment as tuple points with explicit oncurve points
+    """
     new_quad = [quad[0]]
     for i in range(1, len(quad) - 2):
         new_quad.append(quad[i])
-        new_quad.append(half_point(quad[i], quad[i + 1]))
+        new_quad.append(nodes_half_point(quad[i], quad[i + 1]))
     new_quad.extend(quad[-2:])
     # Convert to tuples
     return [(p.x, p.y) for p in new_quad]
 
 
 def get_extrema_points_vectors(
-    roots: list[float],
+    roots: Sequence[float],
     pt1: "PointTuple",
     pt2: "PointTuple",
     pt3: "PointTuple",
     pt4: "PointTuple",
-) -> "tuple[list[CubicCurveTuple], list[PointTuple]]":
-    split_segments = [p for p in splitCubicAtT(pt1, pt2, pt3, pt4, *roots)[:-1]]
-    points = [p[3] for p in split_segments]
-    vectors = [get_vector_tuple(p[2], p[3]) for p in split_segments]
+) -> "tuple[list[PointTuple], list[Vector2D]]":
+    """
+    Calculate extremum points and the normal vectors for those points for a cubic
+    segment represented by four control points and the roots of the extrema.
+
+    Args:
+        roots (Sequence[float]): The extrema roots
+        pt1 (PointTuple): The first control point
+        pt2 (PointTuple): The second control point
+        pt3 (PointTuple): The third control point
+        pt4 (PointTuple): The fourth control point
+
+    Returns:
+        tuple[list[PointTuple], list[Vector2D]]: The extremum points and normal vectors
+    """
+    split_segments = [seg for seg in splitCubicAtT(pt1, pt2, pt3, pt4, *roots)[:-1]]
+    points = [pt[3] for pt in split_segments]
+    vectors = [pts_normal_vector(pt[2], pt[3]) for pt in split_segments]
     return points, vectors
 
 
-def getExtremaForCubic(
-    n1: "GSNode",
-    n2: "GSNode",
-    n3: "GSNode",
-    n4: "GSNode",
+def get_extrema_for_cubic(
+    node1: "GSNode",
+    node2: "GSNode",
+    node3: "GSNode",
+    node4: "GSNode",
     h: bool = True,
     v: bool = False,
-) -> "tuple[list[CubicCurveTuple], list[PointTuple]]":
-    pt1 = (n1.x, n1.y)
-    pt2 = (n2.x, n2.y)
-    pt3 = (n3.x, n3.y)
-    pt4 = (n4.x, n4.y)
-    (ax, ay), (bx, by), c, d = calcCubicParameters(pt1, pt2, pt3, pt4)
+) -> "tuple[list[PointTuple], list[Vector2D]]":
+    """
+    Calculate extremum points and the normal vectors for those points for a cubic
+    segment represented by four control points as GSNodes.
+
+    Args:
+        node1 (GSNode): The first control point as GSNode
+        node2 (GSNode): The second control point as GSNode
+        node3 (GSNode): The third control point as GSNode
+        node4 (GSNode): The fourth control point as GSNode
+        h (bool, optional): Whether to find horizontal extrema. Defaults to True.
+        v (bool, optional): Whether to find vertical extrema. Defaults to False.
+
+    Returns:
+        tuple[list[PointTuple], list[Vector2D]]: The extremum points and normal vectors
+    """
+    pt1 = (node1.x, node1.y)
+    pt2 = (node2.x, node2.y)
+    pt3 = (node3.x, node3.y)
+    pt4 = (node4.x, node4.y)
+    (ax, ay), (bx, by), c, _ = calcCubicParameters(pt1, pt2, pt3, pt4)
     ax *= 3.0
     ay *= 3.0
     bx *= 2.0
     by *= 2.0
-    points: "list[CubicCurveTuple]" = []
-    vectors: "list[PointTuple]" = []
+    points: "list[PointTuple]" = []
+    vectors: "list[Vector2D]" = []
     if h:
         roots = [t for t in solveQuadratic(ay, by, c[1]) if 0 < t < 1]
         points, vectors = get_extrema_points_vectors(roots, pt1, pt2, pt3, pt4)
@@ -107,14 +150,32 @@ def getExtremaForCubic(
     return points, vectors
 
 
-def getInflectionsForCubic(
+def get_inflections_for_cubic(
     pt1: "PointTuple",
     pt2: "PointTuple",
     pt3: "PointTuple",
     pt4: "PointTuple",
     err_min: float = 0.3,
     err_max: float = 0.7,
-) -> "tuple[tuple[list[CubicCurveTuple], list[PointTuple]], tuple[list[CubicCurveTuple], list[PointTuple]]]":
+) -> "tuple[tuple[list[PointTuple], list[Vector2D]], tuple[list[PointTuple], list[Vector2D]]]":
+    """
+    Calculate inflection points and the normal vectors for those points for a cubic
+    segment represented by four control points.
+
+    Args:
+        pt1 (PointTuple): The first control point
+        pt2 (PointTuple): The second control point
+        pt3 (PointTuple): The third control point
+        pt4 (PointTuple): The fourth control point
+        err_min (float, optional): The minimum allowed t of an inflection point. Defaults to 0.3.
+        err_max (float, optional): The maximum allowed t of an inflection point. Defaults to 0.7.
+
+    Returns:
+        tuple[tuple[list[PointTuple], list[Vector2D]], tuple[list[PointTuple], list[Vector2D]]]:
+            The inflection points and normal vectors. The first part of the tuple are the
+            inflection points that are allowed per minimum and maximum t, the second part
+            are the inflection points that are considered errors.
+    """
     # After https://github.com/mekkablue/InsertInflections
     roots: list[float] = []
 
@@ -169,40 +230,81 @@ def getInflectionsForCubic(
 
 
 def get_extrema_points_vectors_quad(
-    roots: list[float], pt1: "PointTuple", pt2: "PointTuple", pt3: "PointTuple"
-) -> "tuple[list[QuadraticCurveTuple], list[PointTuple]]":
-    split_segments = [p for p in splitQuadraticAtT(pt1, pt2, pt3, *roots)[:-1]]
-    points = [p[2] for p in split_segments]
-    vectors = [get_vector_tuple(p[1], p[2]) for p in split_segments]
+    roots: Sequence[float], pt1: "PointTuple", pt2: "PointTuple", pt3: "PointTuple"
+) -> "tuple[list[PointTuple], list[Vector2D]]":
+    """
+    Calculate extremum points and the normal vectors for those points for a quadratic
+    segment represented by four control points and the roots of the extrema.
+
+    Args:
+        roots (Sequence[float]): The extrema roots
+        pt1 (PointTuple): The first control point
+        pt2 (PointTuple): The second control point
+        pt3 (PointTuple): The third control point
+
+    Returns:
+        tuple[list[PointTuple], list[Vector2D]]: The extremum points and normal vectors
+    """
+    split_segments = [seg for seg in splitQuadraticAtT(pt1, pt2, pt3, *roots)[:-1]]
+    points = [pt[2] for pt in split_segments]
+    vectors = [pts_normal_vector(pt[1], pt[2]) for pt in split_segments]
     return points, vectors
 
 
-def getExtremaForQuadratic(
+def get_extrema_for_quadratic(
     pt1: "PointTuple",
     pt2: "PointTuple",
     pt3: "PointTuple",
     h: bool = True,
     v: bool = False,
-) -> "tuple[list[QuadraticCurveTuple], list[PointTuple]]":
-    (ax, ay), (bx, by), c = calcQuadraticParameters(pt1, pt2, pt3)
+) -> "tuple[list[PointTuple], list[Vector2D]]":
+    """
+    Calculate extremum points and the normal vectors for those points for a quadratic
+    segment represented by four control points.
+
+    Args:
+        pt1 (PointTuple): The first control point
+        pt2 (PointTuple): The second control point
+        pt3 (PointTuple): The third control point
+        h (bool, optional): Whether to find horizontal extrema. Defaults to True.
+        v (bool, optional): Whether to find vertical extrema. Defaults to False.
+
+    Returns:
+        tuple[list[PointTuple], list[Vector2D]]: The extremum points and normal vectors
+    """
+    (ax, ay), (bx, by), _ = calcQuadraticParameters(pt1, pt2, pt3)
     ax *= 2.0
     ay *= 2.0
     points: "list[PointTuple]" = []
-    vectors: "list[PointTuple]" = []
+    vectors: "list[Vector2D]" = []
     if h:
-        roots = [t for t in solveLinear(ay, by) if 0 < t < 1]
+        roots = [t for t in solve_linear(ay, by) if 0 < t < 1]
         points, vectors = get_extrema_points_vectors_quad(roots, pt1, pt2, pt3)
     if v:
-        roots = [t for t in solveLinear(ax, bx) if 0 < t < 1]
+        roots = [t for t in solve_linear(ax, bx) if 0 < t < 1]
         v_points, v_vectors = get_extrema_points_vectors_quad(roots, pt1, pt2, pt3)
         points += v_points
         vectors += v_vectors
     return points, vectors
 
 
-def getInflectionsForQuadratic(
+def get_inflections_for_quadratic(
     segment: "QuadraticCurveTuple",
-) -> "tuple[list[QuadraticCurveTuple], list[PointTuple]]":
+) -> "tuple[list[PointTuple], list[Vector2D]]":
+    """
+    Calculate inflection points and the normal vectors for those points for a quadratic
+    segment represented by a number of control points.
+
+    This method is not implemented yet and will return empty lists.
+
+    Args:
+        segment (QuadraticCurveTuple): The quadratic segment as a sequence of point
+            tuples with explicit oncurve points
+
+    Returns:
+        tuple[list[PointTuple], list[Vector2D]]: The inflection points and normal
+            vectors
+    """
     if len(segment) < 2:
         return [], []
     else:
@@ -210,57 +312,136 @@ def getInflectionsForQuadratic(
         return [], []
 
 
-def round_point(pt: "GSNode", gridLength: int = 1) -> "NSPoint":
-    # Return a rounded copy of point pt, depending on gridLength
-    pr = NSMakePoint(pt.x, pt.y)
-    pr.x = round_value(pt.x, gridLength)
-    pr.y = round_value(pt.y, gridLength)
-    return pr
+def round_point(pt: "GSNode | NSPoint", grid_length: int = 1) -> "NSPoint":
+    """
+    Return a copy of point or node pt with its coordinates rounded depending on
+        grid_length.
+
+    Args:
+        pt (GSNode | NSPoint): The node or point
+        grid_length (int, optional): The grid length. Defaults to 1.
+
+    Returns:
+        NSPoint: The rounded point
+    """
+    x = round_value(pt.x, grid_length)
+    y = round_value(pt.y, grid_length)
+    return NSMakePoint(x, y)
 
 
-def round_value(v: float, gridLength: int = 1) -> float | int:
-    # Return the rounded value for v, depending on gridLength
-    if gridLength == 0:
+def round_value(v: float, grid_length: int = 1) -> float | int:
+    """
+    Return a value rounded depending on grid_length.
+
+    Args:
+        v (float): The value
+        grid_length (int, optional): The grid length. Defaults to 1.
+
+    Returns:
+        float | int: The rounded value. If the grid lenth is 0, the value is not
+            rounded.
+    """
+    if grid_length == 0:
         return v
-    elif gridLength == 1:
+    elif grid_length == 1:
         vr: int = round(v)
     else:
-        vr = round(v / gridLength) * gridLength
+        vr = round(v / grid_length) * grid_length
     return vr
 
 
-def get_vector(n0: "GSNode", n1: "GSNode") -> "PointTuple":
-    return (n1.x - n0.x, n1.y - n0.y)
+def nodes_normal_vector(node1: "GSNode", node2: "GSNode") -> "PointTuple":
+    """
+    Return the normal vector of the line connecting two nodes.
+
+    Args:
+        node1 (GSNode): The first node
+        node2 (GSNode): The second node
+
+    Returns:
+        Vector2D: The normal vector
+    """
+    return (node2.x - node1.x, node2.y - node1.y)
 
 
-def get_vector_tuple(p0: "PointTuple", p1: "PointTuple") -> "PointTuple":
-    p0x, p0y = p0
-    p1x, p1y = p1
-    return (p1x - p0x, p1y - p0y)
+def pts_normal_vector(pt1: "PointTuple", pt2: "PointTuple") -> "Vector2D":
+    """
+    Return the normal vector of the line connecting two tuple points.
+
+    Args:
+        pt1 (PointTuple): The first point
+        pt2 (PointTuple): The second point
+
+    Returns:
+        Vector2D: The normal vector
+    """
+    pt1x, pt1y = pt1
+    pt2x, pt2y = pt2
+    return (pt2x - pt1x, pt2y - pt1y)
 
 
-def angle_between_nodes(n0: "GSNode", n1: "GSNode") -> float:
-    return atan2(n1.y - n0.y, n1.x - n0.x)
+def nodes_angle(node1: "GSNode", node2: "GSNode") -> float:
+    """
+    Return the angle between two nodes as radians.
+
+    Args:
+        node1 (GSNode): The first node
+        node2 (GSNode): The second node
+
+    Returns:
+        float: The angle in radians
+    """
+    return atan2(node2.y - node1.y, node2.x - node1.x)
 
 
-def distance_between_nodes(n0: "GSNode", n1: "GSNode") -> float:
-    return sqrt((n1.y - n0.y) ** 2 + (n1.x - n0.x) ** 2)
+def nodes_distance(node1: "GSNode", node2: "GSNode") -> float:
+    """
+    Return the distance between two nodes.
+
+    Args:
+        node1 (GSNode): The first node
+        node2 (GSNode): The second node
+
+    Returns:
+        float: The distance
+    """
+    return sqrt((node2.y - node1.y) ** 2 + (node2.x - node1.x) ** 2)
 
 
-def half_point(n0: "GSNode", n1: "GSNode") -> "NSPoint":
-    p01 = NSMakePoint(n0.x, n0.y)
-    p01.x = (n0.x + n1.x) / 2
-    p01.y = (n0.y + n1.y) / 2
-    return p01
+def nodes_half_point(node1: "GSNode", node2: "GSNode") -> "NSPoint":
+    """
+    Return the halfway point between two nodes.
+
+    Args:
+        node1 (GSNode): The first node
+        node1 (GSNode): The second node
+
+    Returns:
+        NSPoint: The halfway point
+    """
+    x = (node1.x + node2.x) / 2
+    y = (node1.y + node2.y) / 2
+    return NSMakePoint(x, y)
 
 
-def transform_bbox(
-    bbox: "NSRect", matrix: tuple[int, int, int, int, int, int]
+def transform_rect(
+    rect: "NSRect", matrix: tuple[int, int, int, int, int, int]
 ) -> "tuple[NSPoint, NSPoint]":
+    """
+    Transform a rectangle with a matrix.
+
+    Args:
+        rect (NSRect): The rectangle
+        matrix (tuple[int, int, int, int, int, int]): The transformation matrix
+
+    Returns:
+        tuple[NSPoint, NSPoint]: The transformed rectangle described by its lower left
+            and top right points
+    """
     t = Transform(*matrix)
-    ll_x, ll_y = t.transformPoint((bbox.origin.x, bbox.origin.y))
+    ll_x, ll_y = t.transformPoint((rect.origin.x, rect.origin.y))
     tr_x, tr_y = t.transformPoint(
-        (bbox.origin.x + bbox.size.width, bbox.origin.y + bbox.size.height)
+        (rect.origin.x + rect.size.width, rect.origin.y + rect.size.height)
     )
     ll_x, ll_y, tr_x, tr_y = normRect((ll_x, ll_y, tr_x, tr_y))
     return NSMakePoint(ll_x, ll_y), NSMakePoint(tr_x, tr_y)
@@ -276,17 +457,35 @@ class OutlineError:
         badness: float | None = None,
         vector: "PointTuple | None" = None,
     ) -> None:
+        """
+        An outline error.
+
+        Args:
+            position (NSPoint | None, optional): The position of the error. Defaults to
+                None.
+            kind (str, optional): The description. Defaults to "Unknown error".
+            badness (float | None, optional): The "badness" level. Defaults to None.
+            vector (PointTuple | None, optional): The vector at the error position.
+                Defaults to None. It is used to determine the angle of the arrow
+                pointing at the error.
+        """
         self.position = position
         self.kind = kind
         self.badness = badness
         self.vector = vector
 
     def __repr__(self) -> str:
-        r = "%s" % self.kind
+        """
+        Return a string representation of the outline error.
+
+        Returns:
+            str: The description
+        """
+        r = self.kind
         if self.position is not None:
-            r += " at (%i, %i)" % (self.position.x, self.position.y)
+            r += f" at ({self.position.x}, {self.position.y})"
         if self.badness is not None:
-            r += " (badness %i)" % self.badness
+            r += f" (badness {self.badness})"
         return r
 
 
@@ -294,7 +493,7 @@ class OutlineWarning(OutlineError):
     level: str = "w"
 
 
-class OutlineTest:
+class OutlineCheck:
     """
     Reimplementation of FontLab's FontAudit.
     """
@@ -303,10 +502,20 @@ class OutlineTest:
         self,
         layer: "GSLayer | None",
         options: RedArrowOptionsDict | None = None,
-        run_tests: list[str] | None = None,
+        run_checks: Sequence[str] | None = None,
     ) -> None:
+        """
+        The outline check.
+
+        Args:
+            layer (GSLayer | None): The layer that should be checked.
+            options (RedArrowOptionsDict | None, optional): The options for each check.
+                Defaults to None.
+            run_checks (Sequence[str] | None, optional): The names of the checks to be
+                run. Defaults to None.
+        """
         self.options = RedArrowOptionsDict() if options is None else options
-        self.run_tests = [] if run_tests is None else run_tests
+        self.run_checks = [] if run_checks is None else run_checks
         self.reset()
         self.layer = layer
 
@@ -325,9 +534,12 @@ class OutlineTest:
         self.test_fractional_transform = True
 
     def reset(self) -> None:
+        """
+        Reset the outline check to its initial state.
+        """
         self.errors: list[OutlineError | OutlineWarning] = []
 
-        self.all_tests = [
+        self.all_checks = [
             "test_extrema",
             "test_inflections",
             "test_fractional_coords",
@@ -344,13 +556,13 @@ class OutlineTest:
         ]
 
         # Curve type detection
-        self.apparentlyCubic = False
-        self.apparentlyQuadratic = False
-        self.curveTypeDetected = False
+        self.apparently_cubic = False
+        self.apparently_quadratic = False
+        self.curve_type_detected = False
 
         # Mixed composites
-        self.glyphHasComponents = False
-        self.glyphHasOutlines = False
+        self.glyph_has_components = False
+        self.glyph_has_outlines = False
 
         # Cached bounding box
         self.bb_bottom = 0
@@ -379,8 +591,13 @@ class OutlineTest:
 
     def _normalize_upm(self, value: float) -> float:
         """
-        Return a value that is normalized from 1000 upm to the current font's
-        upm
+        Return a value that is normalized from 1000 upm to the current font's upm.
+
+        Args:
+            value (float): The value
+
+        Returns:
+            float: The normalized value
         """
         return value * self.upm / 1000
 
@@ -421,20 +638,20 @@ class OutlineTest:
         self.grid_length = self.options.get("grid_length", 1)
         self.ignore_warnings = self.options.get("ignore_warnings", False)
 
-        # which tests should be run
-        if self.run_tests == []:
-            # run all tests
-            for t in self.all_tests:
+        # which checks should be run
+        if self.run_checks == []:
+            # run all checks
+            for t in self.all_checks:
                 setattr(self, t, True)
         else:
-            # only run supplied tests
-            for t in self.all_tests:
-                if t in self.run_tests:
+            # only run supplied checks
+            for t in self.all_checks:
+                if t in self.run_checks:
                     setattr(self, t, True)
                 else:
                     setattr(self, t, False)
 
-    def checkLayer(self) -> None:
+    def check_layer(self) -> None:
         self.errors = []
         if self.layer is None:
             return
@@ -443,141 +660,143 @@ class OutlineTest:
             for node in path.nodes:
                 node_type = node.type
                 if node_type == CURVE:
-                    self._runCurveTests(node)
+                    self._run_curve_checks(node)
                 elif node_type == QCURVE:
-                    self._runQCurveTests(node)
+                    self._run_qcurve_checks(node)
                 elif node_type == LINE:
-                    self._runLineTests(node)
+                    self._run_line_checks(node)
                 else:
-                    self._runOffcurveTests(node)
+                    self._run_offcurve_checks(node)
 
         for component in self.layer.components:
-            self._runComponentTests(component)
+            self._run_component_checks(component)
 
-    # Tests for different node types
+    # Checks for different node types
 
-    def _runLineTests(self, node) -> None:
+    def _run_line_checks(self, node) -> None:
         prev_node = node.prevNode
         if self.test_fractional_coords:
-            self._checkFractionalCoordinates(node)
+            self._check_fractional_coordinates(node)
         if self.test_smooth:
-            self._checkIncorrectSmoothConnection(node)
+            self._check_incorrect_smooth_connection(node)
         if self.test_empty_segments:
-            self._checkEmptyLinesAndCurves(prev_node, node)
+            self._check_empty_lines_and_curves(prev_node, node)
         if node.nextNode is not None and node.nextNode.type == LINE:
             if self.test_collinear:
-                self._checkCollinearVectors(node)
+                self._check_collinear_vectors(node)
         if self.test_spikes:
-            self._checkSpike(node)
+            self._check_spike(node)
         if self.test_semi_hv:
             if prev_node is not None:
-                self._checkSemiHorizontal(prev_node, node)
-                self._checkSemiVertical(prev_node, node)
+                self._check_semi_horizontal(prev_node, node)
+                self._check_semi_vertical(prev_node, node)
         if self.test_short_segments:
-            self._checkShortLinesAndCurves(prev_node, node)
+            self._check_short_lines_and_curves(prev_node, node)
 
-    def _runCurveTests(self, node) -> None:
-        pt3 = node
-        bcp2 = pt3.prevNode
-        bcp1 = bcp2.prevNode
-        pt0 = bcp1.prevNode
+    def _run_curve_checks(self, node) -> None:
+        node4 = node
+        node3 = node4.prevNode  # control point 2
+        node2 = node3.prevNode  # control point 1
+        node1 = node2.prevNode
         if self.test_extrema:
-            self._checkBboxCurve(pt0, bcp1, bcp2, pt3)
+            self._check_bbox_curve(node1, node2, node3, node4)
         if self.test_inflections:
-            self._checkInflectionsCurve(pt0, bcp1, bcp2, pt3)
+            self._check_inflections_curve(node1, node2, node3, node4)
         if self.test_fractional_coords:
-            self._checkFractionalCoordinates(node)
-        if not self.curveTypeDetected:
-            self._countCurveSegment()
+            self._check_fractional_coordinates(node)
+        if not self.curve_type_detected:
+            self._count_curve_segment()
         if self.test_smooth:
-            self._checkIncorrectSmoothConnection(node)
+            self._check_incorrect_smooth_connection(node)
         if self.test_spikes:
-            self._checkSpike(node)
+            self._check_spike(node)
         if self.test_empty_segments:
-            self._checkEmptyLinesAndCurves(pt0, pt3)
+            self._check_empty_lines_and_curves(node1, node4)
         if self.test_zero_handles:
-            if bcp2 is not None:
-                self._checkZeroHandles(bcp2, pt3)
-            if not (bcp1 is None or pt0 is None):
-                self._checkZeroHandles(bcp1, pt0)
+            if node3 is not None:
+                self._check_zero_handles(node3, node4)
+            if not (node2 is None or node1 is None):
+                self._check_zero_handles(node2, node1)
         if self.test_semi_hv:
-            if not (bcp1 is None or pt0 is None):
+            if not (node2 is None or node1 is None):
                 # Start of curve
-                self._checkSemiHorizontal(pt0, bcp1, "handle")
-                self._checkSemiVertical(pt0, bcp1, "handle")
-            if bcp2 is not None:
+                self._check_semi_horizontal(node1, node2, "handle")
+                self._check_semi_vertical(node1, node2, "handle")
+            if node3 is not None:
                 # End of curve
-                self._checkSemiHorizontal(bcp2, pt3, "handle")
-                self._checkSemiVertical(bcp2, pt3, "handle")
+                self._check_semi_horizontal(node3, node4, "handle")
+                self._check_semi_vertical(node3, node4, "handle")
         if self.test_short_segments:
-            if not (pt3 is None or pt0 is None):
-                self._checkShortLinesAndCurves(pt0, pt3)
+            if not (node4 is None or node1 is None):
+                self._check_short_lines_and_curves(node1, node4)
 
-    def _runOffcurveTests(self, node: "GSNode") -> None:
+    def _run_offcurve_checks(self, node: "GSNode") -> None:
         if self.test_fractional_coords:
-            self._checkFractionalCoordinates(node)
+            self._check_fractional_coordinates(node)
         if self.test_bbox_handles:
-            self._checkLayerBBoxHandle(node)
+            self._check_layer_bbox_handle(node)
 
-    def _runQCurveTests(self, node: "GSNode") -> None:
+    def _run_qcurve_checks(self, node: "GSNode") -> None:
         # Find the previous oncurve node
         start_node = node.prevNode
-        start_idx = node.index
+        start_node_index = node.index
         offcurves = []
         while start_node.type == OFFCURVE:
             offcurves.append(start_node)
             start_node = start_node.prevNode
-            if start_node.index == start_idx:
+            if start_node.index == start_node_index:
                 # There seems to be no other oncurve node
                 break
         offcurves.reverse()
         segment = [start_node] + offcurves + [node]
 
         if self.test_extrema:
-            self._checkExtremaQuad(segment)
+            self._check_extrema_quad(segment)
         # FIXME: Not implemented yet
         # if self.test_inflections:
-        #     self._checkInflectionsQuad(node)
+        #     self._check_inflections_quad(node)
         if self.test_fractional_coords:
-            self._checkFractionalCoordinates(node)
-        if not self.curveTypeDetected:
-            self._countQCurveSegment()
+            self._check_fractional_coordinates(node)
+        if not self.curve_type_detected:
+            self._count_qcurve_segment()
         if self.test_smooth:
-            self._checkIncorrectSmoothConnection(node)
+            self._check_incorrect_smooth_connection(node)
         pv = node.prevNode
         nx = start_node.nextNode
         if self.test_empty_segments:
-            self._checkEmptyLinesAndCurves(pv, node)
+            self._check_empty_lines_and_curves(pv, node)
         if self.test_semi_hv:
             if nx is not None:
                 # Start of curve
-                self._checkSemiHorizontal(start_node, nx, "handle")
-                self._checkSemiVertical(start_node, nx, "handle")
+                self._check_semi_horizontal(start_node, nx, "handle")
+                self._check_semi_vertical(start_node, nx, "handle")
 
             if pv is not None:
                 # End of curve
-                self._checkSemiHorizontal(pv, node, "handle")
-                self._checkSemiVertical(pv, node, "handle")
+                self._check_semi_horizontal(pv, node, "handle")
+                self._check_semi_vertical(pv, node, "handle")
         if self.test_short_segments:
-            self._checkShortLinesAndCurves(pv, node)
+            self._check_short_lines_and_curves(pv, node)
         if self.test_spikes:
-            self._checkSpike(node)
+            self._check_spike(node)
 
-    def _runComponentTests(self, component: "GSComponent") -> None:
+    def _run_component_checks(self, component: "GSComponent") -> None:
         if self.test_fractional_coords:
-            self._checkFractionalComponentOffset(component)
+            self._check_fractional_component_offset(component)
         if self.test_fractional_transform:
-            self._checkFractionalTransformation(component)
+            self._check_fractional_transformation(component)
 
-    # Implementations for all the different tests
+    # Implementations for all the different checks
 
-    def _checkBboxCurve(
-        self, n0: "GSNode", n1: "GSNode", n2: "GSNode", n3: "GSNode"
+    def _check_bbox_curve(
+        self, node0: "GSNode", node1: "GSNode", node2: "GSNode", node3: "GSNode"
     ) -> None:
-        myRect = normRect((n0.x, n0.y, n3.x, n3.y))
-        if not node_in_rect(n1, myRect) or not node_in_rect(n2, myRect):
-            extrema, vectors = getExtremaForCubic(n0, n1, n2, n3, h=True, v=True)
-            for i, p in enumerate(extrema):
+        rect = normRect((node0.x, node0.y, node3.x, node3.y))
+        if not is_node_inside_rect(node1, rect) or not is_node_inside_rect(node2, rect):
+            extrema, vectors = get_extrema_for_cubic(
+                node0, node1, node2, node3, h=True, v=True
+            )
+            for i, pt in enumerate(extrema):
                 vector = vectors[i]
                 if abs(vector[1]) < 0.1:
                     error_class = OutlineError
@@ -586,17 +805,17 @@ class OutlineTest:
                     error_class = OutlineWarning
                     desc = "Extremum"
                 if self.extremum_calculate_badness:
-                    badness = self._getBadness(p, myRect)
+                    badness = self._get_badness(pt, rect)
                     if badness >= self.extremum_ignore_badness_below:
                         self.errors.append(
-                            error_class(NSMakePoint(*p), desc, badness, vector=vector)
+                            error_class(NSMakePoint(*pt), desc, badness, vector=vector)
                         )
                 else:
                     self.errors.append(
-                        error_class(NSMakePoint(*p), desc, vector=vector)
+                        error_class(NSMakePoint(*pt), desc, vector=vector)
                     )
 
-    def _checkLayerBBoxHandle(self, node: "GSNode") -> None:
+    def _check_layer_bbox_handle(self, node: "GSNode") -> None:
         if self.layer is None:
             return
 
@@ -618,15 +837,15 @@ class OutlineTest:
             )
             return
 
-    def _checkExtremaQuad(self, segment: "list[GSNode]") -> None:
-        quad = add_implied_oncurve_points_quad(segment)
+    def _check_extrema_quad(self, segment: "Sequence[GSNode]") -> None:
+        quad = quad_with_explicit_oncurve_points(segment)
         for i in range(0, len(quad) - 1, 2):
-            extrema, vectors = getExtremaForQuadratic(
+            extrema, vectors = get_extrema_for_quadratic(
                 quad[i], quad[i + 1], quad[i + 2], h=True, v=True
             )
             for i, p in enumerate(extrema):
                 # if self.extremum_calculate_badness:
-                # 	badness = self._getBadness(p, myRect)
+                # 	badness = self._get_badness(p, myRect)
                 # 	if badness >= self.extremum_ignore_badness_below:
                 # 		self.errors.append(OutlineError(NSMakePoint(*p), "Extremum", badness, vectors[i]))
                 # else:
@@ -634,7 +853,7 @@ class OutlineTest:
                     OutlineError(NSMakePoint(*p), "Extremum", vector=vectors[i])
                 )
 
-    def _getBadness(self, pointToCheck: "PointTuple", myRect: "RectTuple") -> float:
+    def _get_badness(self, pointToCheck: "PointTuple", myRect: "RectTuple") -> float:
         # calculate distance of point to rect
         badness = 0.0
         x, y = pointToCheck
@@ -670,21 +889,21 @@ class OutlineTest:
                 badness = 0
         return badness
 
-    def _checkInflectionsCurve(
+    def _check_inflections_curve(
         self,
-        n0: "GSNode | None",
-        n1: "GSNode | None",
-        n2: "GSNode | None",
-        n3: "GSNode",
+        node0: "GSNode | None",
+        node1: "GSNode | None",
+        node2: "GSNode | None",
+        node3: "GSNode",
     ) -> None:
-        if n2 is None or n1 is None or n0 is None:
+        if node2 is None or node1 is None or node0 is None:
             return
 
-        ok, err = getInflectionsForCubic(
-            (n0.x, n0.y),
-            (n1.x, n1.y),
-            (n2.x, n2.y),
-            (n3.x, n3.y),
+        ok, err = get_inflections_for_cubic(
+            (node0.x, node0.y),
+            (node1.x, node1.y),
+            (node2.x, node2.y),
+            (node3.x, node3.y),
             self.inflection_min,
             1 - self.inflection_min,
         )
@@ -703,27 +922,28 @@ class OutlineTest:
                 OutlineWarning(NSMakePoint(*p), "Inflection", vector=ok_vectors[i])
             )
 
-    def _checkInflectionsQuad(self, segment: "QuadraticCurveTuple") -> None:
+    def _check_inflections_quad(self, segment: "QuadraticCurveTuple") -> None:
         # FIXME: Not implemented
-        inflections, vectors = getInflectionsForQuadratic(segment)
-        for i, p in enumerate(inflections):
+        inflections, vectors = get_inflections_for_quadratic(segment)
+        for i, pt in enumerate(inflections):
+            x, y = pt
             self.errors.append(
-                OutlineError(NSMakePoint(*p), "Inflection", vector=vectors[i])
+                OutlineError(NSMakePoint(x, y), "Inflection", vector=vectors[i])
             )
 
-    def _countCurveSegment(self) -> None:
-        if self.apparentlyQuadratic:
+    def _count_curve_segment(self) -> None:
+        if self.apparently_quadratic:
             self.errors.append(OutlineError(None, "Mixed cubic and quadratic segments"))
-            self.curveTypeDetected = True
-        self.apparentlyCubic = True
+            self.curve_type_detected = True
+        self.apparently_cubic = True
 
-    def _countQCurveSegment(self) -> None:
-        if self.apparentlyCubic:
+    def _count_qcurve_segment(self) -> None:
+        if self.apparently_cubic:
             self.errors.append(OutlineError(None, "Mixed cubic and quadratic segments"))
-            self.curveTypeDetected = True
-        self.apparentlyQuadratic = True
+            self.curve_type_detected = True
+        self.apparently_quadratic = True
 
-    def _checkFractionalCoordinates(self, n: "GSNode") -> bool | None:
+    def _check_fractional_coordinates(self, n: "GSNode") -> bool | None:
         if self.fractional_ignore_point_zero:
             n_prev = round_point(n, self.grid_length)
             if abs(n_prev.x - n.x) < 0.001 and abs(n_prev.y - n.y) < 0.001:
@@ -741,32 +961,32 @@ class OutlineTest:
         )
         return None
 
-    def _getComponentErrorPosition(self, component: "GSComponent") -> "NSPoint":
-        bbox = component.component.layers[self.layer.layerId].bounds
-        tbox = transform_bbox(bbox, component.transform)
-        return half_point(*tbox)
+    def _get_component_error_position(self, component: "GSComponent") -> "NSPoint":
+        if component.component is None or self.layer is None:
+            return NSMakePoint(0, 0)
 
-    def _checkFractionalComponentOffset(self, component: GSComponent):
+        bbox = component.component.layers[self.layer.layerId].bounds
+        tbox = transform_rect(bbox, component.transform)
+        return nodes_half_point(*tbox)
+
+    def _check_fractional_component_offset(self, component: "GSComponent"):
         for value in component.transform[-2:]:
             if abs(round_value(value, self.grid_length) - value) > 0.001:
                 self.errors.append(
                     OutlineError(
-                        self._getComponentErrorPosition(component),
-                        (
-                            "Fractional component offset "
-                            "on ‘%s’" % component.componentName
-                        ),
+                        self._get_component_error_position(component),
+                        f"Fractional component offset on ‘{component.componentName}’",
                         vector=None,
                     )
                 )
                 break
 
-    def _checkFractionalTransformation(self, component: "GSComponent") -> None:
+    def _check_fractional_transformation(self, component: "GSComponent") -> None:
         for value in component.transform[:-2]:
             if abs(round(value) - value) > 0.001:
                 self.errors.append(
                     OutlineWarning(
-                        self._getComponentErrorPosition(component),
+                        self._get_component_error_position(component),
                         (
                             "Fractional component transformation "
                             "on ‘%s’" % component.componentName
@@ -776,9 +996,9 @@ class OutlineTest:
                 )
                 break
 
-    def _checkIncorrectSmoothConnection(self, node: "GSNode") -> None:
+    def _check_incorrect_smooth_connection(self, node: "GSNode") -> None:
         """
-        Test for nearly smooth connections.
+        Check for nearly smooth connections.
         """
         prev_node = node.prevNode
         next_node = node.nextNode
@@ -787,16 +1007,12 @@ class OutlineTest:
             return
 
         # angle of previous reference node to current node
-        phi1 = angle_between_nodes(prev_node, node)
-        phi2 = angle_between_nodes(node, next_node)
+        phi1 = nodes_angle(prev_node, node)
+        phi2 = nodes_angle(node, next_node)
 
         # distance of the current node to next reference node
-        dist1 = distance_between_nodes(prev_node, node)
-        dist2 = distance_between_nodes(node, next_node)
-
-        # print("Checking:")
-        # print("  ", prev_node, node, degrees(phi1), dist1)
-        # print("  ", node, next_node, degrees(phi2), dist2)
+        dist1 = nodes_distance(prev_node, node)
+        dist2 = nodes_distance(node, next_node)
 
         if dist1 >= dist2:
             # distance 1 is longer, check dist2 for correct angle
@@ -808,12 +1024,6 @@ class OutlineTest:
             dist = dist1
             phi = phi2 - pi
             ref = prev_node
-
-        # print(
-        # 	"  Chose: %s -> %s, angle %0.2f, dist %0.2f" % (
-        # 		ref, next_ref, degrees(phi), dist
-        # 	)
-        # )
 
         # Ignore short segments
         if dist > 2 * self.smooth_connection_max_distance:
@@ -832,14 +1042,7 @@ class OutlineTest:
                 node.y + dist * sin(phi),
             )
             # Compare projected position with actual position
-            badness = distance_between_nodes(
-                round_point(projected_pt, self.grid_length), ref
-            )
-            # print(
-            # 	"  Projected: %s, actual: %s, diff: %0.2f" % (
-            # 		projected_pt, ref, badness
-            # 	)
-            # )
+            badness = nodes_distance(round_point(projected_pt, self.grid_length), ref)
             if self.grid_length == 0:
                 d = 0.49
             else:
@@ -851,39 +1054,39 @@ class OutlineTest:
                             node,
                             "Not quite smooth connection",
                             badness,
-                            vector=get_vector(prev_node, node),
+                            vector=nodes_normal_vector(prev_node, node),
                         )
                     )
 
-    def _checkEmptyLinesAndCurves(self, pt0: "GSNode", pt1: "GSNode") -> None:
-        if pt0 is None or pt1 is None:
+    def _check_empty_lines_and_curves(self, node0: "GSNode", node1: "GSNode") -> None:
+        if node0 is None or node1 is None:
             return
 
-        if pt0.x == pt1.x and pt0.y == pt1.y:
+        if node0.x == node1.x and node0.y == node1.y:
             self.errors.append(
                 OutlineError(
-                    pt1,
+                    node1,
                     "Zero-length distance",
-                    vector=get_vector(pt0, pt1),
+                    vector=nodes_normal_vector(node0, node1),
                 )
             )
 
-    def _checkShortLinesAndCurves(self, pt0: "GSNode", pt1: "GSNode") -> None:
-        if pt0 is None or pt1 is None:
+    def _check_short_lines_and_curves(self, node0: "GSNode", node1: "GSNode") -> None:
+        if node0 is None or node1 is None:
             return
 
-        if abs(pt0.x - pt1.x) <= 1 and abs(pt0.y - pt1.y) <= 1:
+        if abs(node0.x - node1.x) <= 1 and abs(node0.y - node1.y) <= 1:
             self.errors.append(
                 OutlineWarning(
-                    pt0,
+                    node0,
                     "Short segment",
-                    vector=get_vector(pt0, pt1),
+                    vector=nodes_normal_vector(node0, node1),
                 )
             )
 
-    def _checkCollinearVectors(self, node: "GSNode") -> None:
+    def _check_collinear_vectors(self, node: "GSNode") -> None:
         """
-        Test for consecutive lines that have nearly the same angle.
+        Check for consecutive lines that have nearly the same angle.
         """
         prev_node = node.prevNode
         next_node = node.nextNode
@@ -891,34 +1094,31 @@ class OutlineTest:
         if prev_node is None or next_node is None:
             return
 
-        # if next_ref != pt:
         # angle of previous reference point to current point
-        phi1 = angle_between_nodes(prev_node, node)
+        phi1 = nodes_angle(prev_node, node)
         # angle of current point to next reference point
         # could be used for angle check without distance check
-        # phi2 = angle_between_nodes(pt, next_ref)
+        # phi2 = nodes_angle(pt, next_ref)
         # distance of pt to next reference point
-        dist = distance_between_nodes(node, next_node)
+        dist = nodes_distance(node, next_node)
         projected_pt = NSMakePoint(
             node.x + dist * cos(phi1),
             node.y + dist * sin(phi1),
         )
-        badness = distance_between_nodes(
-            round_point(projected_pt, self.grid_length), next_node
-        )
+        badness = nodes_distance(round_point(projected_pt, self.grid_length), next_node)
         if badness < self.collinear_vectors_max_distance:
             self.errors.append(
                 OutlineError(
                     node,
                     "Collinear vectors",
                     badness,
-                    get_vector(prev_node, next_node),
+                    nodes_normal_vector(prev_node, next_node),
                 )
             )
 
-    def _checkSpike(self, node: "GSNode") -> None:
+    def _check_spike(self, node: "GSNode") -> None:
         """
-        Test for consecutive segments that have a very narrow angle.
+        Check for consecutive segments that have a very narrow angle.
         """
         prev_node = node.prevNode
         next_node = node.nextNode
@@ -926,61 +1126,65 @@ class OutlineTest:
         if prev_node is None or next_node is None:
             return
 
-        phi1 = angle_between_nodes(prev_node, node)
-        phi2 = angle_between_nodes(next_node, node)
+        phi1 = nodes_angle(prev_node, node)
+        phi2 = nodes_angle(next_node, node)
         if abs(phi2 - phi1) < self.spike_angle:
             self.errors.append(
-                OutlineWarning(node, "Spike", vector=get_vector(prev_node, next_node))
+                OutlineWarning(
+                    node, "Spike", vector=nodes_normal_vector(prev_node, next_node)
+                )
             )
 
-    def _checkSemiHorizontal(
-        self, n0: "GSNode", n1: "GSNode", segment: str = "line"
+    def _check_semi_horizontal(
+        self, node0: "GSNode", node1: "GSNode", segment: str = "line"
     ) -> None:
         """
-        Test for semi-horizontal lines and handles.
+        Check for semi-horizontal lines and handles.
         """
-        if distance_between_nodes(n0, n1) > self.semi_hv_vectors_min_distance:
-            phi = angle_between_nodes(n0, n1)
+        if nodes_distance(node0, node1) > self.semi_hv_vectors_min_distance:
+            phi = nodes_angle(node0, node1)
             rho = atan2(1, 31)
             if (
                 0 < abs(phi) < rho
                 or 0 < abs(phi - pi) < rho
                 or 0 < abs(abs(phi) - pi) < rho
             ):
-                if abs(n1.y - n0.y) <= self.semi_hv_vectors_max_distance:
+                if abs(node1.y - node0.y) <= self.semi_hv_vectors_max_distance:
                     self.errors.append(
                         OutlineError(
-                            half_point(n0, n1),
+                            nodes_half_point(node0, node1),
                             "Semi-horizontal %s" % segment,
                             degrees(phi),
-                            get_vector(n0, n1),
+                            nodes_normal_vector(node0, node1),
                         )
                     )
 
-    def _checkSemiVertical(
-        self, n0: "GSNode", n1: "GSNode", segment: str = "line"
+    def _check_semi_vertical(
+        self, node0: "GSNode", node1: "GSNode", segment: str = "line"
     ) -> None:
         """
-        Test for semi-vertical lines and handles.
+        Check for semi-vertical lines and handles.
         """
         # TODO: Option to respect Italic angle?
-        if distance_between_nodes(n0, n1) > self.semi_hv_vectors_min_distance:
-            phi = angle_between_nodes(n0, n1)
+        if nodes_distance(node0, node1) > self.semi_hv_vectors_min_distance:
+            phi = nodes_angle(node0, node1)
             rho = atan2(31, 1)
             if 0 < abs(phi - 0.5 * pi) < rho or 0 < abs(phi + 0.5 * pi) < rho:
-                if abs(n1.x - n0.x) <= self.semi_hv_vectors_max_distance:
+                if abs(node1.x - node0.x) <= self.semi_hv_vectors_max_distance:
                     self.errors.append(
                         OutlineError(
-                            half_point(n0, n1),
+                            nodes_half_point(node0, node1),
                             "Semi-vertical %s" % segment,
                             degrees(phi),
-                            get_vector(n0, n1),
+                            nodes_normal_vector(node0, node1),
                         )
                     )
 
-    def _checkZeroHandles(self, p0, p1) -> None:
-        badness = distance_between_nodes(p0, p1)
+    def _check_zero_handles(self, node0, node1) -> None:
+        badness = nodes_distance(node0, node1)
         if badness <= self.zero_handles_max_distance:
             self.errors.append(
-                OutlineError(p1, "Zero handle", badness, get_vector(p0, p1))
+                OutlineError(
+                    node1, "Zero handle", badness, nodes_normal_vector(node0, node1)
+                )
             )

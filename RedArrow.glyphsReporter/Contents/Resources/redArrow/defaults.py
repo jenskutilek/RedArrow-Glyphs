@@ -8,7 +8,7 @@ from redArrow.typing import RedArrowOptionsDict
 if TYPE_CHECKING:
     from typing import Any
 
-default_tests: list[str] = [
+default_checks: list[str] = [
     "test_extrema",
     "test_inflections",
     "test_fractional_coords",

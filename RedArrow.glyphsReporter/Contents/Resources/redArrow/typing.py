@@ -4,6 +4,7 @@ type CubicCurveTuple = tuple[PointTuple, PointTuple, PointTuple, PointTuple]
 type PointTuple = tuple[float, float]
 type QuadraticCurveTuple = tuple[PointTuple, PointTuple, PointTuple]
 type RectTuple = tuple[float, float, float, float]
+type Vector2D = tuple[float, float]
 
 
 class RedArrowOptionsDict(TypedDict):

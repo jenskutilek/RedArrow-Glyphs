@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from AppKit import (
     NSApp,
     NSModalPanelWindowLevel,
@@ -7,6 +9,9 @@ from AppKit import (
 )
 from objc import super
 from vanilla import Button, Window
+
+if TYPE_CHECKING:
+    from redArrow.typing import RedArrowOptionsDict
 
 
 class _RAModalWindow(Window):
@@ -71,5 +76,5 @@ class _RAbaseWindowController:
 
         self.w.close()
 
-    def get(self) -> None:
+    def get(self) -> "tuple[bool, RedArrowOptionsDict | None, list[str] | None]":
         raise NotImplementedError
