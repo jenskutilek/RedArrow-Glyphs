@@ -1,6 +1,3 @@
-# encoding: utf-8
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from AppKit import (
     NSApp,
     NSModalPanelWindowLevel,
@@ -15,7 +12,7 @@ from vanilla import Button, Window
 class _RAModalWindow(Window):
     nsWindowLevel = NSModalPanelWindowLevel
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super(_RAModalWindow, self).__init__(*args, **kwargs)
         for button in (
             NSWindowCloseButton,
@@ -24,18 +21,18 @@ class _RAModalWindow(Window):
         ):
             self._window.standardWindowButton_(button).setHidden_(True)
 
-    def open(self):
+    def open(self) -> None:
         super(_RAModalWindow, self).open()
         self.center()
         NSApp().runModalForWindow_(self._window)
 
-    def windowWillClose_(self, notification):
+    def windowWillClose_(self, notification) -> None:
         super(_RAModalWindow, self).windowWillClose_(notification)
         NSApp().stopModal()
 
 
 class _RAbaseWindowController(object):
-    def setUpBaseWindowBehavior(self):
+    def setUpBaseWindowBehavior(self) -> None:
         self._getValue = None
 
         self.w.okButton = Button(
@@ -54,12 +51,12 @@ class _RAbaseWindowController(object):
 
         self.cancelled = False
 
-    def okCallback(self, sender):
+    def okCallback(self, sender) -> None:
         self.w.close()
 
-    def closeCallback(self, sender):
+    def closeCallback(self, sender) -> None:
         self.cancelled = True
         self.w.close()
 
-    def get(self):
+    def get(self) -> None:
         raise NotImplementedError

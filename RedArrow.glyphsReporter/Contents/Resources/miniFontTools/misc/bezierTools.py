@@ -2,10 +2,6 @@
 segments.
 """
 
-from __future__ import absolute_import, division, print_function
-
-from miniFontTools.misc.py23 import *
-
 __all__ = [
     "calcQuadraticBounds",
     "calcCubicBounds",

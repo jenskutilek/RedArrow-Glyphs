@@ -1,10 +1,7 @@
-# encoding: utf-8
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from math import atan2, cos, degrees, pi, sin, sqrt
 
-from AppKit import NSMakePoint
-from GlyphsApp import CURVE, LINE, OFFCURVE, QCURVE
+from AppKit import NSMakePoint, NSPoint, NSRect
+from GlyphsApp import CURVE, LINE, OFFCURVE, QCURVE, GSComponent, GSLayer, GSNode
 from miniFontTools.misc.arrayTools import normRect
 from miniFontTools.misc.bezierTools import (
     calcCubicParameters,
@@ -16,22 +13,28 @@ from miniFontTools.misc.bezierTools import (
 )
 from miniFontTools.misc.transform import Transform
 
+type PointTuple = tuple[float, float]
+type CubicCurveTuple = tuple[PointTuple, PointTuple, PointTuple, PointTuple]
+type QuadraticCurveTuple = tuple[PointTuple, PointTuple, PointTuple]
+
 # Helper functions
 
 
 # from fontTools.misc.arrayTools
-def pointInRect(p, rect):
+def pointInRect(
+    p: GSNode, rect: tuple[PointTuple, PointTuple, PointTuple, PointTuple]
+) -> bool:
     """Test if a point is inside a bounding rectangle."""
     xMin, yMin, xMax, yMax = rect
     return (xMin <= p.x <= xMax) and (yMin <= p.y <= yMax)
 
 
-def solveLinear(a, b):
+def solveLinear(a: float, b: float) -> list[float]:
     if abs(a) < epsilon:
         if abs(b) < epsilon:
             roots = []
         else:
-            roots = [0]
+            roots = [0.0]
     else:
         DD = b * b
         if DD >= 0.0:
@@ -42,7 +45,7 @@ def solveLinear(a, b):
     return roots
 
 
-def add_implied_oncurve_points_quad(quad):
+def add_implied_oncurve_points_quad(quad: list[GSNode]) -> list[tuple[float, float]]:
     # Take a quadratic segment of NSPoint/GSNode and add implied oncurve points
     new_quad = [quad[0]]
     for i in range(1, len(quad) - 2):
@@ -53,14 +56,18 @@ def add_implied_oncurve_points_quad(quad):
     return [(p.x, p.y) for p in new_quad]
 
 
-def get_extrema_points_vectors(roots, pt1, pt2, pt3, pt4):
+def get_extrema_points_vectors(
+    roots: list[float], pt1: GSNode, pt2: GSNode, pt3: GSNode, pt4: GSNode
+) -> tuple[list[CubicCurveTuple], list[PointTuple]]:
     split_segments = [p for p in splitCubicAtT(pt1, pt2, pt3, pt4, *roots)[:-1]]
     points = [p[3] for p in split_segments]
     vectors = [get_vector_tuple(p[2], p[3]) for p in split_segments]
     return points, vectors
 
 
-def getExtremaForCubic(pt1, pt2, pt3, pt4, h=True, v=False):
+def getExtremaForCubic(
+    pt1: GSNode, pt2: GSNode, pt3: GSNode, pt4: GSNode, h=True, v=False
+) -> tuple[list[CubicCurveTuple], list[PointTuple]]:
     pt1 = (pt1.x, pt1.y)
     pt2 = (pt2.x, pt2.y)
     pt3 = (pt3.x, pt3.y)
@@ -70,8 +77,8 @@ def getExtremaForCubic(pt1, pt2, pt3, pt4, h=True, v=False):
     ay *= 3.0
     bx *= 2.0
     by *= 2.0
-    points = []
-    vectors = []
+    points: list[CubicCurveTuple] = []
+    vectors: list[tuple[float, float]] = []
     if h:
         roots = [t for t in solveQuadratic(ay, by, c[1]) if 0 < t < 1]
         points, vectors = get_extrema_points_vectors(roots, pt1, pt2, pt3, pt4)
@@ -83,9 +90,19 @@ def getExtremaForCubic(pt1, pt2, pt3, pt4, h=True, v=False):
     return points, vectors
 
 
-def getInflectionsForCubic(pt1, pt2, pt3, pt4, err_min=0.3, err_max=0.7):
+def getInflectionsForCubic(
+    pt1: PointTuple,
+    pt2: PointTuple,
+    pt3: PointTuple,
+    pt4: PointTuple,
+    err_min: float = 0.3,
+    err_max: float = 0.7,
+) -> tuple[
+    tuple[list[CubicCurveTuple], list[PointTuple]],
+    tuple[list[CubicCurveTuple], list[PointTuple]],
+]:
     # After https://github.com/mekkablue/InsertInflections
-    roots = []
+    roots: list[float] = []
 
     x1, y1 = pt1
     x2, y2 = pt2
@@ -137,14 +154,18 @@ def getInflectionsForCubic(pt1, pt2, pt3, pt4, err_min=0.3, err_max=0.7):
     )
 
 
-def get_extrema_points_vectors_quad(roots, pt1, pt2, pt3):
+def get_extrema_points_vectors_quad(
+    roots: list[float], pt1: PointTuple, pt2: PointTuple, pt3: PointTuple
+) -> tuple[list[QuadraticCurveTuple], list[PointTuple]]:
     split_segments = [p for p in splitQuadraticAtT(pt1, pt2, pt3, *roots)[:-1]]
     points = [p[2] for p in split_segments]
     vectors = [get_vector_tuple(p[1], p[2]) for p in split_segments]
     return points, vectors
 
 
-def getExtremaForQuadratic(pt1, pt2, pt3, h=True, v=False):
+def getExtremaForQuadratic(
+    pt1: PointTuple, pt2: PointTuple, pt3: PointTuple, h: bool = True, v: bool = False
+) -> tuple[list[QuadraticCurveTuple], list[PointTuple]]:
     (ax, ay), (bx, by), c = calcQuadraticParameters(pt1, pt2, pt3)
     ax *= 2.0
     ay *= 2.0
@@ -161,7 +182,9 @@ def getExtremaForQuadratic(pt1, pt2, pt3, h=True, v=False):
     return points, vectors
 
 
-def getInflectionsForQuadratic(segment):
+def getInflectionsForQuadratic(
+    segment: QuadraticCurveTuple,
+) -> tuple[list[QuadraticCurveTuple], list[PointTuple]]:
     if len(segment) < 2:
         return [], []
     else:
@@ -169,7 +192,7 @@ def getInflectionsForQuadratic(segment):
         return [], []
 
 
-def round_point(pt, gridLength=1):
+def round_point(pt: GSNode, gridLength: int = 1) -> NSPoint:
     # Return a rounded copy of point pt, depending on gridLength
     pr = NSMakePoint(pt.x, pt.y)
     pr.x = round_value(pt.x, gridLength)
@@ -177,7 +200,7 @@ def round_point(pt, gridLength=1):
     return pr
 
 
-def round_value(v, gridLength=1):
+def round_value(v: float, gridLength: int = 1) -> int:
     # Return the rounded value for v, depending on gridLength
     if gridLength == 0:
         return v
@@ -188,32 +211,34 @@ def round_value(v, gridLength=1):
     return vr
 
 
-def get_vector(p0, p1):
+def get_vector(p0: GSNode, p1: GSNode) -> PointTuple:
     return (p1.x - p0.x, p1.y - p0.y)
 
 
-def get_vector_tuple(p0, p1):
+def get_vector_tuple(p0: PointTuple, p1: PointTuple) -> PointTuple:
     p0x, p0y = p0
     p1x, p1y = p1
     return (p1x - p0x, p1y - p0y)
 
 
-def angle_between_points(p0, p1):
+def angle_between_points(p0: GSNode, p1: GSNode) -> float:
     return atan2(p1.y - p0.y, p1.x - p0.x)
 
 
-def distance_between_points(p0, p1):
+def distance_between_points(p0: GSNode, p1: GSNode) -> float:
     return sqrt((p1.y - p0.y) ** 2 + (p1.x - p0.x) ** 2)
 
 
-def half_point(p0, p1):
+def half_point(p0: GSNode, p1: GSNode) -> NSPoint:
     p01 = NSMakePoint(p0.x, p0.y)
     p01.x = (p0.x + p1.x) / 2
     p01.y = (p0.y + p1.y) / 2
     return p01
 
 
-def transform_bbox(bbox, matrix):
+def transform_bbox(
+    bbox: NSRect, matrix: tuple[int, int, int, int, int, int]
+) -> tuple[NSPoint, NSPoint]:
     t = Transform(*matrix)
     ll_x, ll_y = t.transformPoint((bbox.origin.x, bbox.origin.y))
     tr_x, tr_y = t.transformPoint(
@@ -224,15 +249,21 @@ def transform_bbox(bbox, matrix):
 
 
 class OutlineError(object):
-    level = "e"
+    level: str = "e"
 
-    def __init__(self, position=None, kind="Unknown error", badness=None, vector=None):
+    def __init__(
+        self,
+        position: NSPoint | None = None,
+        kind: str = "Unknown error",
+        badness: float | None = None,
+        vector: PointTuple | None = None,
+    ) -> None:
         self.position = position
         self.kind = kind
         self.badness = badness
         self.vector = vector
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         r = "%s" % self.kind
         if self.position is not None:
             r += " at (%i, %i)" % (self.position.x, self.position.y)
@@ -242,7 +273,7 @@ class OutlineError(object):
 
 
 class OutlineWarning(OutlineError):
-    level = "w"
+    level: str = "w"
 
 
 class OutlineTest:
@@ -250,13 +281,18 @@ class OutlineTest:
     Reimplementation of FontLab's FontAudit.
     """
 
-    def __init__(self, layer, options=None, run_tests=None):
+    def __init__(
+        self,
+        layer: GSLayer,
+        options: dict[str, str | float | bool] | None = None,
+        run_tests: list[str] | None = None,
+    ):
         self.options = {} if options is None else options
         self.run_tests = [] if run_tests is None else run_tests
         self.reset()
         self.layer = layer
 
-    def reset(self):
+    def reset(self) -> None:
         self.errors = []
 
         self.all_tests = [
@@ -290,11 +326,11 @@ class OutlineTest:
         self.bb_top = 0
 
     @property
-    def layer(self):
+    def layer(self) -> GSLayer:
         return self._layer
 
     @layer.setter
-    def layer(self, value):
+    def layer(self, value: GSLayer) -> None:
         self._layer = value
         self.upm = 1000 if self.layer is None else self.layer.parent.parent.upm
         if self._layer is not None:
@@ -309,14 +345,14 @@ class OutlineTest:
                 self.bb_top = 0
         self._cache_options()
 
-    def _normalize_upm(self, value):
+    def _normalize_upm(self, value: float) -> float:
         """
         Return a value that is normalized from 1000 upm to the current font's
         upm
         """
         return value * self.upm / 1000
 
-    def _cache_options(self):
+    def _cache_options(self) -> None:
         # store options dict into instance variables
         # in the hope that it's faster than asking the dict every time
 
@@ -366,7 +402,7 @@ class OutlineTest:
                 else:
                     setattr(self, t, False)
 
-    def checkLayer(self):
+    def checkLayer(self) -> None:
         self.errors = []
         for path in self.layer.paths:
             for node in path.nodes:
@@ -385,7 +421,7 @@ class OutlineTest:
 
     # Tests for different node types
 
-    def _runLineTests(self, node):
+    def _runLineTests(self, node) -> None:
         prev_node = node.prevNode
         if self.test_fractional_coords:
             self._checkFractionalCoordinates(node)
@@ -405,7 +441,7 @@ class OutlineTest:
         if self.test_short_segments:
             self._checkShortLinesAndCurves(prev_node, node)
 
-    def _runCurveTests(self, node):
+    def _runCurveTests(self, node) -> None:
         pt3 = node
         bcp2 = pt3.prevNode
         bcp1 = bcp2.prevNode
@@ -442,13 +478,13 @@ class OutlineTest:
             if not (pt3 is None or pt0 is None):
                 self._checkShortLinesAndCurves(pt0, pt3)
 
-    def _runOffcurveTests(self, node):
+    def _runOffcurveTests(self, node) -> None:
         if self.test_fractional_coords:
             self._checkFractionalCoordinates(node)
         if self.test_bbox_handles:
             self._checkLayerBBoxHandle(node)
 
-    def _runQCurveTests(self, node):
+    def _runQCurveTests(self, node) -> None:
         # Find the previous oncurve node
         start_node = node.prevNode
         start_idx = node.index
@@ -492,7 +528,7 @@ class OutlineTest:
         if self.test_spikes:
             self._checkSpike(node)
 
-    def _runComponentTests(self, component):
+    def _runComponentTests(self, component) -> None:
         if self.test_fractional_coords:
             self._checkFractionalComponentOffset(component)
         if self.test_fractional_transform:
@@ -500,7 +536,9 @@ class OutlineTest:
 
     # Implementations for all the different tests
 
-    def _checkBboxCurve(self, pt0, bcp1, bcp2, pt3):
+    def _checkBboxCurve(
+        self, pt0: GSNode, bcp1: GSNode, bcp2: GSNode, pt3: GSNode
+    ) -> None:
         myRect = normRect((pt0.x, pt0.y, pt3.x, pt3.y))
         if not pointInRect(bcp1, myRect) or not pointInRect(bcp2, myRect):
             extrema, vectors = getExtremaForCubic(pt0, bcp1, bcp2, pt3, h=True, v=True)
@@ -523,7 +561,7 @@ class OutlineTest:
                         error_class(NSMakePoint(*p), desc, vector=vector)
                     )
 
-    def _checkLayerBBoxHandle(self, node):
+    def _checkLayerBBoxHandle(self, node: GSNode) -> None:
         if self.layer is None:
             return
 
@@ -545,7 +583,7 @@ class OutlineTest:
             )
             return
 
-    def _checkExtremaQuad(self, segment):
+    def _checkExtremaQuad(self, segment: list[GSNode]) -> None:
         quad = add_implied_oncurve_points_quad(segment)
         for i in range(0, len(quad) - 1, 2):
             extrema, vectors = getExtremaForQuadratic(
@@ -561,7 +599,9 @@ class OutlineTest:
                     OutlineError(NSMakePoint(*p), "Extremum", vector=vectors[i])
                 )
 
-    def _getBadness(self, pointToCheck, myRect):
+    def _getBadness(
+        self, pointToCheck, myRect: tuple[float, float, float, float]
+    ) -> float:
         # calculate distance of point to rect
         badness = 0
         x, y = pointToCheck
@@ -597,7 +637,9 @@ class OutlineTest:
                 badness = 0
         return badness
 
-    def _checkInflectionsCurve(self, pt0, bcp1, bcp2, pt3):
+    def _checkInflectionsCurve(
+        self, pt0: GSNode | None, bcp1: GSNode | None, bcp2: GSNode | None, pt3: GSNode
+    ) -> None:
         if bcp2 is None or bcp1 is None or pt0 is None:
             return
 
@@ -624,7 +666,7 @@ class OutlineTest:
                 OutlineWarning(NSMakePoint(*p), "Inflection", vector=ok_vectors[i])
             )
 
-    def _checkInflectionsQuad(self, segment):
+    def _checkInflectionsQuad(self, segment: QuadraticCurveTuple) -> None:
         # FIXME: Not implemented
         inflections, vectors = getInflectionsForQuadratic(segment)
         for i, p in enumerate(inflections):
@@ -632,19 +674,19 @@ class OutlineTest:
                 OutlineError(NSMakePoint(*p), "Inflection", vector=vectors[i])
             )
 
-    def _countCurveSegment(self):
+    def _countCurveSegment(self) -> None:
         if self.apparentlyQuadratic:
             self.errors.append(OutlineError(None, "Mixed cubic and quadratic segments"))
             self.curveTypeDetected = True
         self.apparentlyCubic = True
 
-    def _countQCurveSegment(self):
+    def _countQCurveSegment(self) -> None:
         if self.apparentlyCubic:
             self.errors.append(OutlineError(None, "Mixed cubic and quadratic segments"))
             self.curveTypeDetected = True
         self.apparentlyQuadratic = True
 
-    def _checkFractionalCoordinates(self, pt):
+    def _checkFractionalCoordinates(self, pt: GSNode) -> None:
         if self.fractional_ignore_point_zero:
             pr = round_point(pt, self.grid_length)
             if abs(pr.x - pt.x) < 0.001 and abs(pr.y - pt.y) < 0.001:
@@ -661,12 +703,12 @@ class OutlineTest:
             )
         )
 
-    def _getComponentErrorPosition(self, component):
+    def _getComponentErrorPosition(self, component: GSComponent) -> NSPoint:
         bbox = component.component.layers[self.layer.layerId].bounds
         tbox = transform_bbox(bbox, component.transform)
         return half_point(*tbox)
 
-    def _checkFractionalComponentOffset(self, component):
+    def _checkFractionalComponentOffset(self, component: GSComponent):
         for value in component.transform[-2:]:
             if abs(round_value(value, self.grid_length) - value) > 0.001:
                 self.errors.append(
@@ -681,7 +723,7 @@ class OutlineTest:
                 )
                 break
 
-    def _checkFractionalTransformation(self, component):
+    def _checkFractionalTransformation(self, component: GSComponent) -> None:
         for value in component.transform[:-2]:
             if abs(round(value) - value) > 0.001:
                 self.errors.append(
@@ -696,7 +738,7 @@ class OutlineTest:
                 )
                 break
 
-    def _checkIncorrectSmoothConnection(self, node):
+    def _checkIncorrectSmoothConnection(self, node: GSNode) -> None:
         """
         Test for nearly smooth connections.
         """
@@ -775,7 +817,7 @@ class OutlineTest:
                         )
                     )
 
-    def _checkEmptyLinesAndCurves(self, pt0, pt1):
+    def _checkEmptyLinesAndCurves(self, pt0: GSNode, pt1: GSNode) -> None:
         if pt0 is None or pt1 is None:
             return
 
@@ -788,7 +830,7 @@ class OutlineTest:
                 )
             )
 
-    def _checkShortLinesAndCurves(self, pt0, pt1):
+    def _checkShortLinesAndCurves(self, pt0: GSNode, pt1: GSNode) -> None:
         if pt0 is None or pt1 is None:
             return
 
@@ -801,7 +843,7 @@ class OutlineTest:
                 )
             )
 
-    def _checkCollinearVectors(self, node):
+    def _checkCollinearVectors(self, node: GSNode) -> None:
         """
         Test for consecutive lines that have nearly the same angle.
         """
@@ -836,7 +878,7 @@ class OutlineTest:
                 )
             )
 
-    def _checkSpike(self, node):
+    def _checkSpike(self, node: GSNode) -> None:
         """
         Test for consecutive segments that have a very narrow angle.
         """
@@ -853,7 +895,9 @@ class OutlineTest:
                 OutlineWarning(node, "Spike", vector=get_vector(prev_node, next_node))
             )
 
-    def _checkSemiHorizontal(self, n0, n1, segment="line"):
+    def _checkSemiHorizontal(
+        self, n0: GSNode, n1: GSNode, segment: str = "line"
+    ) -> None:
         """
         Test for semi-horizontal lines and handles.
         """
@@ -875,7 +919,7 @@ class OutlineTest:
                         )
                     )
 
-    def _checkSemiVertical(self, n0, n1, segment="line"):
+    def _checkSemiVertical(self, n0: GSNode, n1: GSNode, segment: str = "line") -> None:
         """
         Test for semi-vertical lines and handles.
         """
@@ -894,7 +938,7 @@ class OutlineTest:
                         )
                     )
 
-    def _checkZeroHandles(self, p0, p1):
+    def _checkZeroHandles(self, p0, p1) -> None:
         badness = distance_between_points(p0, p1)
         if badness <= self.zero_handles_max_distance:
             self.errors.append(

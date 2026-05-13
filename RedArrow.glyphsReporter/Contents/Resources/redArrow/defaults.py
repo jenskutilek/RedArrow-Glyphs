@@ -1,9 +1,7 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import objc
 from AppKit import NSDecimalNumber
 
-default_tests = [
+default_tests: list[str] = [
     "test_extrema",
     "test_inflections",
     "test_fractional_coords",
@@ -19,7 +17,7 @@ default_tests = [
     "test_spikes",
 ]
 
-default_options = {
+default_options: dict[str, str | float | bool] = {
     "ignore_warnings": False,
     "extremum_calculate_badness": False,
     "extremum_ignore_badness_below": 0,
@@ -31,7 +29,7 @@ default_options = {
     "spike_angle": 0.49,
 }
 
-option_types = {
+option_types: dict[str, str] = {
     "ignore_warnings": "bool",
     "extremum_calculate_badness": "bool",
     "extremum_ignore_badness_below": "float",
@@ -44,8 +42,10 @@ option_types = {
 }
 
 
-def typechecked_options(options):
-    out = {}
+def typechecked_options(
+    options: dict[str, str | float | bool],
+) -> dict[str, str | float | bool]:
+    out: dict[str, str | float | bool] = {}
     for k, v in default_options.items():
         t = option_types.get(k, "float")
         if t == "bool":

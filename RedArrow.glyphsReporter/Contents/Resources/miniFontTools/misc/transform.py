@@ -45,9 +45,7 @@ Examples:
     >>>
 """
 
-from __future__ import absolute_import, division, print_function
-
-from miniFontTools.misc.py23 import *
+from typing import Any, Sequence
 
 __all__ = ["Transform", "Identity", "Offset", "Scale"]
 
@@ -57,7 +55,7 @@ _ONE_EPSILON = 1 - _EPSILON
 _MINUS_ONE_EPSILON = -1 + _EPSILON
 
 
-def _normSinCos(v):
+def _normSinCos(v: float) -> int:
     if abs(v) < _EPSILON:
         v = 0
     elif v > _ONE_EPSILON:
@@ -85,7 +83,15 @@ class Transform(object):
                     (200, 300)
     """
 
-    def __init__(self, xx=1, xy=0, yx=0, yy=1, dx=0, dy=0):
+    def __init__(
+        self,
+        xx: float = 1,
+        xy: float = 0,
+        yx: float = 0,
+        yy: float = 1,
+        dx: float = 0,
+        dy: float = 0,
+    ) -> None:
         """Transform's constructor takes six arguments, all of which are
         optional, and can be used as keyword arguments:
                         >>> Transform(12)
@@ -98,7 +104,7 @@ class Transform(object):
         """
         self.__affine = xx, xy, yx, yy, dx, dy
 
-    def transformPoint(self, p):
+    def transformPoint(self, p: tuple[float, float]) -> tuple[float, float]:
         """Transform a point.
 
         Example:
@@ -111,7 +117,9 @@ class Transform(object):
         xx, xy, yx, yy, dx, dy = self.__affine
         return (xx * x + yx * y + dx, xy * x + yy * y + dy)
 
-    def transformPoints(self, points):
+    def transformPoints(
+        self, points: Sequence[tuple[float, float]]
+    ) -> list[tuple[float, float]]:
         """Transform a list of points.
 
         Example:
@@ -123,7 +131,7 @@ class Transform(object):
         xx, xy, yx, yy, dx, dy = self.__affine
         return [(xx * x + yx * y + dx, xy * x + yy * y + dy) for x, y in points]
 
-    def translate(self, x=0, y=0):
+    def translate(self, x: float = 0, y: float = 0) -> "Transform":
         """Return a new transformation, translated (offset) by x, y.
 
         Example:
@@ -134,7 +142,7 @@ class Transform(object):
         """
         return self.transform((1, 0, 0, 1, x, y))
 
-    def scale(self, x=1, y=None):
+    def scale(self, x: float = 1, y: float | None = None) -> "Transform":
         """Return a new transformation, scaled by x, y. The 'y' argument
         may be None, which implies to use the x value for y as well.
 
@@ -150,7 +158,7 @@ class Transform(object):
             y = x
         return self.transform((x, 0, 0, y, 0, 0))
 
-    def rotate(self, angle):
+    def rotate(self, angle: float) -> "Transform":
         """Return a new transformation, rotated by 'angle' (radians).
 
         Example:
@@ -166,7 +174,7 @@ class Transform(object):
         s = _normSinCos(math.sin(angle))
         return self.transform((c, s, -s, c, 0, 0))
 
-    def skew(self, x=0, y=0):
+    def skew(self, x: float = 0, y: float = 0) -> "Transform":
         """Return a new transformation, skewed by x and y.
 
         Example:
@@ -180,7 +188,9 @@ class Transform(object):
 
         return self.transform((1, math.tan(y), math.tan(x), 1, 0, 0))
 
-    def transform(self, other):
+    def transform(
+        self, other: tuple[float, float, float, float, float, float]
+    ) -> "Transform":
         """Return a new transformation, transformed by another
         transformation.
 
@@ -201,7 +211,9 @@ class Transform(object):
             xy2 * dx1 + yy2 * dy1 + dy2,
         )
 
-    def reverseTransform(self, other):
+    def reverseTransform(
+        self, other: tuple[float, float, float, float, float, float]
+    ) -> "Transform":
         """Return a new transformation, which is the other transformation
         transformed by self. self.reverseTransform(other) is equivalent to
         other.transform(self).
@@ -225,7 +237,7 @@ class Transform(object):
             xy2 * dx1 + yy2 * dy1 + dy2,
         )
 
-    def inverse(self):
+    def inverse(self) -> "Transform":
         """Return the inverse transformation.
 
         Example:
@@ -245,7 +257,7 @@ class Transform(object):
         dx, dy = -xx * dx - yx * dy, -xy * dx - yy * dy
         return self.__class__(xx, xy, yx, yy, dx, dy)
 
-    def toPS(self):
+    def toPS(self) -> str:
         """Return a PostScript representation:
         >>> t = Identity.scale(2, 3).translate(4, 5)
         >>> t.toPS()
@@ -254,7 +266,7 @@ class Transform(object):
         """
         return "[%s %s %s %s %s %s]" % self.__affine
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Transform instances also behave like sequences of length 6:
         >>> len(Identity)
         6
@@ -262,7 +274,7 @@ class Transform(object):
         """
         return 6
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> float:
         """Transform instances also behave like sequences of length 6:
         >>> list(Identity)
         [1, 0, 0, 1, 0, 0]
@@ -272,10 +284,10 @@ class Transform(object):
         """
         return self.__affine[index]
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         """Transform instances are comparable:
                         >>> t1 = Identity.scale(2, 3).translate(4, 6)
                         >>> t2 = Identity.translate(8, 18).scale(2, 3)
@@ -298,7 +310,7 @@ class Transform(object):
         xx2, xy2, yx2, yy2, dx2, dy2 = other
         return (xx1, xy1, yx1, yy1, dx1, dy1) == (xx2, xy2, yx2, yy2, dx2, dy2)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         """Transform instances are hashable, meaning you can use them as
         keys in dictionaries:
                         >>> d = {Scale(12, 13): None}
@@ -324,14 +336,14 @@ class Transform(object):
         """
         return hash(self.__affine)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<%s [%g %g %g %g %g %g]>" % ((self.__class__.__name__,) + self.__affine)
 
 
 Identity = Transform()
 
 
-def Offset(x=0, y=0):
+def Offset(x: float = 0, y: float = 0) -> Transform:
     """Return the identity transformation offset by x, y.
 
     Example:
@@ -342,7 +354,7 @@ def Offset(x=0, y=0):
     return Transform(1, 0, 0, 1, x, y)
 
 
-def Scale(x, y=None):
+def Scale(x: float, y: float | None = None) -> Transform:
     """Return the identity transformation scaled by x, y. The 'y' argument
     may be None, which implies to use the x value for y as well.
 
