@@ -1,34 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>en</string>
-	<key>CFBundleExecutable</key>
-	<string>plugin</string>
-	<key>CFBundleIdentifier</key>
-	<string>de.kutilek.RedArrow</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>RedArrow</string>
-	<key>CFBundleVersion</key>
-	<string>224</string>
-	<key>CFBundleShortVersionString</key>
-	<string>2.2.4</string>
-	<key>UpdateFeedURL</key>
-	<string>https://raw.githubusercontent.com/jenskutilek/RedArrow-Glyphs/master/RedArrow.glyphsReporter/Contents/Info.plist</string>
-	<key>productPageURL</key>
-	<string>https://github.com/jenskutilek/RedArrow-Glyphs</string>
-	<key>productReleaseNotes</key>
-	<string>Add check for handles outside bounding box; allow setting arrow size: Glyphs.defaults["de.kutilek.RedArrow.arrowSize"] = 10</string>
-	<key>NSHumanReadableCopyright</key>
-	<string>Copyright by Jens Kutilek, 2016-2025</string>
-	<key>NSPrincipalClass</key>
-	<string>RedArrow</string>
-	<key>PyMainFileNames</key>
-	<array>
-		<string>plugin.py</string>
-	</array>
-</dict>
+	<dict>
+		<key>CFBundleDevelopmentRegion</key>
+		<string>en</string>
+		<key>CFBundleExecutable</key>
+		<string>plugin</string>
+		<key>CFBundleIdentifier</key>
+		<string>de.kutilek.RedArrow</string>
+		<key>CFBundleInfoDictionaryVersion</key>
+		<string>6.0</string>
+		<key>CFBundleName</key>
+		<string>RedArrow</string>
+		<key>CFBundleVersion</key>
+		<string>300</string>
+		<key>CFBundleShortVersionString</key>
+		<string>3.0.0</string>
+		<key>UpdateFeedURL</key>
+		<string>
+			https://raw.githubusercontent.com/jenskutilek/RedArrow-Glyphs/master/RedArrow.glyphsReporter/Contents/Info.plist</string>
+		<key>productPageURL</key>
+		<string>https://github.com/jenskutilek/RedArrow-Glyphs</string>
+		<key>productReleaseNotes</key>
+		<string>Glyphs 3+ compatibility</string>
+		<key>NSHumanReadableCopyright</key>
+		<string>Copyright by Jens Kutilek, 2016-2026</string>
+		<key>NSPrincipalClass</key>
+		<string>RedArrow</string>
+		<key>PyMainFileNames</key>
+		<array>
+			<string>plugin.py</string>
+		</array>
+	</dict>
 </plist>
