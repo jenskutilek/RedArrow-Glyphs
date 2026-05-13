@@ -88,7 +88,7 @@ def offsetRect(rect: RectTuple, dx: float, dy: float) -> RectTuple:
     return xMin + dx, yMin + dy, xMax + dx, yMax + dy
 
 
-def insetRect(rect: RectTuple, dx: float, dy: floa) -> RectTuple:
+def insetRect(rect: RectTuple, dx: float, dy: float) -> RectTuple:
     """Inset the rectangle by dx, dy on all sides."""
     (xMin, yMin, xMax, yMax) = rect
     return xMin + dx, yMin + dy, xMax - dx, yMax - dy
