@@ -98,7 +98,7 @@ class RedArrow(ReporterPlugin):
         self.errors: "list[OutlineError | OutlineWarning]" = []
         self.mouse_position = NSMakePoint(0, 0)
         self.last_change_date = 0
-        self.current_layer = None
+        self.current_layer: "GSLayer | None" = None
         self.load_defaults()
 
     @objc.python_method
@@ -491,7 +491,7 @@ class RedArrow(ReporterPlugin):
         for pos, errors in errors_by_position.items():
             message = ""
             level = "w"
-            vector = normal_vector
+            vector: "PointTuple | None" = normal_vector
             for e in errors:
                 if e.badness is None or not debug:
                     if DEBUG:
