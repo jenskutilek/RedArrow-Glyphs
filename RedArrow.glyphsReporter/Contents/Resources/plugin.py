@@ -327,7 +327,7 @@ class RedArrow(ReporterPlugin):
     @objc.python_method
     def _draw_arrow(
         self,
-        position: NSPoint,
+        position: "NSPoint",
         kind: str,
         size: int,
         vector: "PointTuple | None" = normal_vector,
