@@ -1,11 +1,15 @@
-# encoding: utf-8
-from __future__ import absolute_import, division, print_function, unicode_literals
+from typing import TYPE_CHECKING
 
 from AppKit import NSNumber, NSNumberFormatter
 from vanilla import CheckBox, EditText, HorizontalLine, TextBox
 
-from redArrow.defaults import default_tests, typechecked_options
+from redArrow.defaults import default_checks, typechecked_options
 from redArrow.dialogs_mac_vanilla import _RAbaseWindowController, _RAModalWindow
+
+if TYPE_CHECKING:
+    from typing import Any
+
+    from redArrow.typing import RedArrowOptionsDict
 
 float_formatter = NSNumberFormatter.alloc().init()
 float_formatter.setAllowsFloats_(True)
@@ -46,13 +50,18 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         "smooth_connection_max_distance": ("Smooth Connection Tolerance", "f"),
         "fractional_ignore_point_zero": ("Ignore .0 Fractional Values", "b"),
         "collinear_vectors_max_distance": ("Collinear Vectors Tolerance", "f"),
-        "grid_length": ("Grid Length", "f"),
-        "inflection_min": ("Minimum Allowed Inflection t (0–0.5)", "i"),
+        "grid_length": ("Grid Length", "i"),
+        "inflection_min": ("Minimum Allowed Inflection t (0–0.5)", "f"),
         "spike_angle": ("Maximum Spike Angle (radians)", "f"),
     }
 
-    def __init__(self, options={}, run_tests=[], title="Select Glyphs With Errors"):
-        self.run_tests = {o: o in run_tests for o in default_tests}
+    def __init__(
+        self,
+        options: "dict[str, Any]" = {},
+        run_checks: list[str] = [],
+        title: str = "Select Glyphs With Errors",
+    ) -> None:
+        self.run_checks = {o: o in run_checks for o in default_checks}
         self.options = typechecked_options(options)
         self.save_global = False
 
@@ -67,24 +76,24 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         height = (
             y
             + title_line_height
-            + entry_line_height * (len(self.options) + len(self.run_tests))
+            + entry_line_height * (len(self.options) + len(self.run_checks))
             + title_line_height
             + title_skip
             + buttons_height
         )
         self.w = _RAModalWindow((300, height), title)
 
-        self.w.tests_title = TextBox((x, y, -10, 23), "Select Errors To Flag:")
+        self.w.checks_title = TextBox((x, y, -10, 23), "Select Errors To Flag:")
         y += title_line_height
 
-        for k in sorted(self.run_tests.keys()):
+        for k in sorted(self.run_checks.keys()):
             setattr(
                 self.w,
                 k,
                 CheckBox(
                     (x + 3, y, -10, 20),
                     self.test_names.get(k, k),
-                    value=self.run_tests[k],
+                    value=self.run_checks[k],
                     sizeStyle="small",
                 ),
             )
@@ -155,23 +164,23 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         self.setUpBaseWindowBehavior()
         self.w.open()
 
-    def saveCallback(self, sender):
+    def saveCallback(self, sender) -> None:
         self.save_global = sender.get()
 
-    def get(self):
+    def get(self) -> "tuple[bool, RedArrowOptionsDict | None, list[str] | None]":
         if self.cancelled:
             return False, None, None
-        else:
-            options = {
-                option_name: getattr(self.w, option_name).get()
-                for option_name in self.options.keys()
-            }
-            # print("Set options from dialog:")
-            # for k, v in options.items():
-            #     print("   ", k, v, type(v))
-            run_tests = [
-                test_name
-                for test_name in self.run_tests
-                if getattr(self.w, test_name).get()
-            ]
-            return self.save_global, options, run_tests
+
+        options: "RedArrowOptionsDict" = {
+            option_name: getattr(self.w, option_name).get()
+            for option_name in self.options.keys()
+        }
+        # print("Set options from dialog:")
+        # for k, v in options.items():
+        #     print("   ", k, v, type(v))
+        run_checks = [
+            test_name
+            for test_name in self.run_checks
+            if getattr(self.w, test_name).get()
+        ]
+        return self.save_global, options, run_checks

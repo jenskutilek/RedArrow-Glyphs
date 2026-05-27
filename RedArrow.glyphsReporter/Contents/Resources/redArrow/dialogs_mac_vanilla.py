@@ -1,5 +1,4 @@
-# encoding: utf-8
-from __future__ import absolute_import, division, print_function, unicode_literals
+from typing import TYPE_CHECKING
 
 from AppKit import (
     NSApp,
@@ -11,11 +10,17 @@ from AppKit import (
 from objc import super
 from vanilla import Button, Window
 
+if TYPE_CHECKING:
+    from redArrow.typing import RedArrowOptionsDict
+
 
 class _RAModalWindow(Window):
     nsWindowLevel = NSModalPanelWindowLevel
 
-    def __init__(self, *args, **kwargs):
+    okButton: Button
+    closeButton: Button
+
+    def __init__(self, *args, **kwargs) -> None:
         super(_RAModalWindow, self).__init__(*args, **kwargs)
         for button in (
             NSWindowCloseButton,
@@ -24,19 +29,25 @@ class _RAModalWindow(Window):
         ):
             self._window.standardWindowButton_(button).setHidden_(True)
 
-    def open(self):
+    def open(self) -> None:
         super(_RAModalWindow, self).open()
         self.center()
         NSApp().runModalForWindow_(self._window)
 
-    def windowWillClose_(self, notification):
+    def windowWillClose_(self, notification) -> None:
         super(_RAModalWindow, self).windowWillClose_(notification)
         NSApp().stopModal()
 
 
-class _RAbaseWindowController(object):
-    def setUpBaseWindowBehavior(self):
+class _RAbaseWindowController:
+    w: _RAModalWindow | None
+
+    def setUpBaseWindowBehavior(self) -> None:
         self._getValue = None
+        self.cancelled = False
+
+        if self.w is None:
+            return
 
         self.w.okButton = Button(
             (-70, -30, -15, 20), "OK", callback=self.okCallback, sizeStyle="small"
@@ -52,14 +63,18 @@ class _RAbaseWindowController(object):
         self.w.closeButton.bind(".", ["command"])
         self.w.closeButton.bind(chr(27), [])
 
-        self.cancelled = False
+    def okCallback(self, _) -> None:
+        if self.w is None:
+            return
 
-    def okCallback(self, sender):
         self.w.close()
 
-    def closeCallback(self, sender):
+    def closeCallback(self, _) -> None:
         self.cancelled = True
+        if self.w is None:
+            return
+
         self.w.close()
 
-    def get(self):
+    def get(self) -> "tuple[bool, RedArrowOptionsDict | None, list[str] | None]":
         raise NotImplementedError
