@@ -1,5 +1,4 @@
-RedArrow-Glyphs
-===============
+# RedArrow-Glyphs
 
 Now Glyphs users can also have red arrows!
 
@@ -11,14 +10,14 @@ When the plugin is active, red arrows will point to possible mistakes in your ou
 
 These kinds of errors are detected:
 
-* Missing extremum points
-* Fractional coordinates
-* Fractional transformations
-* Incorrect smooth connections
-* Empty segments
-* Collinear vectors
-* Semi-horizontal and semi-vertical lines
-* Zero handles
+- Missing extremum points
+- Fractional coordinates
+- Fractional transformations
+- Incorrect smooth connections
+- Empty segments
+- Collinear vectors
+- Semi-horizontal and semi-vertical lines
+- Zero handles
 
 ### Installation
 
@@ -39,7 +38,7 @@ Use View > Show Red Arrows to toggle the arrows.
 
 #### Customizing The Arrow Size
 
-You can set the size of the arrows, e.g. to 10 pixels by running this command in the *Macro Panel:*
+You can set the size of the arrows, e.g. to 10 pixels by running this command in the _Macro Panel:_
 
 ```py
 Glyphs.defaults["de.kutilek.RedArrow.arrowSize"] = 10
@@ -47,7 +46,7 @@ Glyphs.defaults["de.kutilek.RedArrow.arrowSize"] = 10
 
 #### To Show/Hide Error Description Labels
 
-In the glyph view, open the context menu and choose *Hide Error Labels*/*Show Error Labels.*
+In the glyph view, open the context menu and choose _Hide Error Labels_/_Show Error Labels._
 
 #### To Find All Glyphs With Outline Errors
 
@@ -58,6 +57,6 @@ Use Edit > Select Glyphs With Outline Errors to select affected glyphs, then add
 
 ### Known bugs
 
-* Select Glyphs With Outline Errors doesn't catch errors in layers that are not in a master (exception layers).
+- Select Glyphs With Outline Errors doesn't catch errors in layers that are not in a master (exception layers).
 
 Check the [issue tracker](https://github.com/jenskutilek/RedArrow-Glyphs/issues) and feel free to add any problems that you may encounter.
