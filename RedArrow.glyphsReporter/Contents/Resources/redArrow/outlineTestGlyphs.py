@@ -2,7 +2,7 @@ from math import atan2, cos, degrees, pi, sin, sqrt
 from typing import TYPE_CHECKING, Sequence
 
 from AppKit import NSMakePoint
-from GlyphsApp import CURVE, LINE, OFFCURVE, QCURVE
+from GlyphsApp import GSCURVE, GSLINE, GSOFFCURVE, GSQCURVE
 
 from redArrow.misc.arrayTools import normRect
 from redArrow.misc.bezierTools import (
@@ -17,7 +17,7 @@ from redArrow.misc.transform import Transform
 from redArrow.typing import RedArrowOptionsDict
 
 if TYPE_CHECKING:
-    from AppKit import NSPoint, NSRect
+    from AppKit import NSAffineTransformStruct, NSPoint, NSRect
     from GlyphsApp import GSComponent, GSLayer, GSNode
 
     from redArrow.typing import PointTuple, QuadraticCurveTuple, RectTuple, Vector2D
@@ -59,7 +59,9 @@ def solve_linear(a: float, b: float) -> list[float]:
     return roots
 
 
-def quad_with_explicit_oncurve_points(quad: "Sequence[GSNode]") -> "list[PointTuple]":
+def quad_with_explicit_oncurve_points(
+    quad: "Sequence[GSNode|NSPoint]",
+) -> "list[PointTuple]":
     """
     Take a quadratic segment of GSNodes and add implied oncurve points
 
@@ -394,13 +396,13 @@ def nodes_angle(node1: "GSNode", node2: "GSNode") -> float:
     return atan2(node2.y - node1.y, node2.x - node1.x)
 
 
-def nodes_distance(node1: "GSNode", node2: "GSNode") -> float:
+def nodes_distance(node1: "GSNode | NSPoint", node2: "GSNode | NSPoint") -> float:
     """
     Return the distance between two nodes.
 
     Args:
-        node1 (GSNode): The first node
-        node2 (GSNode): The second node
+        node1 (GSNode | NSPoint): The first node
+        node2 (GSNode | NSPoint): The second node
 
     Returns:
         float: The distance
@@ -408,13 +410,13 @@ def nodes_distance(node1: "GSNode", node2: "GSNode") -> float:
     return sqrt((node2.y - node1.y) ** 2 + (node2.x - node1.x) ** 2)
 
 
-def nodes_half_point(node1: "GSNode", node2: "GSNode") -> "NSPoint":
+def nodes_half_point(node1: "GSNode | NSPoint", node2: "GSNode | NSPoint") -> "NSPoint":
     """
     Return the halfway point between two nodes.
 
     Args:
-        node1 (GSNode): The first node
-        node1 (GSNode): The second node
+        node1 (GSNode | NSPoint): The first node
+        node1 (GSNode | NSPoint): The second node
 
     Returns:
         NSPoint: The halfway point
@@ -425,14 +427,16 @@ def nodes_half_point(node1: "GSNode", node2: "GSNode") -> "NSPoint":
 
 
 def transform_rect(
-    rect: "NSRect", matrix: tuple[int, int, int, int, int, int]
+    rect: "NSRect",
+    matrix: "NSAffineTransformStruct | tuple[float, float, float, float, float, float]",
 ) -> "tuple[NSPoint, NSPoint]":
     """
     Transform a rectangle with a matrix.
 
     Args:
         rect (NSRect): The rectangle
-        matrix (tuple[int, int, int, int, int, int]): The transformation matrix
+        matrix (NSAffineTransformStruct | tuple[float, float, float, float, float, float]):
+            The transformation matrix
 
     Returns:
         tuple[NSPoint, NSPoint]: The transformed rectangle described by its lower left
@@ -452,7 +456,7 @@ class OutlineError:
 
     def __init__(
         self,
-        position: "NSPoint | None" = None,
+        position: "GSNode | NSPoint | None" = None,
         kind: str = "Unknown error",
         badness: float | None = None,
         vector: "PointTuple | None" = None,
@@ -565,9 +569,9 @@ class OutlineCheck:
         self.glyph_has_outlines = False
 
         # Cached bounding box
-        self.bb_bottom = 0
-        self.bb_left = 0
-        self.bb_top = 0
+        self.bb_bottom = 0.0
+        self.bb_left = 0.0
+        self.bb_top = 0.0
 
     @property
     def layer(self) -> "GSLayer | None":
@@ -659,11 +663,11 @@ class OutlineCheck:
         for path in self.layer.paths:
             for node in path.nodes:
                 node_type = node.type
-                if node_type == CURVE:
+                if node_type == GSCURVE:
                     self._run_curve_checks(node)
-                elif node_type == QCURVE:
+                elif node_type == GSQCURVE:
                     self._run_qcurve_checks(node)
-                elif node_type == LINE:
+                elif node_type == GSLINE:
                     self._run_line_checks(node)
                 else:
                     self._run_offcurve_checks(node)
@@ -681,7 +685,7 @@ class OutlineCheck:
             self._check_incorrect_smooth_connection(node)
         if self.test_empty_segments:
             self._check_empty_lines_and_curves(prev_node, node)
-        if node.nextNode is not None and node.nextNode.type == LINE:
+        if node.nextNode is not None and node.nextNode.type == GSLINE:
             if self.test_collinear:
                 self._check_collinear_vectors(node)
         if self.test_spikes:
@@ -741,7 +745,7 @@ class OutlineCheck:
         start_node = node.prevNode
         start_node_index = node.index
         offcurves = []
-        while start_node.type == OFFCURVE:
+        while start_node.type == GSOFFCURVE:
             offcurves.append(start_node)
             start_node = start_node.prevNode
             if start_node.index == start_node_index:
