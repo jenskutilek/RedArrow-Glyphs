@@ -697,7 +697,7 @@ class OutlineCheck:
         if self.test_short_segments:
             self._check_short_lines_and_curves(prev_node, node)
 
-    def _run_curve_checks(self, node) -> None:
+    def _run_curve_checks(self, node: "GSNode") -> None:
         node4 = node
         node3 = node4.prevNode  # control point 2
         node2 = node3.prevNode  # control point 1
