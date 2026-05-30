@@ -1,10 +1,10 @@
-from typing import NotRequired, TypedDict
+from typing import NotRequired, TypeAlias, TypedDict
 
-type CubicCurveTuple = tuple[PointTuple, PointTuple, PointTuple, PointTuple]
-type PointTuple = tuple[float, float]
-type QuadraticCurveTuple = tuple[PointTuple, PointTuple, PointTuple]
-type RectTuple = tuple[float, float, float, float]
-type Vector2D = tuple[float, float]
+PointTuple: TypeAlias = tuple[float, float]
+CubicCurveTuple: TypeAlias = tuple[PointTuple, PointTuple, PointTuple, PointTuple]
+QuadraticCurveTuple: TypeAlias = tuple[PointTuple, PointTuple, PointTuple]
+RectTuple: TypeAlias = tuple[float, float, float, float]
+Vector2D: TypeAlias = tuple[float, float]
 
 
 class RedArrowOptionsDict(TypedDict):

@@ -13,9 +13,9 @@
 		<key>CFBundleName</key>
 		<string>RedArrow</string>
 		<key>CFBundleVersion</key>
-		<string>300</string>
+		<string>301</string>
 		<key>CFBundleShortVersionString</key>
-		<string>3.0.0</string>
+		<string>3.0.1</string>
 		<key>UpdateFeedURL</key>
 		<string>
 			https://raw.githubusercontent.com/jenskutilek/RedArrow-Glyphs/master/RedArrow.glyphsReporter/Contents/Info.plist</string>
