@@ -75,6 +75,8 @@ def typechecked_options(
                     "Unknown type for %s: '%s', using default value: %s"
                     % (k, type(v), default_options[k])
                 )
+        elif t == "int":
+            out[k] = int(v)
         else:
             print(
                 "Unknown type for %s: '%s', using default value: %s"
