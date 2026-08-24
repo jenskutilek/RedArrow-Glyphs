@@ -175,7 +175,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         if self.cancelled:
             return False, None, None
 
-        options: "RedArrowOptionsDict" = {
+        options: RedArrowOptionsDict = {
             option_name: getattr(self.w, option_name).get()
             for option_name in self.options.keys()
         }
