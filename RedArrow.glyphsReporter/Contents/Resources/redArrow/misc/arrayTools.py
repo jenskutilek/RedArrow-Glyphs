@@ -24,10 +24,10 @@ def calcIntBounds(array: Sequence[PointTuple]) -> tuple[int, int, int, int]:
     tuple: (xMin, yMin, xMax, yMax)
     """
     xMin, yMin, xMax, yMax = calcBounds(array)
-    xMin = int(math.floor(xMin))
-    xMax = int(math.ceil(xMax))
-    yMin = int(math.floor(yMin))
-    yMax = int(math.ceil(yMax))
+    xMin = math.floor(xMin)
+    xMax = math.ceil(xMax)
+    yMin = math.floor(yMin)
+    yMax = math.ceil(yMax)
     return xMin, yMin, xMax, yMax
 
 
@@ -65,7 +65,7 @@ def vectorLength(vector: PointTuple) -> float:
 
 def asInt16(array: Sequence[float]) -> list[int]:
     """Round and cast to 16 bit integer."""
-    return [int(math.floor(i + 0.5)) for i in array]
+    return [math.floor(i + 0.5) for i in array]
 
 
 def normRect(rect: RectTuple) -> RectTuple:
@@ -139,8 +139,8 @@ def intRect(rect1: RectTuple) -> tuple[int, int, int, int]:
     that the resulting rectangle is NOT smaller than the original.
     """
     (xMin, yMin, xMax, yMax) = rect1
-    xMin = int(math.floor(xMin))
-    yMin = int(math.floor(yMin))
-    xMax = int(math.ceil(xMax))
-    yMax = int(math.ceil(yMax))
+    xMin = math.floor(xMin)
+    yMin = math.floor(yMin)
+    xMax = math.ceil(xMax)
+    yMax = math.ceil(yMax)
     return (xMin, yMin, xMax, yMax)
