@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from AppKit import NSNumber, NSNumberFormatter
 from vanilla import CheckBox, EditText, HorizontalLine, TextBox
@@ -27,7 +27,7 @@ inflection_formatter.setMaximum_(NSNumber.numberWithFloat_(0.49))
 
 
 class SelectGlyphsWindowController(_RAbaseWindowController):
-    test_names = {
+    test_names: ClassVar = {
         "test_extrema": "Missing Extremum Points",
         "test_inflections": "Missing Inflection Points",
         "test_fractional_coords": "Fractional Coordinates",
@@ -43,7 +43,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         "test_spikes": "Spikes",
     }
 
-    option_names = {
+    option_names: ClassVar = {
         "ignore_warnings": ("Ignore Warnings", "b"),
         "extremum_calculate_badness": ("Calculate Extremum Badness", "b"),
         "extremum_ignore_badness_below": ("Ignore Extremum Badness Below", "f"),
