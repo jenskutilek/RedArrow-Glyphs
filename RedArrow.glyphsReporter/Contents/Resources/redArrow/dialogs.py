@@ -53,6 +53,9 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
         "grid_length": ("Grid Length", "i"),
         "inflection_min": ("Minimum Allowed Inflection t (0–0.5)", "f"),
         "spike_angle": ("Maximum Spike Angle (radians)", "f"),
+        "semi_hv_vectors_min_distance": ("Minimum Length For H/V Segments", "i"),
+        "semi_hv_vectors_max_distance": ("H/V Segments Tolerance", "i"),
+        "zero_handles_max_distance": ("Zero Handles Tolerance", "f"),
     }
 
     def __init__(
