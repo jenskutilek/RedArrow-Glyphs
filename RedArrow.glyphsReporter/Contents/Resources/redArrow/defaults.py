@@ -64,11 +64,11 @@ def typechecked_options(
             v = options.get(k, v)
             if isinstance(v, NSDecimalNumber):
                 out[k] = v.floatValue()
-            elif isinstance(v, objc._pythonify.OC_PythonFloat) or isinstance(
-                v, objc._pythonify.OC_PythonLong
+            elif isinstance(
+                v, (objc._pythonify.OC_PythonFloat, objc._pythonify.OC_PythonLong)
             ):
                 out[k] = float(v)
-            elif isinstance(v, float) or isinstance(v, int):
+            elif isinstance(v, (float, int)):
                 out[k] = v
             else:
                 print(
