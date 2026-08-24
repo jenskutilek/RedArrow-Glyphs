@@ -691,17 +691,15 @@ class OutlineCheck:
             self._check_incorrect_smooth_connection(node)
         if self.test_empty_segments:
             self._check_empty_lines_and_curves(prev_node, node)
-        if (
-            node.nextNode is not None
-            and node.nextNode.type == GSLINE
-            and self.test_collinear
-        ):
-            self._check_collinear_vectors(node)
+        if node.nextNode is not None and node.nextNode.type == GSLINE:
+            if self.test_collinear:
+                self._check_collinear_vectors(node)
         if self.test_spikes:
             self._check_spike(node)
-        if self.test_semi_hv and prev_node is not None:
-            self._check_semi_horizontal(prev_node, node)
-            self._check_semi_vertical(prev_node, node)
+        if self.test_semi_hv:
+            if prev_node is not None:
+                self._check_semi_horizontal(prev_node, node)
+                self._check_semi_vertical(prev_node, node)
         if self.test_short_segments:
             self._check_short_lines_and_curves(prev_node, node)
 
@@ -738,8 +736,9 @@ class OutlineCheck:
                 # End of curve
                 self._check_semi_horizontal(node3, node4, "handle")
                 self._check_semi_vertical(node3, node4, "handle")
-        if self.test_short_segments and not (node4 is None or node1 is None):
-            self._check_short_lines_and_curves(node1, node4)
+        if self.test_short_segments:
+            if not (node4 is None or node1 is None):
+                self._check_short_lines_and_curves(node1, node4)
 
     def _run_offcurve_checks(self, node: "GSNode") -> None:
         if self.test_fractional_coords:
@@ -1058,19 +1057,16 @@ class OutlineCheck:
                 d = 0.49
             else:
                 d = self.grid_length * 0.49
-            if (
-                d < badness
-                and node.smooth
-                or badness < self.smooth_connection_max_distance
-            ):
-                self.errors.append(
-                    OutlineError(
-                        node,
-                        "Not quite smooth connection",
-                        badness,
-                        vector=nodes_normal_vector(prev_node, node),
+            if d < badness:
+                if node.smooth or badness < self.smooth_connection_max_distance:
+                    self.errors.append(
+                        OutlineError(
+                            node,
+                            "Not quite smooth connection",
+                            badness,
+                            vector=nodes_normal_vector(prev_node, node),
+                        )
                     )
-                )
 
     def _check_empty_lines_and_curves(self, node0: "GSNode", node1: "GSNode") -> None:
         if node0 is None or node1 is None:
@@ -1162,15 +1158,16 @@ class OutlineCheck:
                 0 < abs(phi) < rho
                 or 0 < abs(phi - pi) < rho
                 or 0 < abs(abs(phi) - pi) < rho
-            ) and abs(node1.y - node0.y) <= self.semi_hv_vectors_max_distance:
-                self.errors.append(
-                    OutlineError(
-                        nodes_half_point(node0, node1),
-                        f"Semi-horizontal {segment}",
-                        degrees(phi),
-                        nodes_normal_vector(node0, node1),
+            ):
+                if abs(node1.y - node0.y) <= self.semi_hv_vectors_max_distance:
+                    self.errors.append(
+                        OutlineError(
+                            nodes_half_point(node0, node1),
+                            "Semi-horizontal %s" % segment,
+                            degrees(phi),
+                            nodes_normal_vector(node0, node1),
+                        )
                     )
-                )
 
     def _check_semi_vertical(
         self, node0: "GSNode", node1: "GSNode", segment: str = "line"
@@ -1182,19 +1179,16 @@ class OutlineCheck:
         if nodes_distance(node0, node1) > self.semi_hv_vectors_min_distance:
             phi = nodes_angle(node0, node1)
             rho = atan2(31, 1)
-            if (
-                0 < abs(phi - 0.5 * pi) < rho
-                or 0 < abs(phi + 0.5 * pi) < rho
-                and abs(node1.x - node0.x) <= self.semi_hv_vectors_max_distance
-            ):
-                self.errors.append(
-                    OutlineError(
-                        nodes_half_point(node0, node1),
-                        f"Semi-vertical {segment}",
-                        degrees(phi),
-                        nodes_normal_vector(node0, node1),
+            if 0 < abs(phi - 0.5 * pi) < rho or 0 < abs(phi + 0.5 * pi) < rho:
+                if abs(node1.x - node0.x) <= self.semi_hv_vectors_max_distance:
+                    self.errors.append(
+                        OutlineError(
+                            nodes_half_point(node0, node1),
+                            "Semi-vertical %s" % segment,
+                            degrees(phi),
+                            nodes_normal_vector(node0, node1),
+                        )
                     )
-                )
 
     def _check_zero_handles(self, node0, node1) -> None:
         badness = nodes_distance(node0, node1)
