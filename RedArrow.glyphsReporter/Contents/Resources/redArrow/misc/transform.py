@@ -51,7 +51,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from redArrow.typing import PointTuple
 
-__all__ = ["Transform", "Identity", "Offset", "Scale"]
+__all__ = ["Identity", "Offset", "Scale", "Transform"]
 
 
 _EPSILON = 1e-15

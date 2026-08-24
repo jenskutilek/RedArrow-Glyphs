@@ -10,15 +10,15 @@ from redArrow.misc.arrayTools import calcBounds
 from redArrow.typing import PointTuple, RectTuple
 
 __all__ = [
-    "calcQuadraticBounds",
     "calcCubicBounds",
+    "calcQuadraticBounds",
+    "solveCubic",
+    "solveQuadratic",
+    "splitCubic",
+    "splitCubicAtT",
     "splitLine",
     "splitQuadratic",
-    "splitCubic",
     "splitQuadraticAtT",
-    "splitCubicAtT",
-    "solveQuadratic",
-    "solveCubic",
 ]
 
 
