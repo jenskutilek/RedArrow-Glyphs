@@ -313,7 +313,12 @@ class RedArrow(ReporterPlugin):
         self.errors = []
         if layer is not None and hasattr(layer, "parent"):
             # start = time()
-            self.options["grid_length"] = layer.parent.parent.gridLength
+            grid_length = layer.parent.parent.gridLength
+            if isinstance(grid_length, (float, int)):
+                self.options["grid_length"] = grid_length
+            else:
+                # GSInterpolationFontProxy
+                self.options["grid_length"] = grid_length()
             self.outline_check.layer = layer
             self.outline_check.check_layer()
             # stop = time()

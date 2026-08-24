@@ -581,7 +581,12 @@ class OutlineCheck:
     @layer.setter
     def layer(self, value: "GSLayer | None") -> None:
         self._layer = value
-        self.upm = 1000 if self.layer is None else self.layer.parent.parent.upm
+        if self.layer is None:
+            self.upm = 1000
+        else:
+            # We used .upm before, but in G4, parent may be a GSInterpolationFontProxy.
+            # GSFont and GSInterpolationFontProxy both have .unitsPerEm(), so use that.
+            self.upm = self.layer.parent.parent.unitsPerEm()
         if self._layer is not None:
             try:
                 bounds = self._layer.bounds
