@@ -57,10 +57,14 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
 
     def __init__(
         self,
-        options: "dict[str, Any]" = {},
-        run_checks: list[str] = [],
+        options: "dict[str, Any] | None" = None,
+        run_checks: list[str] | None = None,
         title: str = "Select Glyphs With Errors",
     ) -> None:
+        if run_checks is None:
+            run_checks = []
+        if options is None:
+            options = {}
         self.run_checks = {o: o in run_checks for o in default_checks}
         self.options = typechecked_options(options)
         self.save_global = False
