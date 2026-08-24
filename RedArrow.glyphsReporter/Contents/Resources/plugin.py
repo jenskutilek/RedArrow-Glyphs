@@ -306,8 +306,7 @@ class RedArrow(ReporterPlugin):
             return
         if DEBUG and hasattr(layer, "parent"):
             self.logToConsole(
-                "_update_outline_check: '%s' from %s"
-                % (layer.parent.name, layer.parent.parent)
+                f"_update_outline_check: '{layer.parent.name}' from {layer.parent.parent}"
             )
         self.current_layer = layer
         self.last_change_date = layer.parent.lastOperationInterval()
@@ -322,7 +321,7 @@ class RedArrow(ReporterPlugin):
             # print(f"Updated layer check in {round((stop - start) * 1000)} ms.")
             # print("\n".join([str(e) for e in self.errors]))
         if DEBUG:
-            self.logToConsole("Errors: %s" % self.errors)
+            self.logToConsole(f"Errors: {self.errors}")
 
     @objc.python_method
     def _draw_arrow(

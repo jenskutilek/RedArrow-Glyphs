@@ -994,7 +994,7 @@ class OutlineCheck:
                         self._get_component_error_position(component),
                         (
                             "Fractional component transformation "
-                            "on ‘%s’" % component.componentName
+                            f"on ‘{component.componentName}’"
                         ),
                         vector=None,
                     )

@@ -439,7 +439,7 @@ def _segmentrepr(obj: Sequence):
     except TypeError:
         return str(obj)
     else:
-        return "(%s)" % ", ".join([_segmentrepr(x) for x in it])
+        return "({})".format(", ".join([_segmentrepr(x) for x in it]))
 
 
 def printSegments(segments: Sequence) -> None:

@@ -266,7 +266,7 @@ class Transform(object):
         '[2 0 0 3 8 15]'
         >>>
         """
-        return "[%s %s %s %s %s %s]" % self.__affine
+        return "[{} {} {} {} {} {}]".format(*self.__affine)
 
     def __len__(self) -> int:
         """Transform instances also behave like sequences of length 6:
