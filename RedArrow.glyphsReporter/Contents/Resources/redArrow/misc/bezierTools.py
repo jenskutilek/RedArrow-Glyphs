@@ -1,9 +1,10 @@
+# noqa: N999
 """fontTools.misc.bezierTools.py -- tools for working with bezier path
 segments.
 """
 
+from collections.abc import Sequence
 from math import acos, cos, pi, sqrt
-from typing import Sequence
 
 from redArrow.misc.arrayTools import calcBounds
 from redArrow.typing import PointTuple, RectTuple

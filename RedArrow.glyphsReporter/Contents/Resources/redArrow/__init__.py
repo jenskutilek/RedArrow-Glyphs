@@ -1,1 +1,1 @@
-# The redArrow module.
+# The redArrow module.  # noqa: N999

@@ -1,5 +1,6 @@
+from collections.abc import Sequence  # noqa: N999
 from math import atan2, cos, degrees, pi, sin, sqrt
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING
 
 from AppKit import NSMakePoint
 from GlyphsApp import GSCURVE, GSLINE, GSOFFCURVE, GSQCURVE
@@ -139,8 +140,8 @@ def get_extrema_for_cubic(
     ay *= 3.0
     bx *= 2.0
     by *= 2.0
-    points: "list[PointTuple]" = []
-    vectors: "list[Vector2D]" = []
+    points: list[PointTuple] = []
+    vectors: list[Vector2D] = []
     if h:
         roots = [t for t in solveQuadratic(ay, by, c[1]) if 0 < t < 1]
         points, vectors = get_extrema_points_vectors(roots, pt1, pt2, pt3, pt4)
@@ -277,8 +278,8 @@ def get_extrema_for_quadratic(
     (ax, ay), (bx, by), _ = calcQuadraticParameters(pt1, pt2, pt3)
     ax *= 2.0
     ay *= 2.0
-    points: "list[PointTuple]" = []
-    vectors: "list[Vector2D]" = []
+    points: list[PointTuple] = []
+    vectors: list[Vector2D] = []
     if h:
         roots = [t for t in solve_linear(ay, by) if 0 < t < 1]
         points, vectors = get_extrema_points_vectors_quad(roots, pt1, pt2, pt3)

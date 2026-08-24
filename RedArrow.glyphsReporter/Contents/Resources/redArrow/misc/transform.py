@@ -45,7 +45,8 @@ Examples:
     >>>
 """
 
-from typing import TYPE_CHECKING, Any, Sequence
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from redArrow.typing import PointTuple

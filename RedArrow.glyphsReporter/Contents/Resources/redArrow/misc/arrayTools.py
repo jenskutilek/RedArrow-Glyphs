@@ -1,9 +1,9 @@
-#
+# noqa: N999
 # Various array and rectangle tools, but mostly rectangles, hence the
 # name of this module (not).
 #
 import math
-from typing import Callable, Sequence
+from collections.abc import Callable, Sequence
 
 from redArrow.typing import PointTuple, RectTuple
 
