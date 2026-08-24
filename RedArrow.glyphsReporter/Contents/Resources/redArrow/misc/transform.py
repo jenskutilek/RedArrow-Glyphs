@@ -69,7 +69,7 @@ def _normSinCos(v: float) -> float | int:
     return v
 
 
-class Transform(object):
+class Transform:
     """2x2 transformation matrix plus offset, a.k.a. Affine transform.
     Transform instances are immutable: all transforming methods, eg.
     rotate(), return a new Transform instance.
@@ -286,10 +286,10 @@ class Transform(object):
         """
         return self.__affine[index]
 
-    def __ne__(self, other: Any) -> bool:
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Transform instances are comparable:
                         >>> t1 = Identity.scale(2, 3).translate(4, 6)
                         >>> t2 = Identity.translate(8, 18).scale(2, 3)
@@ -309,7 +309,10 @@ class Transform(object):
                         >>>
         """
         xx1, xy1, yx1, yy1, dx1, dy1 = self.__affine
-        xx2, xy2, yx2, yy2, dx2, dy2 = other
+        try:
+            xx2, xy2, yx2, yy2, dx2, dy2 = other
+        except ValueError:
+            return False
         return (xx1, xy1, yx1, yy1, dx1, dy1) == (xx2, xy2, yx2, yy2, dx2, dy2)
 
     def __hash__(self) -> int:
