@@ -177,7 +177,9 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
 
         options: RedArrowOptionsDict = {
             option_name: getattr(self.w, option_name).get()
-            for option_name in self.options.keys()
+            if hasattr(self.w, option_name)
+            else self.options[option_name]
+            for option_name in self.options
         }
         # print("Set options from dialog:")
         # for k, v in options.items():
