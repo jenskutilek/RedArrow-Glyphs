@@ -1,4 +1,4 @@
-from collections.abc import Sequence  # noqa: N999
+from collections.abc import Sequence
 from math import atan2, cos, degrees, pi, sin, sqrt
 from typing import TYPE_CHECKING
 
@@ -1184,7 +1184,7 @@ class OutlineCheck:
                     self.errors.append(
                         OutlineError(
                             nodes_half_point(node0, node1),
-                            "Semi-vertical %s" % segment,
+                            f"Semi-vertical {segment}",
                             degrees(phi),
                             nodes_normal_vector(node0, node1),
                         )

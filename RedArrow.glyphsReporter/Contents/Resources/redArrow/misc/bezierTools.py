@@ -1,4 +1,3 @@
-# noqa: N999
 """fontTools.misc.bezierTools.py -- tools for working with bezier path
 segments.
 """

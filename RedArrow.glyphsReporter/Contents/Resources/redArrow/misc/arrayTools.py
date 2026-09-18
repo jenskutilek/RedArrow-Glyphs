@@ -1,4 +1,3 @@
-# noqa: N999
 # Various array and rectangle tools, but mostly rectangles, hence the
 # name of this module (not).
 #

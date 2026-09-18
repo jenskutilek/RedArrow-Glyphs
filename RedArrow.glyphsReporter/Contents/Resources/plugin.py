@@ -25,12 +25,14 @@ from AppKit import (
 )
 from GlyphsApp import MOUSEMOVED, WINDOW_MENU, Glyphs
 from GlyphsApp.plugins import ReporterPlugin
+
 from redArrow.defaults import default_checks, default_options, typechecked_options
 from redArrow.outlineTestGlyphs import OutlineCheck
 
 if TYPE_CHECKING:
     from AppKit import NSPoint
     from GlyphsApp import GSLayer
+
     from redArrow.outlineTestGlyphs import OutlineError, OutlineWarning
     from redArrow.typing import PointTuple, RedArrowOptionsDict
 
@@ -85,7 +87,7 @@ class RedArrow(ReporterPlugin):
                 "action": self.toggleLabels_,
             },
         ]
-        self.show_labels = Glyphs.defaults["%s.showLabels" % plugin_id]
+        self.show_labels = Glyphs.defaults[f"{plugin_id}.showLabels"]
         self.show_labels = not (self.show_labels)
         self.toggleLabels_(None)
 
@@ -479,7 +481,9 @@ class RedArrow(ReporterPlugin):
     @objc.python_method
     def _draw_arrows(self, debug: bool = False) -> None:
         size = Glyphs.defaults.get(full_libkey("arrowSize"), 10) / self.getScale()
-        errors_by_position: "dict[tuple[int, int] | None, list[OutlineError | OutlineWarning]]" = {}
+        errors_by_position: dict[
+            tuple[int, int] | None, list[OutlineError | OutlineWarning]
+        ] = {}
         for e in self.errors:
             if e.position is not None:
                 pos_key = (int(e.position.x), int(e.position.y))
@@ -495,7 +499,7 @@ class RedArrow(ReporterPlugin):
         for pos, errors in errors_by_position.items():
             message = ""
             level = "w"
-            vector: "PointTuple | None" = normal_vector
+            vector: PointTuple | None = normal_vector
             for e in errors:
                 if e.badness is None or not debug:
                     if DEBUG:
@@ -508,7 +512,7 @@ class RedArrow(ReporterPlugin):
                     else:
                         message += f"{e.kind}, "
                 else:
-                    message += "%s (Severity %0.1f), " % (e.kind, e.badness)
+                    message += f"{e.kind} (Severity {e.badness:0.1f}), "
                 if e.level == "e":
                     level = e.level
                 if vector == normal_vector:
