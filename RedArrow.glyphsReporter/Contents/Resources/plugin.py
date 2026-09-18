@@ -54,7 +54,7 @@ def points_distance(p0: "NSPoint", p1: "NSPoint") -> float:
 
 
 def full_libkey(key):
-    return "%s.%s" % (plugin_id, key)
+    return f"{plugin_id}.{key}"
 
 
 class RedArrow(ReporterPlugin):
@@ -169,14 +169,14 @@ class RedArrow(ReporterPlugin):
             if not self.show_labels:
                 self.startMouseMoved()
         except Exception as e:
-            self.logToConsole("willDeactivate: %s" % str(e))
+            self.logToConsole(f"willDeactivate: {e}")
 
     def willDeactivate(self) -> None:
         try:
             if not self.show_labels:
                 self.stopMouseMoved()
         except Exception as e:
-            self.logToConsole("willDeactivate: %s" % str(e))
+            self.logToConsole(f"willDeactivate: {e}")
 
     @objc.python_method
     def foreground(self, layer: "GSLayer | None") -> None:
@@ -193,7 +193,7 @@ class RedArrow(ReporterPlugin):
                 Glyphs.currentEvent()
             )
         except Exception as e:
-            self.logToConsole("foreground: mouse_position: %s" % str(e))
+            self.logToConsole(f"foreground: mouse_position: {e}")
             self.mouse_position = NSMakePoint(0, 0)
 
         currentController = self.controller.view().window().windowController()
@@ -275,7 +275,7 @@ class RedArrow(ReporterPlugin):
                         glyph.selected = False
                 except Exception as e:
                     self.logToConsole(
-                        "selectGlyphsWithErrors: Layer '%s': %s" % (glyph_name, str(e))
+                        f"selectGlyphsWithErrors: Layer '{glyph_name}': {e}"
                     )
         font.enableUpdateInterface()
 
