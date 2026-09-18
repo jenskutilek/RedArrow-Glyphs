@@ -94,7 +94,10 @@ class RedArrow(ReporterPlugin):
     @objc.python_method
     def start(self) -> None:
         self.add_menu_item()
-        self.add_window_menu_item()
+        if Glyphs.versionNumber < 4.0:
+            self.add_window_menu_item()
+        else:
+            self.add_preferences_items()
         self.options = default_options
         self.run_checks = default_checks
         self.errors: list[OutlineError | OutlineWarning] = []
@@ -135,6 +138,151 @@ class RedArrow(ReporterPlugin):
         newMenuItem.setAction_(self.setRedArrowDefaults_)
         newMenuItem.setTarget_(self)
         Glyphs.menu[WINDOW_MENU].append(newMenuItem)
+
+    @objc.python_method
+    def add_preferences_items(self) -> None:
+        # Glyphs 4: Make settings editable from the Advanced Preferences dialog
+        GSAdvancedPreferences = objc.lookUpClass("GSAdvancedPreferences")
+        GSAdvancedPreferences.sharedAdvancedPreferences().registerEntries_forCategory_(
+            [
+                {
+                    "title": "Implicit Extremum Points",
+                    "key": "RedArrowCheckExtrema",
+                    "type": "bool",
+                },
+                {
+                    "title": "Calculate Extremum Badness",
+                    "key": "RedArrowExtremaCalculateBadness",
+                    "type": "bool",
+                },
+                {
+                    "title": "Ignore Extremum Badness Below",
+                    "key": "RedArrowExtremaIgnoreBadnessBelow",
+                    "type": "float",
+                },
+                {
+                    "title": "Implicit Inflection Points",
+                    "key": "RedArrowCheckInflections",
+                    "type": "bool",
+                },
+                {
+                    "title": "Minimum Allowed Inflection t (0–0.5)",
+                    "key": "RedArrowInflectionMin",
+                    "type": "float",
+                },
+                {
+                    "title": "Fractional Coordinates",
+                    "key": "RedArrowCheckFractionalCoords",
+                    "type": "bool",
+                },
+                {
+                    "title": "Ignore .0 Fractional Values",
+                    "key": "RedArrowCheckFractionalIgnorePointZero",
+                    "type": "bool",
+                },
+                {
+                    "title": "Grid Length",
+                    "key": "RedArrowGridLength",
+                    "type": "int",
+                },
+                {
+                    "title": "Fractional Transformations",
+                    "key": "RedArrowCheckFractionalTransform",
+                    "type": "bool",
+                },
+                {
+                    "title": "Nearly Smooth Connections",
+                    "key": "RedArrowCheckSmooth",
+                    "type": "bool",
+                },
+                {
+                    "title": "Smooth Connection Tolerance",
+                    "key": "RedArrowSmoothMaxDistance",
+                    "type": "bool",
+                },
+                {
+                    "title": "Zero-length Segments",
+                    "key": "RedArrowCheckEmptySegments",
+                    "type": "bool",
+                },
+                {
+                    "title": "Collinear Lines",
+                    "key": "RedArrowCheckCollinear",
+                    "type": "bool",
+                },
+                {
+                    "title": "Collinear Lines Tolerance",
+                    "key": "RedArrowCollinearMaxDistance",
+                    "type": "float",
+                },
+                {
+                    "title": "Semi-horizontal/-vertical Segments",
+                    "key": "RedArrowCheckSemiHV",
+                    "type": "bool",
+                },
+                {
+                    "title": "Minimum Length For H/V Segments",
+                    "key": "RedArrowCheckSemiHVMinDistance",
+                    "type": "int",
+                },
+                {
+                    "title": "H/V Segments Tolerance",
+                    "key": "RedArrowCheckSemiHVMaxDistance",
+                    "type": "int",
+                },
+                {
+                    "title": "Closepaths",
+                    "key": "RedArrowCheckClosepath",
+                    "type": "bool",
+                },
+                {
+                    "title": "Short Handles",
+                    "key": "RedArrowCheckZeroHandles",
+                    "type": "bool",
+                },
+                {
+                    "title": "Short Handles Tolerance",
+                    "key": "RedArrowZeroHandlesMaxDistance",
+                    "type": "int",
+                },
+                {
+                    "title": "Handles Outside Bounding Box",
+                    "key": "RedArrowCheckBboxHandles",
+                    "type": "bool",
+                },
+                {
+                    "title": "Short Segments",
+                    "key": "RedArrowCheckShortSegments",
+                    "type": "bool",
+                },
+                {
+                    "title": "Spikes",
+                    "key": "RedArrowCheckSpikes",
+                    "type": "bool",
+                },
+                {
+                    "title": "Maximum Spike Angle (radians)",
+                    "key": "RedArrowSpikeAngle",
+                    "type": "float",
+                },
+                {
+                    "title": "Error color",
+                    "key": "RedArrowErrorColor",
+                    "type": "color",
+                },
+                {
+                    "title": "Warning color",
+                    "key": "RedArrowWarningColor",
+                    "type": "color",
+                },
+                {
+                    "title": "Ignore Warnings",
+                    "key": "RedArrowIgnoreWarnings",
+                    "type": "bool",
+                },
+            ],
+            "Red Arrow",
+        )
 
     @objc.python_method
     def load_defaults(self) -> None:
