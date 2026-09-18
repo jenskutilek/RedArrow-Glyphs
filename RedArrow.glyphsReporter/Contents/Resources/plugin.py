@@ -313,6 +313,8 @@ class RedArrow(ReporterPlugin):
         self.current_layer = layer
         self.last_change_date = layer.parent.lastOperationInterval()
         self.errors = []
+        # TODO: Use Layer.gridLengthHorizontal(), Layer.gridLengthVertical()
+        # See https://forum.glyphsapp.com/t/gsfont-vs-gsinterpolationfontproxy/37104/4
         if layer is not None and hasattr(layer, "parent"):
             # start = time()
             grid_length = layer.parent.parent.gridLength
