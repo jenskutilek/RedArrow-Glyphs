@@ -97,10 +97,10 @@ class RedArrow(ReporterPlugin):
         self.add_window_menu_item()
         self.options = default_options
         self.run_checks = default_checks
-        self.errors: "list[OutlineError | OutlineWarning]" = []
+        self.errors: list[OutlineError | OutlineWarning] = []
         self.mouse_position = NSMakePoint(0, 0)
         self.last_change_date = 0
-        self.current_layer: "GSLayer | None" = None
+        self.current_layer: GSLayer | None = None
         self.load_defaults()
 
     @objc.python_method
