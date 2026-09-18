@@ -1,0 +1,16 @@
+[project]
+name = "redArrow"
+version = "3.0.2"
+description = "Outline checker for Glyphs"
+readme = "README.md"
+requires-python = ">=3.11"
+
+[tool.ruff.lint]
+future-annotations = false
+ignore = ["N999"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["redArrow"]
+
+[tool.uv.build-backend]
+module-name = "redArrow"
