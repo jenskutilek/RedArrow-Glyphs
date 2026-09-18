@@ -245,7 +245,7 @@ class RedArrow(ReporterPlugin):
         """
         font = Glyphs.font
         if font is None:
-            return None
+            return
 
         self.options["grid_length"] = font.gridLength
         save_global, options, run_checks = self.select_glyphs_options()
