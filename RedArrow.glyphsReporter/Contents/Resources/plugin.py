@@ -200,15 +200,14 @@ class RedArrow(ReporterPlugin):
         if currentController:
             tool = currentController.toolDrawDelegate()
             # don't activate if on cursor tool, or pan tool
-            if not (
+            if self.errors and not (
                 tool.isKindOfClass_(NSClassFromString("GlyphsToolText"))
                 or tool.isKindOfClass_(NSClassFromString("GlyphsToolHand"))
                 or tool.isKindOfClass_(
                     NSClassFromString("GlyphsToolTrueTypeInstructor")
                 )
             ):
-                if self.errors:
-                    self._draw_arrows()
+                self._draw_arrows()
 
     def toggleLabels_(self, _) -> None:
         if self.show_labels:
