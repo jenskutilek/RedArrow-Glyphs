@@ -159,7 +159,7 @@ class RedArrow(ReporterPlugin):
             notification.object().window().windowController().activeEditViewController().graphicView().setNeedsDisplay_(
                 True
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
             import traceback
 
             print(traceback.format_exc())
@@ -168,14 +168,14 @@ class RedArrow(ReporterPlugin):
         try:
             if not self.show_labels:
                 self.startMouseMoved()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             self.logToConsole(f"willDeactivate: {e}")
 
     def willDeactivate(self) -> None:
         try:
             if not self.show_labels:
                 self.stopMouseMoved()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             self.logToConsole(f"willDeactivate: {e}")
 
     @objc.python_method
@@ -192,7 +192,7 @@ class RedArrow(ReporterPlugin):
             self.mouse_position = self.controller.graphicView().getActiveLocation_(
                 Glyphs.currentEvent()
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             self.logToConsole(f"foreground: mouse_position: {e}")
             self.mouse_position = NSMakePoint(0, 0)
 
@@ -273,7 +273,7 @@ class RedArrow(ReporterPlugin):
                         glyph.selected = True
                     else:
                         glyph.selected = False
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     self.logToConsole(
                         f"selectGlyphsWithErrors: Layer '{glyph_name}': {e}"
                     )
