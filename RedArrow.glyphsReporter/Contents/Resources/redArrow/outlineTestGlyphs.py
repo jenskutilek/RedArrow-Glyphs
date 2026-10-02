@@ -5,14 +5,14 @@ from typing import TYPE_CHECKING
 from AppKit import NSMakePoint
 from GlyphsApp import GSCURVE, GSLINE, GSOFFCURVE, GSQCURVE
 
-from redArrow.misc.arrayTools import normRect
+from redArrow.misc.arrayTools import is_node_inside_rect, norm_rect
 from redArrow.misc.bezierTools import (
-    calcCubicParameters,
-    calcQuadraticParameters,
-    epsilon,
-    solveQuadratic,
-    splitCubicAtT,
-    splitQuadraticAtT,
+    calc_cubic_parameters,
+    calc_quadratic_parameters,
+    solve_linear,
+    solve_quadratic,
+    split_cubic_at_t,
+    split_quadratic_at_t,
 )
 from redArrow.misc.transform import Transform
 from redArrow.typing import RedArrowOptionsDict
@@ -25,39 +25,6 @@ if TYPE_CHECKING:
 
 
 # Helper functions
-
-
-# from fontTools.misc.arrayTools
-def is_node_inside_rect(n: "GSNode", rect: "RectTuple") -> bool:
-    """
-    Test if a point lies inside a rectangle.
-
-    Args:
-        n (GSNode): The node
-        rect (RectTuple): The rectangle
-
-    Returns:
-        bool: Whether the node is inside the triangle
-    """
-
-    xMin, yMin, xMax, yMax = rect
-    return (xMin <= n.x <= xMax) and (yMin <= n.y <= yMax)
-
-
-def solve_linear(a: float, b: float) -> list[float]:
-    if abs(a) < epsilon:
-        if abs(b) < epsilon:
-            roots = []
-        else:
-            roots = [0.0]
-    else:
-        DD = b * b
-        if DD >= 0.0:
-            rDD = sqrt(DD)
-            roots = [(-b + rDD) / 2.0 / a, (-b - rDD) / 2.0 / a]
-        else:
-            roots = []
-    return roots
 
 
 def quad_with_explicit_oncurve_points(
@@ -102,7 +69,7 @@ def get_extrema_points_vectors(
     Returns:
         tuple[list[PointTuple], list[Vector2D]]: The extremum points and normal vectors
     """
-    split_segments = [seg for seg in splitCubicAtT(pt1, pt2, pt3, pt4, *roots)[:-1]]
+    split_segments = [seg for seg in split_cubic_at_t(pt1, pt2, pt3, pt4, *roots)[:-1]]
     points = [pt[3] for pt in split_segments]
     vectors = [pts_normal_vector(pt[2], pt[3]) for pt in split_segments]
     return points, vectors
@@ -135,7 +102,7 @@ def get_extrema_for_cubic(
     pt2 = (node2.x, node2.y)
     pt3 = (node3.x, node3.y)
     pt4 = (node4.x, node4.y)
-    (ax, ay), (bx, by), c, _ = calcCubicParameters(pt1, pt2, pt3, pt4)
+    (ax, ay), (bx, by), c, _ = calc_cubic_parameters(pt1, pt2, pt3, pt4)
     ax *= 3.0
     ay *= 3.0
     bx *= 2.0
@@ -143,10 +110,10 @@ def get_extrema_for_cubic(
     points: list[PointTuple] = []
     vectors: list[Vector2D] = []
     if h:
-        roots = [t for t in solveQuadratic(ay, by, c[1]) if 0 < t < 1]
+        roots = [t for t in solve_quadratic(ay, by, c[1]) if 0 < t < 1]
         points, vectors = get_extrema_points_vectors(roots, pt1, pt2, pt3, pt4)
     if v:
-        roots = [t for t in solveQuadratic(ax, bx, c[0]) if 0 < t < 1]
+        roots = [t for t in solve_quadratic(ax, bx, c[0]) if 0 < t < 1]
         v_points, v_vectors = get_extrema_points_vectors(roots, pt1, pt2, pt3, pt4)
         points += v_points
         vectors += v_vectors
@@ -248,7 +215,7 @@ def get_extrema_points_vectors_quad(
     Returns:
         tuple[list[PointTuple], list[Vector2D]]: The extremum points and normal vectors
     """
-    split_segments = [seg for seg in splitQuadraticAtT(pt1, pt2, pt3, *roots)[:-1]]
+    split_segments = [seg for seg in split_quadratic_at_t(pt1, pt2, pt3, *roots)[:-1]]
     points = [pt[2] for pt in split_segments]
     vectors = [pts_normal_vector(pt[1], pt[2]) for pt in split_segments]
     return points, vectors
@@ -275,7 +242,7 @@ def get_extrema_for_quadratic(
     Returns:
         tuple[list[PointTuple], list[Vector2D]]: The extremum points and normal vectors
     """
-    (ax, ay), (bx, by), _ = calcQuadraticParameters(pt1, pt2, pt3)
+    (ax, ay), (bx, by), _ = calc_quadratic_parameters(pt1, pt2, pt3)
     ax *= 2.0
     ay *= 2.0
     points: list[PointTuple] = []
@@ -448,7 +415,7 @@ def transform_rect(
     tr_x, tr_y = t.transformPoint(
         (rect.origin.x + rect.size.width, rect.origin.y + rect.size.height)
     )
-    ll_x, ll_y, tr_x, tr_y = normRect((ll_x, ll_y, tr_x, tr_y))
+    ll_x, ll_y, tr_x, tr_y = norm_rect((ll_x, ll_y, tr_x, tr_y))
     return NSMakePoint(ll_x, ll_y), NSMakePoint(tr_x, tr_y)
 
 
@@ -801,7 +768,7 @@ class OutlineCheck:
     def _check_bbox_curve(
         self, node0: "GSNode", node1: "GSNode", node2: "GSNode", node3: "GSNode"
     ) -> None:
-        rect = normRect((node0.x, node0.y, node3.x, node3.y))
+        rect = norm_rect((node0.x, node0.y, node3.x, node3.y))
         if not is_node_inside_rect(node1, rect) or not is_node_inside_rect(node2, rect):
             extrema, vectors = get_extrema_for_cubic(
                 node0, node1, node2, node3, h=True, v=True
@@ -1163,7 +1130,7 @@ class OutlineCheck:
                     self.errors.append(
                         OutlineError(
                             nodes_half_point(node0, node1),
-                            "Semi-horizontal %s" % segment,
+                            f"Semi-horizontal {segment}",
                             degrees(phi),
                             nodes_normal_vector(node0, node1),
                         )

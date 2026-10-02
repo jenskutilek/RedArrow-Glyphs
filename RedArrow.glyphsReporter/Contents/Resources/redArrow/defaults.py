@@ -1,12 +1,7 @@
-from typing import TYPE_CHECKING
-
 import objc
 from AppKit import NSDecimalNumber
 
 from redArrow.typing import RedArrowOptionsDict
-
-if TYPE_CHECKING:
-    from typing import Any
 
 default_checks: list[str] = [
     "test_extrema",
@@ -53,7 +48,7 @@ option_types: dict[str, str] = {
 
 
 def typechecked_options(
-    options: "dict[str, Any]",
+    options: "RedArrowOptionsDict",
 ) -> RedArrowOptionsDict:
     out: RedArrowOptionsDict = {}
     for k, v in default_options.items():

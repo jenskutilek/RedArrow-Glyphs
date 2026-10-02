@@ -53,7 +53,7 @@ def points_distance(p0: "NSPoint", p1: "NSPoint") -> float:
     return sqrt((p1.y - p0.y) ** 2 + (p1.x - p0.x) ** 2)
 
 
-def full_libkey(key):
+def full_libkey(key: str) -> str:
     return f"{plugin_id}.{key}"
 
 

@@ -7,8 +7,6 @@ from redArrow.defaults import default_checks, typechecked_options
 from redArrow.dialogs_mac_vanilla import _RAbaseWindowController, _RAModalWindow
 
 if TYPE_CHECKING:
-    from typing import Any
-
     from redArrow.typing import RedArrowOptionsDict
 
 float_formatter = NSNumberFormatter.alloc().init()
@@ -60,7 +58,7 @@ class SelectGlyphsWindowController(_RAbaseWindowController):
 
     def __init__(
         self,
-        options: "dict[str, Any] | None" = None,
+        options: "RedArrowOptionsDict | None" = None,
         run_checks: list[str] | None = None,
         title: str = "Select Glyphs With Errors",
     ) -> None:
