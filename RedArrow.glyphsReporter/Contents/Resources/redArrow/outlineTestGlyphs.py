@@ -103,18 +103,18 @@ class OutlineCheck:
         self.layer = layer
 
         # Cached test run settings
-        self.test_fractional_coords = True
-        self.test_smooth = True
-        self.test_empty_segments = True
-        self.test_collinear = True
-        self.test_spikes = True
-        self.test_semi_hv = True
-        self.test_short_segments = True
-        self.test_extrema = True
-        self.test_inflections = True
-        self.test_zero_handles = True
-        self.test_bbox_handles = True
-        self.test_fractional_transform = True
+        self.RedArrowCheckFractionalCoords = True
+        self.RedArrowCheckSmooth = True
+        self.RedArrowCheckEmptySegments = True
+        self.RedArrowCheckCollinear = True
+        self.RedArrowCheckSpikes = True
+        self.RedArrowCheckSemiHV = True
+        self.RedArrowCheckShortSegments = True
+        self.RedArrowCheckExtrema = True
+        self.RedArrowCheckInflections = True
+        self.RedArrowCheckZeroHandles = True
+        self.RedArrowCheckBboxHandles = True
+        self.RedArrowCheckFractionalTransform = True
 
     def reset(self) -> None:
         """
@@ -123,19 +123,19 @@ class OutlineCheck:
         self.errors: list[OutlineError | OutlineWarning] = []
 
         self.all_checks = [
-            "test_extrema",
-            "test_inflections",
-            "test_fractional_coords",
-            "test_fractional_transform",
-            "test_smooth",
-            "test_empty_segments",
-            "test_collinear",
-            "test_semi_hv",
-            # "test_closepath",
-            "test_zero_handles",
-            "test_bbox_handles",
-            "test_short_segments",
-            "test_spikes",
+            "RedArrowCheckExtrema",
+            "RedArrowCheckInflections",
+            "RedArrowCheckFractionalCoords",
+            "RedArrowCheckFractionalTransform",
+            "RedArrowCheckSmooth",
+            "RedArrowCheckEmptySegments",
+            "RedArrowCheckCollinear",
+            "RedArrowCheckSemiHV",
+            # "RedArrowCheckClosepath",
+            "RedArrowCheckZeroHandles",
+            "RedArrowCheckBboxHandles",
+            "RedArrowCheckShortSegments",
+            "RedArrowCheckSpikes",
         ]
 
         # Curve type detection
@@ -194,37 +194,37 @@ class OutlineCheck:
         # in the hope that it's faster than asking the dict every time
 
         # boolean values
-        self.extremum_calculate_badness = self.options.get(
-            "extremum_calculate_badness", True
+        self.RedArrowExtremaCalculateBadness = self.options.get(
+            "RedArrowExtremaCalculateBadness", True
         )
-        self.fractional_ignore_point_zero = self.options.get(
-            "fractional_ignore_point_zero", True
+        self.RedArrowCheckFractionalIgnorePointZero = self.options.get(
+            "RedArrowCheckFractionalIgnorePointZero", True
         )
 
         # absolute values that are converted to current upm
-        self.extremum_ignore_badness_below = self._normalize_upm(
-            self.options.get("extremum_ignore_badness_below", 1)
+        self.RedArrowExtremaIgnoreBadnessBelow = self._normalize_upm(
+            self.options.get("RedArrowExtremaIgnoreBadnessBelow", 1)
         )
-        self.smooth_connection_max_distance = self._normalize_upm(
-            self.options.get("smooth_connection_max_distance", 4)
+        self.RedArrowSmoothMaxDistance = self._normalize_upm(
+            self.options.get("RedArrowSmoothMaxDistance", 4)
         )
-        self.collinear_vectors_max_distance = self._normalize_upm(
-            self.options.get("collinear_vectors_max_distance", 2)
+        self.RedArrowCollinearMaxDistance = self._normalize_upm(
+            self.options.get("RedArrowCollinearMaxDistance", 2)
         )
-        self.semi_hv_vectors_min_distance = self._normalize_upm(
-            self.options.get("semi_hv_vectors_min_distance", 30)
+        self.RedArrowCheckSemiHVMinDistance = self._normalize_upm(
+            self.options.get("RedArrowCheckSemiHVMinDistance", 30)
         )
-        self.semi_hv_vectors_max_distance = self._normalize_upm(
-            self.options.get("semi_hv_vectors_max_distance", 2)
+        self.RedArrowCheckSemiHVMaxDistance = self._normalize_upm(
+            self.options.get("RedArrowCheckSemiHVMaxDistance", 2)
         )
-        self.zero_handles_max_distance = self._normalize_upm(
-            self.options.get("zero_handles_max_distance", 0)
+        self.RedArrowZeroHandlesMaxDistance = self._normalize_upm(
+            self.options.get("RedArrowZeroHandlesMaxDistance", 0)
         )
-        self.inflection_min = self.options.get("inflection_min", 0.3)
-        self.spike_angle = self.options.get("spike_angle", 0.49)
+        self.RedArrowInflectionMin = self.options.get("RedArrowInflectionMin", 0.3)
+        self.RedArrowSpikeAngle = self.options.get("RedArrowSpikeAngle", 0.49)
 
-        self.grid_length = self.options.get("grid_length", 1)
-        self.ignore_warnings = self.options.get("ignore_warnings", False)
+        self.RedArrowGridLength = self.options.get("RedArrowGridLength", 1)
+        self.RedArrowIgnoreWarnings = self.options.get("RedArrowIgnoreWarnings", False)
 
         # which checks should be run
         if self.run_checks == []:
@@ -263,22 +263,22 @@ class OutlineCheck:
 
     def _run_line_checks(self, node: "GSNode") -> None:
         prev_node = node.prevNode
-        if self.test_fractional_coords:
+        if self.RedArrowCheckFractionalCoords:
             self._check_fractional_coordinates(node)
-        if self.test_smooth:
+        if self.RedArrowCheckSmooth:
             self._check_incorrect_smooth_connection(node)
-        if self.test_empty_segments:
+        if self.RedArrowCheckEmptySegments:
             self._check_empty_lines_and_curves(prev_node, node)
         if node.nextNode is not None and node.nextNode.type == GSLINE:
-            if self.test_collinear:
+            if self.RedArrowCheckCollinear:
                 self._check_collinear_vectors(node)
-        if self.test_spikes:
+        if self.RedArrowCheckSpikes:
             self._check_spike(node)
-        if self.test_semi_hv:
+        if self.RedArrowCheckSemiHV:
             if prev_node is not None:
                 self._check_semi_horizontal(prev_node, node)
                 self._check_semi_vertical(prev_node, node)
-        if self.test_short_segments:
+        if self.RedArrowCheckShortSegments:
             self._check_short_lines_and_curves(prev_node, node)
 
     def _run_curve_checks(self, node: "GSNode") -> None:
@@ -286,26 +286,26 @@ class OutlineCheck:
         node3 = node4.prevNode  # control point 2
         node2 = node3.prevNode  # control point 1
         node1 = node2.prevNode
-        if self.test_extrema:
+        if self.RedArrowCheckExtrema:
             self._check_bbox_curve(node1, node2, node3, node4)
-        if self.test_inflections:
+        if self.RedArrowCheckInflections:
             self._check_inflections_curve(node1, node2, node3, node4)
-        if self.test_fractional_coords:
+        if self.RedArrowCheckFractionalCoords:
             self._check_fractional_coordinates(node)
         if not self.curve_type_detected:
             self._count_curve_segment()
-        if self.test_smooth:
+        if self.RedArrowCheckSmooth:
             self._check_incorrect_smooth_connection(node)
-        if self.test_spikes:
+        if self.RedArrowCheckSpikes:
             self._check_spike(node)
-        if self.test_empty_segments:
+        if self.RedArrowCheckEmptySegments:
             self._check_empty_lines_and_curves(node1, node4)
-        if self.test_zero_handles:
+        if self.RedArrowCheckZeroHandles:
             if node3 is not None:
                 self._check_zero_handles(node3, node4)
             if not (node2 is None or node1 is None):
                 self._check_zero_handles(node2, node1)
-        if self.test_semi_hv:
+        if self.RedArrowCheckSemiHV:
             if not (node2 is None or node1 is None):
                 # Start of curve
                 self._check_semi_horizontal(node1, node2, "handle")
@@ -314,14 +314,14 @@ class OutlineCheck:
                 # End of curve
                 self._check_semi_horizontal(node3, node4, "handle")
                 self._check_semi_vertical(node3, node4, "handle")
-        if self.test_short_segments:
+        if self.RedArrowCheckShortSegments:
             if not (node4 is None or node1 is None):
                 self._check_short_lines_and_curves(node1, node4)
 
     def _run_offcurve_checks(self, node: "GSNode") -> None:
-        if self.test_fractional_coords:
+        if self.RedArrowCheckFractionalCoords:
             self._check_fractional_coordinates(node)
-        if self.test_bbox_handles:
+        if self.RedArrowCheckBboxHandles:
             self._check_layer_bbox_handle(node)
 
     def _run_qcurve_checks(self, node: "GSNode") -> None:
@@ -338,22 +338,22 @@ class OutlineCheck:
         offcurves.reverse()
         segment = [start_node] + offcurves + [node]
 
-        if self.test_extrema:
+        if self.RedArrowCheckExtrema:
             self._check_extrema_quad(segment)
         # FIXME: Not implemented yet
-        # if self.test_inflections:
+        # if self.RedArrowCheckInflections:
         #     self._check_inflections_quad(node)
-        if self.test_fractional_coords:
+        if self.RedArrowCheckFractionalCoords:
             self._check_fractional_coordinates(node)
         if not self.curve_type_detected:
             self._count_qcurve_segment()
-        if self.test_smooth:
+        if self.RedArrowCheckSmooth:
             self._check_incorrect_smooth_connection(node)
         pv = node.prevNode
         nx = start_node.nextNode
-        if self.test_empty_segments:
+        if self.RedArrowCheckEmptySegments:
             self._check_empty_lines_and_curves(pv, node)
-        if self.test_semi_hv:
+        if self.RedArrowCheckSemiHV:
             if nx is not None:
                 # Start of curve
                 self._check_semi_horizontal(start_node, nx, "handle")
@@ -363,15 +363,15 @@ class OutlineCheck:
                 # End of curve
                 self._check_semi_horizontal(pv, node, "handle")
                 self._check_semi_vertical(pv, node, "handle")
-        if self.test_short_segments:
+        if self.RedArrowCheckShortSegments:
             self._check_short_lines_and_curves(pv, node)
-        if self.test_spikes:
+        if self.RedArrowCheckSpikes:
             self._check_spike(node)
 
     def _run_component_checks(self, component: "GSComponent") -> None:
-        if self.test_fractional_coords:
+        if self.RedArrowCheckFractionalCoords:
             self._check_fractional_component_offset(component)
-        if self.test_fractional_transform:
+        if self.RedArrowCheckFractionalTransform:
             self._check_fractional_transformation(component)
 
     # Implementations for all the different checks
@@ -392,9 +392,9 @@ class OutlineCheck:
                 else:
                     error_class = OutlineWarning
                     desc = "Extremum"
-                if self.extremum_calculate_badness:
+                if self.RedArrowExtremaCalculateBadness:
                     badness = self._get_badness(pt, rect)
-                    if badness >= self.extremum_ignore_badness_below:
+                    if badness >= self.RedArrowExtremaIgnoreBadnessBelow:
                         self.errors.append(
                             error_class(NSMakePoint(*pt), desc, badness, vector=vector)
                         )
@@ -432,9 +432,9 @@ class OutlineCheck:
                 quad[i], quad[i + 1], quad[i + 2], h=True, v=True
             )
             for i, p in enumerate(extrema):
-                # if self.extremum_calculate_badness:
+                # if self.RedArrowExtremaCalculateBadness:
                 # 	badness = self._get_badness(p, myRect)
-                # 	if badness >= self.extremum_ignore_badness_below:
+                # 	if badness >= self.RedArrowExtremaIgnoreBadnessBelow:
                 # 		self.errors.append(OutlineError(NSMakePoint(*p), "Extremum", badness, vectors[i]))
                 # else:
                 self.errors.append(
@@ -492,8 +492,8 @@ class OutlineCheck:
             (node1.x, node1.y),
             (node2.x, node2.y),
             (node3.x, node3.y),
-            self.inflection_min,
-            1 - self.inflection_min,
+            self.RedArrowInflectionMin,
+            1 - self.RedArrowInflectionMin,
         )
         ok_inflections, ok_vectors = ok
         err_inflections, err_vectors = err
@@ -502,7 +502,7 @@ class OutlineCheck:
                 OutlineError(NSMakePoint(*p), "Inflection", vector=err_vectors[i])
             )
 
-        if self.ignore_warnings:
+        if self.RedArrowIgnoreWarnings:
             return
 
         for i, p in enumerate(ok_inflections):
@@ -532,8 +532,8 @@ class OutlineCheck:
         self.apparently_quadratic = True
 
     def _check_fractional_coordinates(self, n: "GSNode") -> bool | None:
-        if self.fractional_ignore_point_zero:
-            n_prev = round_point(n, self.grid_length)
+        if self.RedArrowCheckFractionalIgnorePointZero:
+            n_prev = round_point(n, self.RedArrowGridLength)
             if abs(n_prev.x - n.x) < 0.001 and abs(n_prev.y - n.y) < 0.001:
                 return False
         else:
@@ -559,7 +559,7 @@ class OutlineCheck:
 
     def _check_fractional_component_offset(self, component: "GSComponent"):
         for value in component.transform[-2:]:
-            if abs(round_value(value, self.grid_length) - value) > 0.001:
+            if abs(round_value(value, self.RedArrowGridLength) - value) > 0.001:
                 self.errors.append(
                     OutlineError(
                         self._get_component_error_position(component),
@@ -614,7 +614,7 @@ class OutlineCheck:
             ref = prev_node
 
         # Ignore short segments
-        if dist > 2 * self.smooth_connection_max_distance:
+        if dist > 2 * self.RedArrowSmoothMaxDistance:
             # TODO: Add sanity check to save calculating the projected
             # point for each segment?
             # This fails for connections around 180 degrees which may be
@@ -630,13 +630,15 @@ class OutlineCheck:
                 node.y + dist * sin(phi),
             )
             # Compare projected position with actual position
-            badness = nodes_distance(round_point(projected_pt, self.grid_length), ref)
-            if self.grid_length == 0:
+            badness = nodes_distance(
+                round_point(projected_pt, self.RedArrowGridLength), ref
+            )
+            if self.RedArrowGridLength == 0:
                 d = 0.49
             else:
-                d = self.grid_length * 0.49
+                d = self.RedArrowGridLength * 0.49
             if d < badness:
-                if node.smooth or badness < self.smooth_connection_max_distance:
+                if node.smooth or badness < self.RedArrowSmoothMaxDistance:
                     self.errors.append(
                         OutlineError(
                             node,
@@ -693,8 +695,10 @@ class OutlineCheck:
             node.x + dist * cos(phi1),
             node.y + dist * sin(phi1),
         )
-        badness = nodes_distance(round_point(projected_pt, self.grid_length), next_node)
-        if badness < self.collinear_vectors_max_distance:
+        badness = nodes_distance(
+            round_point(projected_pt, self.RedArrowGridLength), next_node
+        )
+        if badness < self.RedArrowCollinearMaxDistance:
             self.errors.append(
                 OutlineError(
                     node,
@@ -716,7 +720,7 @@ class OutlineCheck:
 
         phi1 = nodes_angle(prev_node, node)
         phi2 = nodes_angle(next_node, node)
-        if abs(phi2 - phi1) < self.spike_angle:
+        if abs(phi2 - phi1) < self.RedArrowSpikeAngle:
             self.errors.append(
                 OutlineWarning(
                     node, "Spike", vector=nodes_normal_vector(prev_node, next_node)
@@ -729,7 +733,7 @@ class OutlineCheck:
         """
         Check for semi-horizontal lines and handles.
         """
-        if nodes_distance(node0, node1) > self.semi_hv_vectors_min_distance:
+        if nodes_distance(node0, node1) > self.RedArrowCheckSemiHVMinDistance:
             phi = nodes_angle(node0, node1)
             rho = atan2(1, 31)
             if (
@@ -737,7 +741,7 @@ class OutlineCheck:
                 or 0 < abs(phi - pi) < rho
                 or 0 < abs(abs(phi) - pi) < rho
             ):
-                if abs(node1.y - node0.y) <= self.semi_hv_vectors_max_distance:
+                if abs(node1.y - node0.y) <= self.RedArrowCheckSemiHVMaxDistance:
                     self.errors.append(
                         OutlineError(
                             nodes_half_point(node0, node1),
@@ -754,11 +758,11 @@ class OutlineCheck:
         Check for semi-vertical lines and handles.
         """
         # TODO: Option to respect Italic angle?
-        if nodes_distance(node0, node1) > self.semi_hv_vectors_min_distance:
+        if nodes_distance(node0, node1) > self.RedArrowCheckSemiHVMinDistance:
             phi = nodes_angle(node0, node1)
             rho = atan2(31, 1)
             if 0 < abs(phi - 0.5 * pi) < rho or 0 < abs(phi + 0.5 * pi) < rho:
-                if abs(node1.x - node0.x) <= self.semi_hv_vectors_max_distance:
+                if abs(node1.x - node0.x) <= self.RedArrowCheckSemiHVMaxDistance:
                     self.errors.append(
                         OutlineError(
                             nodes_half_point(node0, node1),
@@ -770,7 +774,7 @@ class OutlineCheck:
 
     def _check_zero_handles(self, node0, node1) -> None:
         badness = nodes_distance(node0, node1)
-        if badness <= self.zero_handles_max_distance:
+        if badness <= self.RedArrowZeroHandlesMaxDistance:
             self.errors.append(
                 OutlineError(
                     node1, "Zero handle", badness, nodes_normal_vector(node0, node1)

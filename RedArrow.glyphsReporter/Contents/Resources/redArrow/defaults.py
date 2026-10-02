@@ -1,49 +1,50 @@
 import objc
 from AppKit import NSDecimalNumber
+from GlyphsApp import Glyphs
 
 from redArrow.typing import RedArrowOptionsDict
 
 default_checks: list[str] = [
-    "test_extrema",
-    "test_inflections",
-    "test_fractional_coords",
-    "test_fractional_transform",
-    "test_smooth",
-    "test_empty_segments",
-    "test_collinear",
-    "test_semi_hv",
-    # "test_closepath",
-    "test_zero_handles",
-    "test_bbox_handles",
-    "test_short_segments",
-    "test_spikes",
+    "RedArrowCheckExtrema",
+    "RedArrowCheckInflections",
+    "RedArrowCheckFractionalCoords",
+    "RedArrowCheckFractionalTransform",
+    "RedArrowCheckSmooth",
+    "RedArrowCheckEmptySegments",
+    "RedArrowCheckCollinear",
+    "RedArrowCheckSemiHV",
+    # "RedArrowCheckClosepath",
+    "RedArrowCheckZeroHandles",
+    "RedArrowCheckBboxHandles",
+    "RedArrowCheckShortSegments",
+    "RedArrowCheckSpikes",
 ]
 
 default_options: RedArrowOptionsDict = {
-    "ignore_warnings": False,
-    "extremum_calculate_badness": False,
-    "extremum_ignore_badness_below": 0,
-    "smooth_connection_max_distance": 4,
-    "semi_hv_vectors_min_distance": 30,
-    "semi_hv_vectors_max_distance": 2,
-    "fractional_ignore_point_zero": True,
-    "collinear_vectors_max_distance": 2,
-    "grid_length": 1,
-    "zero_handles_max_distance": 0,
-    "inflection_min": 0.3,
-    "spike_angle": 0.49,
+    "RedArrowIgnoreWarnings": False,
+    "RedArrowExtremaCalculateBadness": False,
+    "RedArrowExtremaIgnoreBadnessBelow": 0,
+    "RedArrowSmoothMaxDistance": 4,
+    "RedArrowCheckSemiHVMinDistance": 30,
+    "RedArrowCheckSemiHVMaxDistance": 2,
+    "RedArrowCheckFractionalIgnorePointZero": True,
+    "RedArrowCollinearMaxDistance": 2,
+    "RedArrowGridLength": 1,
+    "RedArrowZeroHandlesMaxDistance": 0,
+    "RedArrowInflectionMin": 0.3,
+    "RedArrowSpikeAngle": 0.49,
 }
 
 option_types: dict[str, str] = {
-    "ignore_warnings": "bool",
-    "extremum_calculate_badness": "bool",
-    "extremum_ignore_badness_below": "float",
-    "smooth_connection_max_distance": "float",
-    "fractional_ignore_point_zero": "bool",
-    "collinear_vectors_max_distance": "float",
-    "grid_length": "int",
-    "inflection_min": "float",
-    "spike_angle": "float",
+    "RedArrowIgnoreWarnings": "bool",
+    "RedArrowExtremaCalculateBadness": "bool",
+    "RedArrowExtremaIgnoreBadnessBelow": "float",
+    "RedArrowSmoothMaxDistance": "float",
+    "RedArrowCheckFractionalIgnorePointZero": "bool",
+    "RedArrowCollinearMaxDistance": "float",
+    "RedArrowGridLength": "int",
+    "RedArrowInflectionMin": "float",
+    "RedArrowSpikeAngle": "float",
 }
 
 

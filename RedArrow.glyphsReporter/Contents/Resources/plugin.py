@@ -38,7 +38,6 @@ if TYPE_CHECKING:
     from redArrow.typing import PointTuple, RedArrowOptionsDict
 
 
-plugin_id = "de.kutilek.RedArrow"
 DEBUG = False
 
 
@@ -52,10 +51,6 @@ normal_vector = (1, 1)
 
 def points_distance(p0: "NSPoint", p1: "NSPoint") -> float:
     return sqrt((p1.y - p0.y) ** 2 + (p1.x - p0.x) ** 2)
-
-
-def full_libkey(key: str) -> str:
-    return f"{plugin_id}.{key}"
 
 
 class RedArrow(ReporterPlugin):
@@ -101,8 +96,6 @@ class RedArrow(ReporterPlugin):
             else:
                 self.add_preferences_items()
 
-        self.options = default_options
-        self.run_checks = default_checks
         self.errors: list[OutlineError | OutlineWarning] = []
         self.mouse_position = NSMakePoint(0, 0)
         self.last_change_date = 0
@@ -289,12 +282,11 @@ class RedArrow(ReporterPlugin):
 
     @objc.python_method
     def load_defaults(self) -> None:
-        options = {
-            k: Glyphs.defaults.get(full_libkey(k), v)
-            for k, v in default_options.items()
+        Glyphs.registerDefaults(default_options)
+        self.options: RedArrowOptionsDict = {
+            k: Glyphs.defaults[k] for k in default_options
         }
-        self.options = typechecked_options(options)
-        self.run_checks = Glyphs.defaults.get(full_libkey("run-tests"), default_checks)
+        self.run_checks = Glyphs.defaults.get("RedArrowRunChecks", default_checks)
         self.outline_check = OutlineCheck(None, self.options, self.run_checks)
         self.current_layer = None
         Glyphs.redraw()
@@ -302,8 +294,8 @@ class RedArrow(ReporterPlugin):
     @objc.python_method
     def save_defaults(self, options, run_checks) -> None:
         for k, v in default_options.items():
-            Glyphs.defaults[full_libkey(k)] = options.get(k, v)
-        Glyphs.defaults[full_libkey("run-tests")] = run_checks
+            Glyphs.defaults[k] = options.get(k, v)
+        Glyphs.defaults["RedArrowRunChecks"] = run_checks
 
     def mouseDidMove_(self, notification) -> None:
         try:
@@ -397,7 +389,7 @@ class RedArrow(ReporterPlugin):
         if font is None:
             return
 
-        self.options["grid_length"] = font.gridLength
+        self.options["RedArrowGridLength"] = font.gridLength
         save_global, options, run_checks = self.select_glyphs_options()
         if run_checks is None:
             return
@@ -431,7 +423,7 @@ class RedArrow(ReporterPlugin):
 
     def setRedArrowDefaults_(self, _) -> None:
         font = Glyphs.font
-        self.options["grid_length"] = font.gridLength if font else 1
+        self.options["RedArrowGridLength"] = font.gridLength if font else 1
         save_global, options, run_checks = self.select_glyphs_options(
             title="Red Arrow Preferences"
         )
@@ -469,10 +461,10 @@ class RedArrow(ReporterPlugin):
             # start = time()
             grid_length = layer.parent.parent.gridLength
             if isinstance(grid_length, (float, int)):
-                self.options["grid_length"] = grid_length
+                self.options["RedArrowGridLength"] = grid_length
             else:
                 # GSInterpolationFontProxy
-                self.options["grid_length"] = grid_length()
+                self.options["RedArrowGridLength"] = grid_length()
             self.outline_check.layer = layer
             self.outline_check.check_layer()
             # stop = time()
