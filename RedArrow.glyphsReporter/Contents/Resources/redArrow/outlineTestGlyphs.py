@@ -4,8 +4,7 @@ from typing import TYPE_CHECKING
 from AppKit import NSMakePoint
 from GlyphsApp import GSCURVE, GSLINE, GSOFFCURVE, GSQCURVE
 
-from redArrow.misc.arrayTools import is_node_inside_rect, norm_rect
-from redArrow.misc.bezierTools import (
+from redArrow.geometry import (
     get_extrema_for_cubic,
     get_extrema_for_quadratic,
     get_inflections_for_cubic,
@@ -19,6 +18,7 @@ from redArrow.misc.bezierTools import (
     round_value,
     transform_rect,
 )
+from redArrow.misc.arrayTools import is_node_inside_rect, norm_rect
 from redArrow.typing import RedArrowOptionsDict
 
 if TYPE_CHECKING:
