@@ -98,7 +98,7 @@ class OutlineCheck:
                 run. Defaults to None.
         """
         self.options = options or RedArrowOptionsDict()
-        self.run_checks = [] if run_checks is None else run_checks
+        self.run_checks = run_checks or []
         self.reset()
         self.layer = layer
 
