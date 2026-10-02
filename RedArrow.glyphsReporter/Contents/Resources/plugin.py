@@ -1,4 +1,5 @@
 from math import atan2, cos, pi, sin, sqrt
+from os import environ
 from typing import TYPE_CHECKING
 
 import objc
@@ -93,11 +94,13 @@ class RedArrow(ReporterPlugin):
 
     @objc.python_method
     def start(self) -> None:
-        self.add_menu_item()
-        if Glyphs.versionNumber < 4.0:
-            self.add_window_menu_item()
-        else:
-            self.add_preferences_items()
+        if "GLYPHS_HEADLESS" not in environ:
+            self.add_menu_item()
+            if Glyphs.versionNumber < 4.0:
+                self.add_window_menu_item()
+            else:
+                self.add_preferences_items()
+
         self.options = default_options
         self.run_checks = default_checks
         self.errors: list[OutlineError | OutlineWarning] = []
