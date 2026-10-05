@@ -17,7 +17,7 @@
 - (instancetype)init {
 	self = [super init];
 	if (self) {
-		// do stuff
+        self.upm = 1000;
 	}
 	return self;
 }
@@ -62,6 +62,81 @@
 	[[NSColor blueColor] set];
 	[NSBezierPath fillRect:rect];
 }
+
+
+- (float)normalizeForUpm:(float)value {
+    return value * self.upm * 0.001;
+}
+
+
+- (void)updateOutlineReport:(GSLayer *)layer options:(NSDictionary *)options {
+    self.upm = layer.parent.parent.unitsPerEm;
+    for (GSPath* path in layer.paths) {
+        for (GSNode* node in path.nodes) {
+            switch (node.type) {
+                case GSNodeTypeCubicCurve:
+                    [self runCubicCurveChecks: node];
+                    break;
+                
+                case GSNodeTypeLine:
+                    [self runLineChecks: node];
+                    break;
+                
+                case GSNodeTypeOffCurve:
+                    [self runOffcurveChecks: node];
+                    break;
+                    
+                case GSNodeTypeQuadraticCurve:
+                    [self runQuadraticCurveChecks: node];
+                    break;
+                
+                default:
+                    break;
+            }
+        }
+    }
+    
+    // TODO: Component checks
+}
+
+
+- (void)runCubicCurveChecks:(GSNode *)node {
+    
+}
+
+- (void)runQuadraticCurveChecks:(GSNode *)node {
+    
+}
+
+- (void)runLineChecks:(GSNode *)node {
+    [self checkNearlySmoothConnection: node];
+}
+
+- (void)runOffcurveChecks:(GSNode *)node {
+    
+}
+
+// Specific checks
+
+- (void)checkNearlySmoothConnection:(GSNode *)node {
+    if (!node.previousOncurveNode || !node.nextOncurveNode) {
+        return;
+    }
+    
+    GSNode * prev = node.previousOncurveNode;
+    GSNode * next = node.nextOncurveNode;
+    
+    if (!prev) {
+        return;
+    }
+    
+    if (!next) {
+        return;
+    }
+    
+    // float dist1 = [GSGeometry distance:prev.position toPoint:next.position];
+}
+
 
 - (float)getScale {
 	// [self getScale]; returns the current scale factor of the Edit View UI.
