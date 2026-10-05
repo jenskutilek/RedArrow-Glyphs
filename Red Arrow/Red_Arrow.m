@@ -63,17 +63,6 @@
 	[NSBezierPath fillRect:rect];
 }
 
-
-- (void)drawBackgroundForLayer:(GSLayer*)layer options:(NSDictionary *)options {
-	// Whatever you draw here will be displayed BEHIND the paths.
-	
-}
-
-- (void)drawBackgroundForInactiveLayer:(GSLayer*)layer options:(NSDictionary *)options {
-	// Whatever you draw here will be displayed behind the paths, but for inactive masters.
-	
-}
-
 - (float)getScale {
 	// [self getScale]; returns the current scale factor of the Edit View UI.
 	// Divide any scalable size by this value in order to keep the same apparent pixel size.
