@@ -134,7 +134,30 @@
         return;
     }
     
-    // float dist1 = [GSGeometry distance:prev.position toPoint:next.position];
+    float dist1 = [GSGeometry distance:prev.position toPoint:node.position];
+    float dist2 = [GSGeometry distance:node.position toPoint:next.position];
+    
+    float dist;
+    float phi;
+    GSNode * ref;
+    
+    if (dist1 >= dist2) {
+        dist = dist2;
+        phi = [GSGeometry angleBetweenVector:prev.position andVector:node.position];
+        ref = next;
+    } else {
+        dist = dist1;
+        phi = [GSGeometry angleBetweenVector:node.position andVector:next.position] - M_PI;
+        ref = prev;
+    }
+    
+    // Ignore short segments
+    if (dist <= 2 * [self normalizeForUpm: 8]) {
+        return;
+    }
+    
+    NSPoint projectedPt = NSMakePoint(node.position.x + dist * cos(phi), node.position.y + dist * sin(phi));
+    // float badness = [GSGeometry [GSGeometry distance:projectedPt] toPoint:ref.position];
 }
 
 
