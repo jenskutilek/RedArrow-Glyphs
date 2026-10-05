@@ -637,16 +637,17 @@ class OutlineCheck:
                 d = 0.49
             else:
                 d = self.RedArrowGridLength * 0.49
-            if d < badness:
-                if node.smooth or badness < self.RedArrowSmoothMaxDistance:
-                    self.errors.append(
-                        OutlineError(
-                            node,
-                            "Not quite smooth connection",
-                            badness,
-                            vector=nodes_normal_vector(prev_node, node),
-                        )
+            if d < badness and (
+                node.smooth or badness < self.RedArrowSmoothMaxDistance
+            ):
+                self.errors.append(
+                    OutlineError(
+                        node,
+                        "Not quite smooth connection",
+                        badness,
+                        vector=nodes_normal_vector(prev_node, node),
                     )
+                )
 
     def _check_empty_lines_and_curves(self, node0: "GSNode", node1: "GSNode") -> None:
         if node0 is None or node1 is None:
