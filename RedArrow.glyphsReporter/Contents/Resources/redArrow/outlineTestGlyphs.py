@@ -138,11 +138,6 @@ class OutlineCheck:
             "RedArrowCheckSpikes",
         ]
 
-        # Curve type detection
-        self.apparently_cubic = False
-        self.apparently_quadratic = False
-        self.curve_type_detected = False
-
         # Mixed composites
         self.glyph_has_components = False
         self.glyph_has_outlines = False
@@ -292,8 +287,6 @@ class OutlineCheck:
             self._check_inflections_curve(node1, node2, node3, node4)
         if self.RedArrowCheckFractionalCoords:
             self._check_fractional_coordinates(node)
-        if not self.curve_type_detected:
-            self._count_curve_segment()
         if self.RedArrowCheckSmooth:
             self._check_incorrect_smooth_connection(node)
         if self.RedArrowCheckSpikes:
@@ -345,8 +338,6 @@ class OutlineCheck:
         #     self._check_inflections_quad(node)
         if self.RedArrowCheckFractionalCoords:
             self._check_fractional_coordinates(node)
-        if not self.curve_type_detected:
-            self._count_qcurve_segment()
         if self.RedArrowCheckSmooth:
             self._check_incorrect_smooth_connection(node)
         pv = node.prevNode
@@ -518,18 +509,6 @@ class OutlineCheck:
             self.errors.append(
                 OutlineError(NSMakePoint(x, y), "Inflection", vector=vectors[i])
             )
-
-    def _count_curve_segment(self) -> None:
-        if self.apparently_quadratic:
-            self.errors.append(OutlineError(None, "Mixed cubic and quadratic segments"))
-            self.curve_type_detected = True
-        self.apparently_cubic = True
-
-    def _count_qcurve_segment(self) -> None:
-        if self.apparently_cubic:
-            self.errors.append(OutlineError(None, "Mixed cubic and quadratic segments"))
-            self.curve_type_detected = True
-        self.apparently_quadratic = True
 
     def _check_fractional_coordinates(self, n: "GSNode") -> bool | None:
         if self.RedArrowCheckFractionalIgnorePointZero:
