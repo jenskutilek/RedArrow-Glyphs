@@ -12,13 +12,21 @@
 
 @interface Red_Arrow : NSObject <GlyphsReporter>
 
+@property NSMutableArray * errors;
+
+@property float gridLength;
+
 @property float upm;
+
+// Options
+
+@property float RedArrowSmoothMaxDistance;
 
 // Check runners based on node type
 
 - (void)runCubicCurveChecks:(GSNode *)node;
 
-- (void)runLineChecks:(GSNode *)node;
+- (void)runLineChecks:(GSNode *)node previousNode:(GSNode *)previousNode nextNode:(GSNode *)nextNode;
 
 - (void)runOffcurveChecks:(GSNode *)node;
 
@@ -26,6 +34,6 @@
 
 // Specific node checks
 
-- (void)checkNearlySmoothConnection:(GSNode *)node;
+- (void)checkNearlySmoothConnection:(GSNode *)node previousNode:(GSNode *)previousNode nextNode:(GSNode *)nextNode;
 
 @end
