@@ -248,7 +248,7 @@ class OutlineCheck:
                     self._run_qcurve_checks(node)
                 elif node_type == GSLINE:
                     self._run_line_checks(node)
-                else:
+                elif node_type == GSOFFCURVE:
                     self._run_offcurve_checks(node)
 
         for component in self.layer.components:
