@@ -136,7 +136,7 @@
 // Specific checks
 
 - (void)checkNearlySmoothConnection:(GSNode *)node previousNode:(GSNode *)previousNode nextNode:(GSNode *)nextNode {
-    if (!node.previousOncurveNode || !node.nextOncurveNode) {
+    if (!previousNode || !nextNode) {
         return;
     }
         
