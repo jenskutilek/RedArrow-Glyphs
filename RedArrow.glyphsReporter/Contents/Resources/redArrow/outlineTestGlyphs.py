@@ -212,6 +212,8 @@ class OutlineCheck:
         self.RedArrowSmoothMaxDistance = self._normalize_upm(
             self.options.get("RedArrowSmoothMaxDistance", 4)
         )
+        # We need this value * 2 often, so precompute it
+        self.RedArrowSmoothMaxDistance2 = self.RedArrowSmoothMaxDistance * 2
         self.RedArrowCollinearMaxDistance = self._normalize_upm(
             self.options.get("RedArrowCollinearMaxDistance", 2)
         )
@@ -644,65 +646,58 @@ class OutlineCheck:
         """
         Check for nearly smooth connections.
         """
-        # angle of previous reference node to current node
-        phi1 = nodes_angle(prev_node, node)
-        phi2 = nodes_angle(node, next_node)
-
         # distance of the current node to next reference node
         dist1 = nodes_distance(prev_node, node)
         dist2 = nodes_distance(node, next_node)
 
         if dist1 >= dist2:
+            if dist2 <= self.RedArrowSmoothMaxDistance2:  # Ignore short segments
+                return
+
             # distance 1 is longer, check dist2 for correct angle
             dist = dist2
-            phi = phi1
+            phi = nodes_angle(prev_node, node)  # phi1
             ref = next_node
         else:
+            if dist1 <= self.RedArrowSmoothMaxDistance2:  # Ignore short segments
+                return
+
             # distance 2 is longer, check dist1 for correct angle
             dist = dist1
-            phi = phi2 - pi
+            phi = nodes_angle(node, next_node) - pi  # phi2 - pi
             ref = prev_node
 
-        # Ignore short segments
-        if dist > 2 * self.RedArrowSmoothMaxDistance:
-            # TODO: Add sanity check to save calculating the projected
-            # point for each segment?
-            # This fails for connections around 180 degrees which may be
-            # reported as 180 or -180
-            # if 0 < abs(phi1 - phi2) < 0.1: # 0.1 (radians) = 5.7 degrees
-            # Calculate where the second reference point should be
-            # TODO: Decide which angle is more important?
-            # E.g. line to curve: line is fixed, curve / tangent point is
-            # flexible?
-            # or always consider the longer segment more important?
-            projected_pt = NSMakePoint(
-                node.x + dist * cos(phi),
-                node.y + dist * sin(phi),
-            )
-            # Compare projected position with actual position
-            badness = nodes_distance(
-                round_point(projected_pt, self.RedArrowGridLength), ref
-            )
-            if self.RedArrowGridLength == 0:
-                d = 0.49
-            else:
-                d = self.RedArrowGridLength * 0.49
-            if d < badness and (
-                node.smooth or badness < self.RedArrowSmoothMaxDistance
-            ):
-                self.errors.append(
-                    OutlineError(
-                        node,
-                        "Not quite smooth connection",
-                        badness,
-                        vector=nodes_normal_vector(prev_node, node),
-                    )
+        # TODO: Add sanity check to save calculating the projected point for each
+        # segment? This fails for connections around 180 degrees which may be reported
+        # as 180 or -180
+        # if 0 < abs(phi1 - phi2) < 0.1: # 0.1 (radians) = 5.7 degrees
+        # Calculate where the second reference point should be
+        # TODO: Decide which angle is more important?
+        # E.g. line to curve: line is fixed, curve / tangent point is flexible?
+        # or always consider the longer segment more important?
+        projected_pt = NSMakePoint(
+            node.x + dist * cos(phi),
+            node.y + dist * sin(phi),
+        )
+        # Compare projected position with actual position
+        badness = nodes_distance(
+            round_point(projected_pt, self.RedArrowGridLength), ref
+        )
+        if self.RedArrowGridLength == 0:
+            d = 0.49
+        else:
+            d = self.RedArrowGridLength * 0.49
+        if d < badness and (node.smooth or badness < self.RedArrowSmoothMaxDistance):
+            self.errors.append(
+                OutlineError(
+                    node,
+                    "Not quite smooth connection",
+                    badness,
+                    vector=nodes_normal_vector(prev_node, node),
                 )
+            )
 
     def _check_empty_lines_and_curves(self, node0: "GSNode", node1: "GSNode") -> None:
-        if node0 is None or node1 is None:
-            return
-
         if node0.x == node1.x and node0.y == node1.y:
             self.errors.append(
                 OutlineError(
@@ -713,9 +708,7 @@ class OutlineCheck:
             )
 
     def _check_short_lines_and_curves(self, node0: "GSNode", node1: "GSNode") -> None:
-        if node0 is None or node1 is None:
-            return
-
+        # TODO: Normalize 1/1000 to upm?
         if abs(node0.x - node1.x) <= 1 and abs(node0.y - node1.y) <= 1:
             self.errors.append(
                 OutlineWarning(
@@ -776,7 +769,10 @@ class OutlineCheck:
         """
         Check for semi-horizontal lines and handles.
         """
-        if nodes_distance(node0, node1) > self.RedArrowCheckSemiHVMinDistance:
+        if (
+            nodes_distance(node0, node1) > self.RedArrowCheckSemiHVMinDistance
+            and abs(node1.y - node0.y) <= self.RedArrowCheckSemiHVMaxDistance
+        ):
             phi = nodes_angle(node0, node1)
             rho = atan2(1, 31)
             if (
@@ -784,15 +780,14 @@ class OutlineCheck:
                 or 0 < abs(phi - pi) < rho
                 or 0 < abs(abs(phi) - pi) < rho
             ):
-                if abs(node1.y - node0.y) <= self.RedArrowCheckSemiHVMaxDistance:
-                    self.errors.append(
-                        OutlineError(
-                            nodes_half_point(node0, node1),
-                            f"Semi-horizontal {segment}",
-                            degrees(phi),
-                            nodes_normal_vector(node0, node1),
-                        )
+                self.errors.append(
+                    OutlineError(
+                        nodes_half_point(node0, node1),
+                        f"Semi-horizontal {segment}",
+                        degrees(phi),
+                        nodes_normal_vector(node0, node1),
                     )
+                )
 
     def _check_semi_vertical(
         self, node0: "GSNode", node1: "GSNode", segment: str = "line"
@@ -801,19 +796,21 @@ class OutlineCheck:
         Check for semi-vertical lines and handles.
         """
         # TODO: Option to respect Italic angle?
-        if nodes_distance(node0, node1) > self.RedArrowCheckSemiHVMinDistance:
+        if (
+            nodes_distance(node0, node1) > self.RedArrowCheckSemiHVMinDistance
+            and abs(node1.x - node0.x) <= self.RedArrowCheckSemiHVMaxDistance
+        ):
             phi = nodes_angle(node0, node1)
             rho = atan2(31, 1)
             if 0 < abs(phi - 0.5 * pi) < rho or 0 < abs(phi + 0.5 * pi) < rho:
-                if abs(node1.x - node0.x) <= self.RedArrowCheckSemiHVMaxDistance:
-                    self.errors.append(
-                        OutlineError(
-                            nodes_half_point(node0, node1),
-                            f"Semi-vertical {segment}",
-                            degrees(phi),
-                            nodes_normal_vector(node0, node1),
-                        )
+                self.errors.append(
+                    OutlineError(
+                        nodes_half_point(node0, node1),
+                        f"Semi-vertical {segment}",
+                        degrees(phi),
+                        nodes_normal_vector(node0, node1),
                     )
+                )
 
     def _check_zero_handles(self, node0: "GSNode", node1: "GSNode") -> None:
         badness = nodes_distance(node0, node1)
