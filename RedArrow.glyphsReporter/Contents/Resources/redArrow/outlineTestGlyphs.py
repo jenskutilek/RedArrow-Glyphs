@@ -30,6 +30,15 @@ if TYPE_CHECKING:
     from redArrow.typing import PointTuple, QuadraticCurveTuple, RectTuple
 
 
+def fmt_node(node):
+    return f"({node.position.x:g}, {node.position.y:g})"
+
+
+def fmt_nodes(nodes):
+    node_strings = [fmt_node(n) for n in nodes]
+    return ", ".join(node_strings)
+
+
 class OutlineError:
     level: str = "e"
 
@@ -240,76 +249,143 @@ class OutlineCheck:
             return
 
         for path in self.layer.paths:
-            for node in path.nodes:
+            offcurves: list[GSNode] = []
+            oncurves: list[GSNode] = []
+            prev_node = None
+            next_node = None
+            num_nodes = len(path.nodes)
+            for i, node in enumerate(path.nodes):
                 node_type = node.type
-                if node_type == GSCURVE:
-                    self._run_curve_checks(node)
-                elif node_type == GSQCURVE:
-                    self._run_qcurve_checks(node)
-                elif node_type == GSLINE:
-                    self._run_line_checks(node)
-                elif node_type == GSOFFCURVE:
+                if node_type == GSOFFCURVE:
+                    offcurves.append(node)
+                elif node_type in (GSLINE, GSQCURVE, GSCURVE):
+                    prev_node_index = i - 1
+                    if path.closed or prev_node_index >= 0:
+                        prev_node = path.nodes[prev_node_index]
+                    else:
+                        prev_node = None
+                    next_node_index = i + 1
+                    if path.closed or next_node_index < num_nodes:
+                        next_node = path.nodes[next_node_index % num_nodes]
+                    else:
+                        next_node = None
+                    oncurves.append(node)
+
+                # pn = "None" if prev_node is None else fmt_node(prev_node)
+                # nn = "None" if next_node is None else fmt_node(next_node)
+                # print(
+                #     f"Prev: {pn}, off: {fmt_nodes(offcurves)}, cur: {fmt_node(node)}, next: {nn}, oncurves: {fmt_nodes(oncurves)}"
+                # )
+
+                if node_type == GSLINE:
+                    self._run_line_checks(node, prev_node, next_node)
+                    continue
+
+                if node_type == GSOFFCURVE:
                     self._run_offcurve_checks(node)
+                    continue
+
+                if len(oncurves) < 2:
+                    # FIXME: Quadratic contour without oncurves
+                    continue
+
+                on = oncurves[-2]
+
+                if node_type == GSCURVE:
+                    self._run_curve_checks(node, prev_node, next_node, on, offcurves)
+                    offcurves = []
+                    continue
+
+                if node_type == GSQCURVE:
+                    self._run_qcurve_checks(node, prev_node, next_node, on, offcurves)
+                    offcurves = []
 
         for component in self.layer.components:
             self._run_component_checks(component)
 
     # Checks for different node types
 
-    def _run_line_checks(self, node: "GSNode") -> None:
-        prev_node = node.prevNode
+    def _run_line_checks(
+        self,
+        node: "GSNode",
+        prev_node: "GSNode | None",
+        next_node: "GSNode | None",
+    ) -> None:
+        # Checks that use the current node
+
         if self.RedArrowCheckFractionalCoords:
             self._check_fractional_coordinates(node)
-        if self.RedArrowCheckSmooth:
-            self._check_incorrect_smooth_connection(node)
+
+        if prev_node is None:
+            return
+
+        # Checks that use the previous node
+
         if self.RedArrowCheckEmptySegments:
             self._check_empty_lines_and_curves(prev_node, node)
-        if node.nextNode is not None and node.nextNode.type == GSLINE:
-            if self.RedArrowCheckCollinear:
-                self._check_collinear_vectors(node)
-        if self.RedArrowCheckSpikes:
-            self._check_spike(node)
         if self.RedArrowCheckSemiHV:
-            if prev_node is not None:
-                self._check_semi_horizontal(prev_node, node)
-                self._check_semi_vertical(prev_node, node)
+            self._check_semi_horizontal(prev_node, node)
+            self._check_semi_vertical(prev_node, node)
         if self.RedArrowCheckShortSegments:
             self._check_short_lines_and_curves(prev_node, node)
 
-    def _run_curve_checks(self, node: "GSNode") -> None:
+        if next_node is None:
+            return
+
+        # Checks that use the previous and next node
+
+        if next_node.type == GSLINE and self.RedArrowCheckCollinear:
+            self._check_collinear_vectors(node, prev_node, next_node)
+        if self.RedArrowCheckSmooth:
+            self._check_incorrect_smooth_connection(node, prev_node, next_node)
+        if self.RedArrowCheckSpikes:
+            self._check_spike(node, prev_node, next_node)
+
+    def _run_curve_checks(
+        self,
+        node: "GSNode",
+        prev_node: "GSNode | None",
+        next_node: "GSNode | None",
+        prev_oncurve: "GSNode",
+        offcurves: "list[GSNode]",
+    ) -> None:
+        if len(offcurves) < 2:
+            print(
+                f"Skipping curve without offcurves: {prev_oncurve} {offcurves} {node}"
+            )
+            return
         node4 = node
-        node3 = node4.prevNode  # control point 2
-        node2 = node3.prevNode  # control point 1
-        node1 = node2.prevNode
+        node3 = offcurves[-1]  # control point 2
+        node2 = offcurves[-2]  # control point 1
+        node1 = prev_oncurve
         if self.RedArrowCheckExtrema:
             self._check_bbox_curve(node1, node2, node3, node4)
         if self.RedArrowCheckInflections:
             self._check_inflections_curve(node1, node2, node3, node4)
         if self.RedArrowCheckFractionalCoords:
             self._check_fractional_coordinates(node)
-        if self.RedArrowCheckSmooth:
-            self._check_incorrect_smooth_connection(node)
-        if self.RedArrowCheckSpikes:
-            self._check_spike(node)
         if self.RedArrowCheckEmptySegments:
-            self._check_empty_lines_and_curves(node1, node4)
+            self._check_empty_lines_and_curves(prev_oncurve, node)
         if self.RedArrowCheckZeroHandles:
-            if node3 is not None:
-                self._check_zero_handles(node3, node4)
-            if not (node2 is None or node1 is None):
-                self._check_zero_handles(node2, node1)
+            self._check_zero_handles(node3, node4)
+            self._check_zero_handles(node2, node1)
         if self.RedArrowCheckSemiHV:
-            if not (node2 is None or node1 is None):
-                # Start of curve
-                self._check_semi_horizontal(node1, node2, "handle")
-                self._check_semi_vertical(node1, node2, "handle")
-            if node3 is not None:
-                # End of curve
-                self._check_semi_horizontal(node3, node4, "handle")
-                self._check_semi_vertical(node3, node4, "handle")
+            # Start of curve
+            self._check_semi_horizontal(node1, node2, "handle")
+            self._check_semi_vertical(node1, node2, "handle")
+            # End of curve
+            self._check_semi_horizontal(node3, node4, "handle")
+            self._check_semi_vertical(node3, node4, "handle")
         if self.RedArrowCheckShortSegments:
-            if not (node4 is None or node1 is None):
-                self._check_short_lines_and_curves(node1, node4)
+            self._check_short_lines_and_curves(prev_oncurve, node)
+
+        if prev_node is None or next_node is None:
+            return
+
+        if self.RedArrowCheckSmooth:
+            self._check_incorrect_smooth_connection(node, prev_node, next_node)
+        if self.RedArrowCheckSpikes:
+            self._check_spike(node, prev_node, next_node)
 
     def _run_offcurve_checks(self, node: "GSNode") -> None:
         if self.RedArrowCheckFractionalCoords:
@@ -317,47 +393,44 @@ class OutlineCheck:
         if self.RedArrowCheckBboxHandles:
             self._check_layer_bbox_handle(node)
 
-    def _run_qcurve_checks(self, node: "GSNode") -> None:
-        # Find the previous oncurve node
-        start_node = node.prevNode
-        start_node_index = node.index
-        offcurves = []
-        while start_node.type == GSOFFCURVE:
-            offcurves.append(start_node)
-            start_node = start_node.prevNode
-            if start_node.index == start_node_index:
-                # There seems to be no other oncurve node
-                break
-        offcurves.reverse()
-        segment = [start_node] + offcurves + [node]
+    def _run_qcurve_checks(
+        self,
+        node: "GSNode",
+        prev_node: "GSNode | None",
+        next_node: "GSNode | None",
+        prev_oncurve: "GSNode",
+        offcurves: "list[GSNode]",
+    ) -> None:
+        if not offcurves:
+            return
 
         if self.RedArrowCheckExtrema:
-            self._check_extrema_quad(segment)
+            self._check_extrema_quad(prev_oncurve, offcurves, node)
         # FIXME: Not implemented yet
         # if self.RedArrowCheckInflections:
         #     self._check_inflections_quad(node)
         if self.RedArrowCheckFractionalCoords:
             self._check_fractional_coordinates(node)
-        if self.RedArrowCheckSmooth:
-            self._check_incorrect_smooth_connection(node)
-        pv = node.prevNode
-        nx = start_node.nextNode
         if self.RedArrowCheckEmptySegments:
-            self._check_empty_lines_and_curves(pv, node)
+            self._check_empty_lines_and_curves(prev_oncurve, node)
         if self.RedArrowCheckSemiHV:
-            if nx is not None:
-                # Start of curve
-                self._check_semi_horizontal(start_node, nx, "handle")
-                self._check_semi_vertical(start_node, nx, "handle")
+            # Start of curve
+            self._check_semi_horizontal(prev_oncurve, offcurves[0], "handle")
+            self._check_semi_vertical(prev_oncurve, offcurves[0], "handle")
 
-            if pv is not None:
-                # End of curve
-                self._check_semi_horizontal(pv, node, "handle")
-                self._check_semi_vertical(pv, node, "handle")
+            # End of curve
+            self._check_semi_horizontal(offcurves[-1], node, "handle")
+            self._check_semi_vertical(offcurves[-1], node, "handle")
         if self.RedArrowCheckShortSegments:
-            self._check_short_lines_and_curves(pv, node)
+            self._check_short_lines_and_curves(prev_oncurve, node)
+
+        if prev_node is None or next_node is None:
+            return
+
+        if self.RedArrowCheckSmooth:
+            self._check_incorrect_smooth_connection(node, prev_node, next_node)
         if self.RedArrowCheckSpikes:
-            self._check_spike(node)
+            self._check_spike(node, prev_node, next_node)
 
     def _run_component_checks(self, component: "GSComponent") -> None:
         if self.RedArrowCheckFractionalCoords:
@@ -416,8 +489,10 @@ class OutlineCheck:
             )
             return
 
-    def _check_extrema_quad(self, segment: "Sequence[GSNode]") -> None:
-        quad = quad_with_explicit_oncurve_points(segment)
+    def _check_extrema_quad(
+        self, on0: "GSNode", offcurves: "Sequence[GSNode]", on1: "GSNode"
+    ) -> None:
+        quad = quad_with_explicit_oncurve_points(on0, offcurves, on1)
         for i in range(0, len(quad) - 1, 2):
             extrema, vectors = get_extrema_for_quadratic(
                 quad[i], quad[i + 1], quad[i + 2], h=True, v=True
@@ -563,16 +638,12 @@ class OutlineCheck:
                 )
                 break
 
-    def _check_incorrect_smooth_connection(self, node: "GSNode") -> None:
+    def _check_incorrect_smooth_connection(
+        self, node: "GSNode", prev_node: "GSNode", next_node: "GSNode"
+    ) -> None:
         """
         Check for nearly smooth connections.
         """
-        prev_node = node.prevNode
-        next_node = node.nextNode
-
-        if prev_node is None or next_node is None:
-            return
-
         # angle of previous reference node to current node
         phi1 = nodes_angle(prev_node, node)
         phi2 = nodes_angle(node, next_node)
@@ -654,16 +725,12 @@ class OutlineCheck:
                 )
             )
 
-    def _check_collinear_vectors(self, node: "GSNode") -> None:
+    def _check_collinear_vectors(
+        self, node: "GSNode", prev_node: "GSNode", next_node: "GSNode"
+    ) -> None:
         """
         Check for consecutive lines that have nearly the same angle.
         """
-        prev_node = node.prevNode
-        next_node = node.nextNode
-
-        if prev_node is None or next_node is None:
-            return
-
         # angle of previous reference point to current point
         phi1 = nodes_angle(prev_node, node)
         # angle of current point to next reference point
@@ -688,16 +755,12 @@ class OutlineCheck:
                 )
             )
 
-    def _check_spike(self, node: "GSNode") -> None:
+    def _check_spike(
+        self, node: "GSNode", prev_node: "GSNode", next_node: "GSNode"
+    ) -> None:
         """
         Check for consecutive segments that have a very narrow angle.
         """
-        prev_node = node.prevNode
-        next_node = node.nextNode
-
-        if prev_node is None or next_node is None:
-            return
-
         phi1 = nodes_angle(prev_node, node)
         phi2 = nodes_angle(next_node, node)
         if abs(phi2 - phi1) < self.RedArrowSpikeAngle:
@@ -752,7 +815,7 @@ class OutlineCheck:
                         )
                     )
 
-    def _check_zero_handles(self, node0, node1) -> None:
+    def _check_zero_handles(self, node0: "GSNode", node1: "GSNode") -> None:
         badness = nodes_distance(node0, node1)
         if badness <= self.RedArrowZeroHandlesMaxDistance:
             self.errors.append(

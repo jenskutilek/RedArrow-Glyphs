@@ -40,7 +40,9 @@ def solve_linear(a: float, b: float) -> list[float]:
 
 
 def quad_with_explicit_oncurve_points(
-    quad: "Sequence[GSNode|NSPoint]",
+    on0: "GSNode",
+    offcurves: "Sequence[GSNode|NSPoint]",
+    on1: "GSNode",
 ) -> "list[PointTuple]":
     """
     Take a quadratic segment of GSNodes and add implied oncurve points
@@ -51,6 +53,12 @@ def quad_with_explicit_oncurve_points(
     Returns:
         list[PointTuple]: The quadratic segment as tuple points with explicit oncurve points
     """
+    # FIXME: Use the args directly
+    quad: list[GSNode | NSPoint] = []
+    quad.append(on0)
+    quad.extend(offcurves)
+    quad.append(on1)
+    # end of fixme
     new_quad = [quad[0]]
     for i in range(1, len(quad) - 2):
         new_quad.append(quad[i])
