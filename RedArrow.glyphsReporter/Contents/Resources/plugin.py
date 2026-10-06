@@ -83,7 +83,7 @@ class RedArrow(ReporterPlugin):
                 "action": self.toggleLabels_,
             },
         ]
-        self.show_labels = Glyphs.defaults[f"{plugin_id}.showLabels"]
+        self.show_labels = Glyphs.defaults["RedArrowShowLabels"]
         self.show_labels = not (self.show_labels)
         self.toggleLabels_(None)
 
@@ -361,7 +361,7 @@ class RedArrow(ReporterPlugin):
             self.show_labels = True
             self.generalContextMenus = self.hide_labels_menu
             self.stopMouseMoved()
-        Glyphs.defaults[full_libkey("showLabels")] = self.show_labels
+        Glyphs.defaults["RedArrowShowLabels"] = self.show_labels
         Glyphs.redraw()
 
     def startMouseMoved(self) -> None:
@@ -624,7 +624,7 @@ class RedArrow(ReporterPlugin):
 
     @objc.python_method
     def _draw_arrows(self, debug: bool = False) -> None:
-        size = Glyphs.defaults.get(full_libkey("arrowSize"), 10) / self.getScale()
+        size = Glyphs.defaults.get("RedArrowArrowSize", 10) / self.getScale()
         errors_by_position: dict[
             tuple[int, int] | None, list[OutlineError | OutlineWarning]
         ] = {}
