@@ -355,7 +355,7 @@ class OutlineCheck:
     ) -> None:
         if len(offcurves) < 2:
             print(
-                f"Skipping curve without offcurves: {prev_oncurve} {offcurves} {node}"
+                f"Red Arrow: Skipping curve without offcurves: on={fmt_node(prev_oncurve)} off={fmt_nodes(offcurves)} on={fmt_node(node)}"
             )
             return
         node4 = node
