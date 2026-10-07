@@ -30,8 +30,10 @@ if TYPE_CHECKING:
     from redArrow.typing import PointTuple, QuadraticCurveTuple, RectTuple
 
 
-def fmt_node(node):
-    return f"({node.position.x:g}, {node.position.y:g})"
+def fmt_node(node: "GSNode | None") -> str:
+    if node is None:
+        return "(none)"
+    return f"({node.position.x:g}, {node.position.y:g})[{node.index}]"
 
 
 def fmt_nodes(nodes):
