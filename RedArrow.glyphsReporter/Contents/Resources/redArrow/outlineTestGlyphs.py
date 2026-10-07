@@ -258,7 +258,9 @@ class OutlineCheck:
             prev_node = None
             next_node = None
             num_nodes = len(path.nodes)
-            for i, node in enumerate(path.nodes):
+            first_oncurve_index = path.firstOncurveNodeIndex()
+            for i in range(first_oncurve_index, first_oncurve_index + num_nodes):
+                node = path.nodes[i]
                 node_type = node.type
                 if node_type == GSOFFCURVE:
                     offcurves.append(node)
