@@ -127,6 +127,9 @@ class OutlineCheck:
         self.RedArrowCheckBboxHandles = True
         self.RedArrowCheckFractionalTransform = True
 
+        self.RedArrowSemiHMaxAngle = atan2(1, 31)
+        self.RedArrowSemiVMaxAngle = atan2(31, 1)
+
     def reset(self) -> None:
         """
         Reset the outline check to its initial state.
@@ -772,7 +775,7 @@ class OutlineCheck:
             and abs(node1.y - node0.y) <= self.RedArrowCheckSemiHVMaxDistance
         ):
             phi = nodes_angle(node0, node1)
-            rho = atan2(1, 31)
+            rho = self.RedArrowSemiHMaxAngle
             if (
                 0 < abs(phi) < rho
                 or 0 < abs(phi - pi) < rho
@@ -799,7 +802,7 @@ class OutlineCheck:
             and abs(node1.x - node0.x) <= self.RedArrowCheckSemiHVMaxDistance
         ):
             phi = nodes_angle(node0, node1)
-            rho = atan2(31, 1)
+            rho = self.RedArrowSemiVMaxAngle
             if 0 < abs(phi - 0.5 * pi) < rho or 0 < abs(phi + 0.5 * pi) < rho:
                 self.errors.append(
                     OutlineError(
