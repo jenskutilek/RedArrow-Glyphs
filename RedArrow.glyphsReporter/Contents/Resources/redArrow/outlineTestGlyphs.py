@@ -258,6 +258,10 @@ class OutlineCheck:
             prev_node = None
             next_node = None
             num_nodes = len(path.nodes)
+            if num_nodes > 150:
+                print(f"Red Arrow: Not checking path with {num_nodes} nodes")
+                continue
+
             first_oncurve_index = path.firstOncurveNodeIndex()
             for i in range(first_oncurve_index, first_oncurve_index + num_nodes):
                 node = path.nodes[i]
