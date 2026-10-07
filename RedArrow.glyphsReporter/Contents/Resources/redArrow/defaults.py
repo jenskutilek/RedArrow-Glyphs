@@ -1,6 +1,5 @@
 import objc
 from AppKit import NSDecimalNumber
-from GlyphsApp import Glyphs
 
 from redArrow.typing import RedArrowOptionsDict
 
