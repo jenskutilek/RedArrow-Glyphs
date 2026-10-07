@@ -277,12 +277,6 @@ class OutlineCheck:
                         next_node = None
                     oncurves.append(node)
 
-                # pn = "None" if prev_node is None else fmt_node(prev_node)
-                # nn = "None" if next_node is None else fmt_node(next_node)
-                # print(
-                #     f"Prev: {pn}, off: {fmt_nodes(offcurves)}, cur: {fmt_node(node)}, next: {nn}, oncurves: {fmt_nodes(oncurves)}"
-                # )
-
                 if node_type == GSLINE:
                     self._run_line_checks(node, prev_node, next_node)
                     continue
@@ -474,9 +468,6 @@ class OutlineCheck:
                     )
 
     def _check_layer_bbox_handle(self, node: "GSNode") -> None:
-        if self.layer is None:
-            return
-
         if node.x < self.bb_left:
             self.errors.append(
                 OutlineError(node, "Handle outside bounding box", vector=(0, -1))
@@ -493,7 +484,6 @@ class OutlineCheck:
             self.errors.append(
                 OutlineError(node, "Handle outside bounding box", vector=(1, 0))
             )
-            return
 
     def _check_extrema_quad(
         self, on0: "GSNode", offcurves: "Sequence[GSNode]", on1: "GSNode"
