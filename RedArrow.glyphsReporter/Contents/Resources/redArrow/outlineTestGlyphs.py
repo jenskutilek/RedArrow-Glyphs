@@ -9,6 +9,7 @@ from redArrow.geometry import (
     get_extrema_for_quadratic,
     get_inflections_for_cubic,
     get_inflections_for_quadratic,
+    is_point_on_grid,
     nodes_angle,
     nodes_distance,
     nodes_half_point,
@@ -589,14 +590,13 @@ class OutlineCheck:
                 OutlineError(NSMakePoint(x, y), "Inflection", vector=vectors[i])
             )
 
-    def _check_fractional_coordinates(self, n: "GSNode") -> bool | None:
+    def _check_fractional_coordinates(self, n: "GSNode") -> None:
         if self.RedArrowCheckFractionalIgnorePointZero:
-            n_prev = round_point(n, self.RedArrowGridLengthH, self.RedArrowGridLengthV)
-            if abs(n_prev.x - n.x) < 0.001 and abs(n_prev.y - n.y) < 0.001:
-                return False
+            if is_point_on_grid(n, self.RedArrowGridLengthH, self.RedArrowGridLengthV):
+                return
         else:
             if isinstance(n.x, int) and isinstance(n.y, int):
-                return False
+                return
 
         self.errors.append(
             OutlineError(
@@ -605,7 +605,6 @@ class OutlineCheck:
                 vector=None,
             )
         )
-        return None
 
     def _get_component_error_position(self, component: "GSComponent") -> "NSPoint":
         if component.component is None or self.layer is None:
@@ -615,24 +614,22 @@ class OutlineCheck:
         tbox = transform_rect(bbox, component.transform)
         return nodes_half_point(*tbox)
 
-    def _check_fractional_component_offset(self, component: "GSComponent"):
-        for value, grid_length in zip(
-            component.transform[-2:],
-            (self.RedArrowGridLengthH, self.RedArrowGridLengthV),
-        ):
-            if abs(round_value(value, grid_length) - value) > 0.001:
-                self.errors.append(
-                    OutlineError(
-                        self._get_component_error_position(component),
-                        f"Fractional component offset on ‘{component.componentName}’",
-                        vector=None,
-                    )
-                )
-                break
+    def _check_fractional_component_offset(self, component: "GSComponent") -> None:
+        offset = NSMakePoint(component.transform[-2], component.transform[-1])
+        if is_point_on_grid(offset, self.RedArrowGridLengthH, self.RedArrowGridLengthV):
+            return
+
+        self.errors.append(
+            OutlineError(
+                self._get_component_error_position(component),
+                f"Fractional component offset on ‘{component.componentName}’",
+                vector=None,
+            )
+        )
 
     def _check_fractional_transformation(self, component: "GSComponent") -> None:
         for value in component.transform[:-2]:
-            if abs(round_value(value) - value) > 0.001:
+            if value % 1 > 0:
                 self.errors.append(
                     OutlineWarning(
                         self._get_component_error_position(component),

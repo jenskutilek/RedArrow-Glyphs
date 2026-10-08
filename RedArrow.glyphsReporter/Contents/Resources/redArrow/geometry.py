@@ -307,6 +307,35 @@ def get_inflections_for_quadratic(
         return [], []
 
 
+def is_point_on_grid(
+    pt: "GSNode | NSPoint", grid_length_h: int = 1, grid_length_v: int | None = None
+) -> bool:
+    """
+    Checks if a point is on the specified grid. If the supplied grid length is 0, the
+    point is always considered to be on the grid.
+
+    Args:
+        pt (GSNode | NSPoint): The node or point
+        grid_length_h (int, optional): The horizontal grid length. Defaults to 1.
+        grid_length_v (int | None, optional): The vertical grid length. If None, the
+            horizontal grid length is used for both dimensions.. Defaults to None.
+
+    Returns:
+        bool: _description_
+    """
+    grid_length_v = grid_length_h if grid_length_v is None else grid_length_v
+    if grid_length_h == 0:
+        if grid_length_v == 0:
+            return True
+        else:
+            return pt.y % grid_length_v == 0
+    else:
+        if grid_length_v == 0:
+            return pt.x % grid_length_h == 0
+        else:
+            return pt.x % grid_length_h == 0 and pt.y % grid_length_v == 0
+
+
 def round_point(
     pt: "GSNode | NSPoint", grid_length_h: int = 1, grid_length_v: int | None = None
 ) -> "NSPoint":
