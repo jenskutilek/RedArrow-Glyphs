@@ -1,3 +1,4 @@
+from decimal import ROUND_HALF_UP, Decimal, DefaultContext, setcontext
 from math import atan2, sqrt
 from typing import TYPE_CHECKING
 
@@ -21,6 +22,10 @@ if TYPE_CHECKING:
     from GlyphsApp import GSNode
 
     from redArrow.typing import PointTuple, QuadraticCurveTuple, Vector2D
+
+
+DefaultContext.rounding = ROUND_HALF_UP
+setcontext(DefaultContext)
 
 
 def solve_linear(a: float, b: float) -> list[float]:
@@ -302,20 +307,24 @@ def get_inflections_for_quadratic(
         return [], []
 
 
-def round_point(pt: "GSNode | NSPoint", grid_length: int = 1) -> "NSPoint":
+def round_point(
+    pt: "GSNode | NSPoint", grid_length_h: int = 1, grid_length_v: int | None = None
+) -> "NSPoint":
     """
     Return a copy of point or node pt with its coordinates rounded depending on
         grid_length.
 
     Args:
         pt (GSNode | NSPoint): The node or point
-        grid_length (int, optional): The grid length. Defaults to 1.
+        grid_length_h (int, optional): The horizontal grid length. Defaults to 1.
+        grid_length_v (int | None, optional): The vertical grid length. Defaults to
+            None. If None, the horizontal grid length is used for both dimensions.
 
     Returns:
         NSPoint: The rounded point
     """
-    x = round_value(pt.x, grid_length)
-    y = round_value(pt.y, grid_length)
+    x = round_value(pt.x, grid_length_h)
+    y = round_value(pt.y, grid_length_v or grid_length_h)
     return NSMakePoint(x, y)
 
 
@@ -334,9 +343,9 @@ def round_value(v: float, grid_length: int = 1) -> float | int:
     if grid_length == 0:
         return v
     elif grid_length == 1:
-        vr: int = round(v)
+        vr: int = int(round(Decimal(str(v)), 0))
     else:
-        vr = round(v / grid_length) * grid_length
+        vr = int(round(Decimal(str(v / grid_length)), 0)) * grid_length
     return vr
 
 
