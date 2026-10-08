@@ -266,10 +266,18 @@ class OutlineCheck:
             if num_nodes > 150:
                 print(f"Red Arrow: Not checking path with {num_nodes} nodes")
                 continue
-
             first_oncurve_index = path.firstOncurveNodeIndex()
-            for i in range(first_oncurve_index, first_oncurve_index + num_nodes):
+            last_index = first_oncurve_index + num_nodes - 1
+            # print(f"Nodes: {num_nodes} starting at index {first_oncurve_index}")
+            for i in range(first_oncurve_index, first_oncurve_index + num_nodes + 1):
+                if i > num_nodes - 1:
+                    if path.closed:
+                        # print(f"   Node index wrap: {i} -> {i - num_nodes}")
+                        i -= num_nodes
+                    else:
+                        break
                 node = path.nodes[i]
+                print(f"  [{i}] {fmt_node(node)}")
                 node_type = node.type
                 if node_type == GSOFFCURVE:
                     offcurves.append(node)
@@ -280,8 +288,15 @@ class OutlineCheck:
                     else:
                         prev_node = None
                     next_node_index = i + 1
-                    if path.closed or next_node_index < num_nodes:
-                        next_node = path.nodes[next_node_index % num_nodes]
+                    if path.closed:
+                        if next_node_index > last_index:
+                            # print(
+                            #     f"   Next node index wrap: {next_node_index} -> {next_node_index - num_nodes}"
+                            # )
+                            next_node_index -= num_nodes
+                        next_node = path.nodes[next_node_index]
+                    elif next_node_index <= last_index:
+                        next_node = path.nodes[next_node_index]
                     else:
                         next_node = None
                     oncurves.append(node)
@@ -367,6 +382,9 @@ class OutlineCheck:
         node3 = offcurves[-1]  # control point 2
         node2 = offcurves[-2]  # control point 1
         node1 = prev_oncurve
+        # print(
+        #     f"    Curve checks: on={fmt_node(node1)}, off1={fmt_node(node2)}, off2={fmt_node(node3)}, on={fmt_node(node4)} -- prev={fmt_node(prev_node)}, next={fmt_node(next_node)}"
+        # )
         if self.RedArrowCheckExtrema:
             self._check_bbox_curve(node1, node2, node3, node4)
         if self.RedArrowCheckInflections:
