@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 
 def fmt_node(node: "GSNode | None") -> str:
     if node is None:
-        return "(none)"
+        return "None"
     return f"({node.position.x:g}, {node.position.y:g})[{node.index}]"
 
 
