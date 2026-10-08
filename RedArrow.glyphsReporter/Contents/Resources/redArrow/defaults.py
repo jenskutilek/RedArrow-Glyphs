@@ -1,5 +1,5 @@
 import objc
-from AppKit import NSDecimalNumber
+from AppKit import NSColor, NSDecimalNumber, NSKeyedArchiver
 
 from redArrow.typing import RedArrowOptionsDict
 
@@ -20,6 +20,21 @@ default_checks: list[str] = [
 ]
 
 default_options: RedArrowOptionsDict = {
+    # Checks
+    "RedArrowCheckExtrema": True,
+    "RedArrowCheckInflections": True,
+    "RedArrowCheckFractionalCoords": True,
+    "RedArrowCheckFractionalTransform": True,
+    "RedArrowCheckSmooth": True,
+    "RedArrowCheckEmptySegments": True,
+    "RedArrowCheckCollinear": True,
+    "RedArrowCheckSemiHV": True,
+    "RedArrowCheckClosepath": True,
+    "RedArrowCheckZeroHandles": True,
+    "RedArrowCheckBboxHandles": True,
+    "RedArrowCheckShortSegments": True,
+    "RedArrowCheckSpikes": True,
+    # Options
     "RedArrowIgnoreWarnings": False,
     "RedArrowExtremaCalculateBadness": False,
     "RedArrowExtremaIgnoreBadnessBelow": 0,
@@ -28,7 +43,8 @@ default_options: RedArrowOptionsDict = {
     "RedArrowCheckSemiHVMaxDistance": 2,
     "RedArrowCheckFractionalIgnorePointZero": True,
     "RedArrowCollinearMaxDistance": 2,
-    "RedArrowGridLength": 1,
+    "RedArrowGridLengthH": 1,
+    "RedArrowGridLengthV": 1,
     "RedArrowZeroHandlesMaxDistance": 0,
     "RedArrowInflectionMin": 0.3,
     "RedArrowSpikeAngle": 0.49,
@@ -45,6 +61,19 @@ option_types: dict[str, str] = {
     "RedArrowInflectionMin": "float",
     "RedArrowSpikeAngle": "float",
 }
+
+
+def nsc(r: float, g: float, b: float, a: float) -> NSColor:
+    return NSColor.colorWithCalibratedRed_green_blue_alpha_(r, g, b, a)
+
+
+def nsc_arch(r: float, g: float, b: float, a: float):
+    result, _err = (
+        NSKeyedArchiver.archivedDataWithRootObject_requiringSecureCoding_error_(
+            nsc(r, g, b, a), True, None
+        )
+    )
+    return result
 
 
 def typechecked_options(

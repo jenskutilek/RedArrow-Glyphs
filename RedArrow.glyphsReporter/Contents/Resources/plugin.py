@@ -27,7 +27,12 @@ from AppKit import (
 from GlyphsApp import MOUSEMOVED, WINDOW_MENU, Glyphs
 from GlyphsApp.plugins import ReporterPlugin
 
-from redArrow.defaults import default_checks, default_options, typechecked_options
+from redArrow.defaults import (
+    default_checks,
+    default_options,
+    nsc_arch,
+    typechecked_options,
+)
 from redArrow.outlineTestGlyphs import OutlineCheck
 
 if TYPE_CHECKING:
@@ -100,6 +105,7 @@ class RedArrow(ReporterPlugin):
         self.mouse_position = NSMakePoint(0, 0)
         self.last_change_date = 0
         self.current_layer: GSLayer | None = None
+        self.options: RedArrowOptionsDict = {}
         self.load_defaults()
 
     @objc.python_method
@@ -283,9 +289,13 @@ class RedArrow(ReporterPlugin):
     @objc.python_method
     def load_defaults(self) -> None:
         Glyphs.registerDefaults(default_options)
-        self.options: RedArrowOptionsDict = {
-            k: Glyphs.defaults[k] for k in default_options
-        }
+        Glyphs.registerDefaults(
+            {
+                "RedArrowErrorColor": nsc_arch(*error_color),
+                "RedArrowWarningColor": nsc_arch(*warning_color),
+            }
+        )
+        self.options = {k: Glyphs.defaults[k] for k in default_options}
         self.run_checks = Glyphs.defaults.get("RedArrowRunChecks", default_checks)
         self.outline_check = OutlineCheck(None, self.options, self.run_checks)
         self.current_layer = None

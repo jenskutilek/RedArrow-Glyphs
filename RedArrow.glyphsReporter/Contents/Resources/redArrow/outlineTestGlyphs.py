@@ -234,7 +234,8 @@ class OutlineCheck:
         self.RedArrowInflectionMin = self.options.get("RedArrowInflectionMin", 0.3)
         self.RedArrowSpikeAngle = self.options.get("RedArrowSpikeAngle", 0.49)
 
-        self.RedArrowGridLength = self.options.get("RedArrowGridLength", 1)
+        self.RedArrowGridLengthH = self.options.get("RedArrowGridLengthH", 1)
+        self.RedArrowGridLengthV = self.options.get("RedArrowGridLengthV", 1)
         self.RedArrowIgnoreWarnings = self.options.get("RedArrowIgnoreWarnings", False)
 
         # which checks should be run
@@ -590,7 +591,7 @@ class OutlineCheck:
 
     def _check_fractional_coordinates(self, n: "GSNode") -> bool | None:
         if self.RedArrowCheckFractionalIgnorePointZero:
-            n_prev = round_point(n, self.RedArrowGridLength)
+            n_prev = round_point(n, self.RedArrowGridLengthH, self.RedArrowGridLengthV)
             if abs(n_prev.x - n.x) < 0.001 and abs(n_prev.y - n.y) < 0.001:
                 return False
         else:
