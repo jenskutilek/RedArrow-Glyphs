@@ -519,20 +519,20 @@ class OutlineCheck:
             # point is left from rect
             if y < myRect[1]:
                 # point is lower left from rect
-                badness = round(sqrt((myRect[0] - x) ** 2 + (myRect[1] - y) ** 2))
+                badness = round_value(sqrt((myRect[0] - x) ** 2 + (myRect[1] - y) ** 2))
             elif y > myRect[3]:
                 # point is upper left from rect
-                badness = round(sqrt((myRect[0] - x) ** 2 + (myRect[3] - y) ** 2))
+                badness = round_value(sqrt((myRect[0] - x) ** 2 + (myRect[3] - y) ** 2))
             else:
                 badness = myRect[0] - x
         elif x > myRect[2]:
             # point is right from rect
             if y < myRect[1]:
                 # point is lower right from rect
-                badness = round(sqrt((myRect[2] - x) ** 2 + (myRect[1] - y) ** 2))
+                badness = round_value(sqrt((myRect[2] - x) ** 2 + (myRect[1] - y) ** 2))
             elif y > myRect[3]:
                 # point is upper right from rect
-                badness = round(sqrt((myRect[2] - x) ** 2 + (myRect[3] - y) ** 2))
+                badness = round_value(sqrt((myRect[2] - x) ** 2 + (myRect[3] - y) ** 2))
             else:
                 badness = x - myRect[2]
         else:
@@ -616,8 +616,11 @@ class OutlineCheck:
         return nodes_half_point(*tbox)
 
     def _check_fractional_component_offset(self, component: "GSComponent"):
-        for value in component.transform[-2:]:
-            if abs(round_value(value, self.RedArrowGridLength) - value) > 0.001:
+        for value, grid_length in zip(
+            component.transform[-2:],
+            (self.RedArrowGridLengthH, self.RedArrowGridLengthV),
+        ):
+            if abs(round_value(value, grid_length) - value) > 0.001:
                 self.errors.append(
                     OutlineError(
                         self._get_component_error_position(component),
@@ -629,7 +632,7 @@ class OutlineCheck:
 
     def _check_fractional_transformation(self, component: "GSComponent") -> None:
         for value in component.transform[:-2]:
-            if abs(round(value) - value) > 0.001:
+            if abs(round_value(value) - value) > 0.001:
                 self.errors.append(
                     OutlineWarning(
                         self._get_component_error_position(component),
@@ -683,12 +686,16 @@ class OutlineCheck:
         )
         # Compare projected position with actual position
         badness = nodes_distance(
-            round_point(projected_pt, self.RedArrowGridLength), ref
+            round_point(
+                projected_pt, self.RedArrowGridLengthH, self.RedArrowGridLengthV
+            ),
+            ref,
         )
-        if self.RedArrowGridLength == 0:
+        # FIXME: H and V grid length
+        if self.RedArrowGridLengthH == 0:
             d = 0.49
         else:
-            d = self.RedArrowGridLength * 0.49
+            d = self.RedArrowGridLengthH * 0.49
         if d < badness and (node.smooth or badness < self.RedArrowSmoothMaxDistance):
             self.errors.append(
                 OutlineError(
@@ -738,7 +745,10 @@ class OutlineCheck:
             node.y + dist * sin(phi1),
         )
         badness = nodes_distance(
-            round_point(projected_pt, self.RedArrowGridLength), next_node
+            round_point(
+                projected_pt, self.RedArrowGridLengthH, self.RedArrowGridLengthV
+            ),
+            next_node,
         )
         if badness < self.RedArrowCollinearMaxDistance:
             self.errors.append(
