@@ -1,5 +1,6 @@
 from math import atan2, cos, pi, sin, sqrt
 from os import environ
+from time import time
 from typing import TYPE_CHECKING
 
 import objc
@@ -333,7 +334,6 @@ class RedArrow(ReporterPlugin):
 
     @objc.python_method
     def foreground(self, layer: "GSLayer | None") -> None:
-        # self.logToConsole("_update_outline_check: %s" % layer)
         if layer is None:
             print("RedArrow: Plugin.foreground() called with None")
             return
@@ -465,22 +465,26 @@ class RedArrow(ReporterPlugin):
         self.current_layer = layer
         self.last_change_date = layer.parent.lastOperationInterval()
         self.errors = []
-        # TODO: Use Layer.gridLengthHorizontal(), Layer.gridLengthVertical()
-        # See https://forum.glyphsapp.com/t/gsfont-vs-gsinterpolationfontproxy/37104/4
-        if layer is not None and hasattr(layer, "parent"):
-            # start = time()
+
+        # start = time()
+        if Glyphs.versionNumber >= 4.0:
+            self.options["RedArrowGridLengthH"] = layer.gridLengthHorizontal()
+            self.options["RedArrowGridLengthV"] = layer.gridLengthVertical()
+        else:
             grid_length = layer.parent.parent.gridLength
             if isinstance(grid_length, (float, int)):
-                self.options["RedArrowGridLength"] = grid_length
+                self.options["RedArrowGridLengthH"] = grid_length
+                self.options["RedArrowGridLengthV"] = grid_length
             else:
                 # GSInterpolationFontProxy
-                self.options["RedArrowGridLength"] = grid_length()
-            self.outline_check.layer = layer
-            self.outline_check.check_layer()
-            # stop = time()
-            self.errors = self.outline_check.errors
-            # print(f"Updated layer check in {round((stop - start) * 1000)} ms.")
-            # print("\n".join([str(e) for e in self.errors]))
+                self.options["RedArrowGridLengthH"] = grid_length()
+                self.options["RedArrowGridLengthV"] = grid_length()
+        self.outline_check.layer = layer
+        self.outline_check.check_layer()
+        # stop = time()
+        self.errors = self.outline_check.errors
+        # print(f"Updated layer check in {round((stop - start) * 1000)} ms.")
+        #     # print("\n".join([str(e) for e in self.errors]))
         if DEBUG:
             self.logToConsole(f"Errors: {self.errors}")
 
