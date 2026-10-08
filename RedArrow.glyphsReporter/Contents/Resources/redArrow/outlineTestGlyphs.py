@@ -259,7 +259,7 @@ class OutlineCheck:
 
         for path in self.layer.paths:
             offcurves: list[GSNode] = []
-            oncurves: list[GSNode] = []
+            oncurve: GSNode | None = None
             prev_node = None
             next_node = None
             num_nodes = len(path.nodes)
@@ -299,30 +299,36 @@ class OutlineCheck:
                         next_node = path.nodes[next_node_index]
                     else:
                         next_node = None
-                    oncurves.append(node)
 
                 if node_type == GSLINE:
                     self._run_line_checks(node, prev_node, next_node)
+                    # offcurves = []  # Should not be necessary
+                    oncurve = node
                     continue
 
                 if node_type == GSOFFCURVE:
                     self._run_offcurve_checks(node)
                     continue
 
-                if len(oncurves) < 2:
-                    # FIXME: Quadratic contour without oncurves
+                if oncurve is None:
+                    if node_type in (GSCURVE, GSQCURVE):
+                        oncurve = node
                     continue
 
-                on = oncurves[-2]
-
                 if node_type == GSCURVE:
-                    self._run_curve_checks(node, prev_node, next_node, on, offcurves)
+                    self._run_curve_checks(
+                        node, prev_node, next_node, oncurve, offcurves
+                    )
                     offcurves = []
+                    oncurve = node
                     continue
 
                 if node_type == GSQCURVE:
-                    self._run_qcurve_checks(node, prev_node, next_node, on, offcurves)
+                    self._run_qcurve_checks(
+                        node, prev_node, next_node, oncurve, offcurves
+                    )
                     offcurves = []
+                    oncurve = node
 
         for component in self.layer.components:
             self._run_component_checks(component)
