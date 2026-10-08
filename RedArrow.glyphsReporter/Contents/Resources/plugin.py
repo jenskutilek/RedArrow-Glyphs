@@ -26,6 +26,7 @@ from AppKit import (
     NSString,
 )
 from GlyphsApp import MOUSEMOVED, WINDOW_MENU, Glyphs
+from GlyphsApp.drawingTools import restore, save
 from GlyphsApp.plugins import ReporterPlugin
 
 from redArrow.defaults import (
@@ -495,7 +496,6 @@ class RedArrow(ReporterPlugin):
         kind: str,
         size: int,
         vector: "PointTuple | None" = normal_vector,
-        level: str = "e",
     ) -> None:
         if vector is None:
             vector = normal_vector
@@ -507,11 +507,6 @@ class RedArrow(ReporterPlugin):
 
         chin = 0.5 * (w - w * tail_width)  # part under the head
 
-        if level == "e":
-            arrow_color = error_color
-        else:
-            arrow_color = warning_color
-        NSColor.colorWithCalibratedRed_green_blue_alpha_(*arrow_color).set()
         t = NSAffineTransform.transform()
         t.translateXBy_yBy_(position.x, position.y)
         t.rotateByRadians_(angle)
@@ -583,6 +578,7 @@ class RedArrow(ReporterPlugin):
             4 / scale,
         )
 
+        save()
         label_background.colorWithAlphaComponent_(0.8 * percent).setFill()
         myRect.fill()
 
@@ -591,6 +587,7 @@ class RedArrow(ReporterPlugin):
         # myRect.stroke()
 
         myString.drawInRect_withAttributes_(rr, attrs)
+        restore()
 
     @objc.python_method
     def _draw_unspecified(
@@ -599,17 +596,11 @@ class RedArrow(ReporterPlugin):
         kind: str,
         size: int,
         vector: "PointTuple | None" = normal_vector,
-        level: str = "e",
     ) -> None:
         if vector is None:
             vector = normal_vector
         angle = atan2(vector[1], vector[0])
         circle_size = size * 1.3
-        if level == "e":
-            arrow_color = error_color
-        else:
-            arrow_color = warning_color
-        NSColor.colorWithCalibratedRed_green_blue_alpha_(*arrow_color).set()
 
         t = NSAffineTransform.transform()
         t.translateXBy_yBy_(position.x, position.y)
@@ -654,6 +645,7 @@ class RedArrow(ReporterPlugin):
                     errors_by_position[None].append(e)
                 else:
                     errors_by_position[None] = [e]
+        prev_level = ""
         for pos, errors in errors_by_position.items():
             message = ""
             level = "w"
@@ -675,11 +667,16 @@ class RedArrow(ReporterPlugin):
                     level = e.level
                 if vector == normal_vector:
                     vector = e.vector
+            if level != prev_level:
+                if level == "e":
+                    arrow_color = Glyphs.colorDefaults["RedArrowErrorColor"]
+                else:
+                    arrow_color = Glyphs.colorDefaults["RedArrowWarningColor"]
+                arrow_color.set()
             if pos is None:
                 x = 20 if self.current_layer is None else self.current_layer.width + 20
                 p = NSMakePoint(x, -10)
-                self._draw_unspecified(p, message.strip(", "), size, vector, level)
+                self._draw_unspecified(p, message.strip(", "), size, vector)
             else:
-                self._draw_arrow(
-                    NSMakePoint(*pos), message.strip(", "), size, vector, level
-                )
+                self._draw_arrow(NSMakePoint(*pos), message.strip(", "), size, vector)
+            prev_level = level
