@@ -264,7 +264,7 @@ class OutlineCheck:
             next_node = None
             num_nodes = len(path.nodes)
             if num_nodes > 150:
-                print(f"Red Arrow: Not checking path with {num_nodes} nodes")
+                # print(f"Red Arrow: Not checking path with {num_nodes} nodes")
                 continue
             first_oncurve_index = path.firstOncurveNodeIndex()
             last_index = first_oncurve_index + num_nodes - 1
@@ -277,7 +277,7 @@ class OutlineCheck:
                     else:
                         break
                 node = path.nodes[i]
-                print(f"  [{i}] {fmt_node(node)}")
+                # print(f"  [{i}] {fmt_node(node)}")
                 node_type = node.type
                 if node_type == GSOFFCURVE:
                     offcurves.append(node)
