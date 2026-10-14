@@ -83,8 +83,8 @@
         NSUInteger numNodes = path.countOfNodes;
         GSNode * prev = path.nodes[numNodes - 1];
         GSNode * next = path.nodes[1];
-        for (NSUInteger i = 0; i <= numNodes; i++) {
-            GSNode * node = path.nodes[i];
+        for (NSUInteger i = 0; i < numNodes; i++) {
+            GSNode * node = [path nodeAtIndex: i];
             switch (node.type) {
                 case GSNodeTypeCubicCurve:
                     [self runCubicCurveChecks: node];
@@ -110,7 +110,7 @@
                 // Roll over to first node
                 next = path.nodes[0];
             } else {
-                next = path.nodes[i+1];
+                next = [path nodeAtIndex: i+1];
             }
         }
     }
