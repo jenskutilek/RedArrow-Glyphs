@@ -74,7 +74,6 @@
 
 
 - (void)updateOutlineReport:(GSLayer *)layer options:(NSDictionary *)options {
-    NSLog(@"updateOutlineReport: %@", layer.name);
     self.upm = layer.parent.parent.unitsPerEm;
     // self.RedArrowSmoothMaxDistance = [self normalizeForUpm: self.RedArrowSmoothMaxDistance];
     for (GSPath* path in layer.paths) {
