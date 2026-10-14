@@ -54,6 +54,9 @@
 
 
 - (void)drawForegroundForLayer:(GSLayer *)layer options:(NSDictionary *)options {
+    if (!self.errors) {
+        self.errors = [NSMutableArray new];
+    }
     // Update the outline check on each draw for now
     [self.errors removeAllObjects];
     [self updateOutlineReport:layer options:options];
