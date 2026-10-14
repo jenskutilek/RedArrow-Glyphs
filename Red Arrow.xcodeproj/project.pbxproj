@@ -164,12 +164,15 @@
 				GCC_PREFIX_HEADER = "Red Arrow/Red Arrow-Prefix.pch";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Red Arrow";
+				INFOPLIST_KEY_NSPrincipalClass = Red_Arrow;
 				INSTALL_PATH = /;
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"-framework",
 					GlyphsCore,
+					"-framework",
+					GlyphsApp,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "de.kutilek.Red-Arrow";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -189,12 +192,15 @@
 				GCC_PREFIX_HEADER = "Red Arrow/Red Arrow-Prefix.pch";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Red Arrow";
+				INFOPLIST_KEY_NSPrincipalClass = Red_Arrow;
 				INSTALL_PATH = /;
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"-framework",
 					GlyphsCore,
+					"-framework",
+					GlyphsApp,
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "de.kutilek.Red-Arrow";
 				PRODUCT_NAME = "$(TARGET_NAME)";
