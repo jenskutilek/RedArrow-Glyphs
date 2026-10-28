@@ -56,6 +56,14 @@ label_background = NSColor.textBackgroundColor()
 normal_vector = (1, 1)
 
 
+def fallbackColor(color_tuple: tuple[float, float, float, float]) -> NSColor:
+    return nsc(*color_tuple)
+
+
+def nsc(r: float, g: float, b: float, a: float) -> NSColor:
+    return NSColor.colorWithCalibratedRed_green_blue_alpha_(r, g, b, a)
+
+
 def points_distance(p0: "NSPoint", p1: "NSPoint") -> float:
     return sqrt((p1.y - p0.y) ** 2 + (p1.x - p0.x) ** 2)
 
@@ -669,9 +677,13 @@ class RedArrow(ReporterPlugin):
                     vector = e.vector
             if level != prev_level:
                 if level == "e":
-                    arrow_color = Glyphs.colorDefaults["RedArrowErrorColor"]
+                    arrow_color = Glyphs.colorDefaults[
+                        "RedArrowErrorColor"
+                    ] or fallbackColor(error_color)
                 else:
-                    arrow_color = Glyphs.colorDefaults["RedArrowWarningColor"]
+                    arrow_color = Glyphs.colorDefaults[
+                        "RedArrowWarningColor"
+                    ] or fallbackColor(warning_color)
                 arrow_color.set()
             if pos is None:
                 x = 20 if self.current_layer is None else self.current_layer.width + 20
