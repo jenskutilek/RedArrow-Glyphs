@@ -218,7 +218,7 @@ class RedArrow(ReporterPlugin):
                 {
                     "title": "Smooth Connection Tolerance",
                     "key": "RedArrowSmoothMaxDistance",
-                    "type": "float",
+                    "type": "bool",
                 },
                 {
                     "title": "Zero-length Segments",
