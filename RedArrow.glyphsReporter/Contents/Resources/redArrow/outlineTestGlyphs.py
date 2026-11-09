@@ -243,12 +243,12 @@ class OutlineCheck:
         if self.run_checks == []:
             # run all checks
             for t in self.all_checks:
-                setattr(self, t, True)
+                setattr(self, t, bool(self.options.get(t, True)))
         else:
             # only run supplied checks
             for t in self.all_checks:
                 if t in self.run_checks:
-                    setattr(self, t, True)
+                    setattr(self, t, bool(self.options.get(t, True)))
                 else:
                     setattr(self, t, False)
 

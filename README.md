@@ -37,6 +37,12 @@ Restart Glyphs.
 Open a glyph in Edit View.
 Use _View – Show Red Arrows_ to toggle the arrows.
 
+#### Preferences
+
+In Glyphs 4, open _Settings – Advanced_ and look for the _Red Arrow_ category.
+Changes to checks and tolerances apply immediately, including to the current glyph.
+In Glyphs 3, use _Window – Red Arrow Preferences..._.
+
 #### Customizing The Arrow Size
 
 You can set the size of the arrows, e.g. to 10 pixels by running this command in the _Macro Panel:_

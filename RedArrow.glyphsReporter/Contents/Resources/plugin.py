@@ -24,6 +24,7 @@ from AppKit import (
     NSRect,
     NSShiftKeyMask,
     NSString,
+    NSUserDefaultsDidChangeNotification,
 )
 from GlyphsApp import MOUSEMOVED, WINDOW_MENU, Glyphs
 from GlyphsApp.drawingTools import restore, save
@@ -117,6 +118,13 @@ class RedArrow(ReporterPlugin):
         self.current_layer: GSLayer | None = None
         self.options: RedArrowOptionsDict = {}
         self.load_defaults()
+        if Glyphs.versionNumber >= 4.0:
+            NSNotificationCenter.defaultCenter().addObserver_selector_name_object_(
+                self,
+                self.defaultsDidChange_,
+                NSUserDefaultsDidChangeNotification,
+                objc.nil,
+            )
 
     @objc.python_method
     def add_menu_item(self) -> None:
@@ -210,7 +218,7 @@ class RedArrow(ReporterPlugin):
                 {
                     "title": "Smooth Connection Tolerance",
                     "key": "RedArrowSmoothMaxDistance",
-                    "type": "bool",
+                    "type": "float",
                 },
                 {
                     "title": "Zero-length Segments",
@@ -306,9 +314,21 @@ class RedArrow(ReporterPlugin):
             }
         )
         self.options = {k: Glyphs.defaults[k] for k in default_options}
-        self.run_checks = Glyphs.defaults.get("RedArrowRunChecks", default_checks)
+        if Glyphs.versionNumber >= 4.0:
+            # Glyphs 4 exposes individual check switches in Advanced Preferences.
+            self.run_checks = default_checks
+        else:
+            self.run_checks = Glyphs.defaults.get("RedArrowRunChecks", default_checks)
         self.outline_check = OutlineCheck(None, self.options, self.run_checks)
         self.current_layer = None
+        Glyphs.redraw()
+
+    def defaultsDidChange_(self, notification) -> None:
+        options = {k: Glyphs.defaults[k] for k in default_options}
+        if options != self.options:
+            self.options = options
+            self.outline_check = OutlineCheck(None, self.options, self.run_checks)
+            self.current_layer = None
         Glyphs.redraw()
 
     @objc.python_method
@@ -389,7 +409,9 @@ class RedArrow(ReporterPlugin):
         )
 
     def stopMouseMoved(self) -> None:
-        NSNotificationCenter.defaultCenter().removeObserver_(self)
+        NSNotificationCenter.defaultCenter().removeObserver_name_object_(
+            self, MOUSEMOVED, objc.nil
+        )
 
     @objc.python_method
     def select_glyphs_options(
